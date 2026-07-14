@@ -1,0 +1,20 @@
+{
+  "app": {
+    "name": "Futebol"
+  },
+  "actions": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "retry": "Tentar novamente",
+    "signOut": "Sair"
+  },
+  "feedback": {
+    "loading": "Carregando…",
+    "genericError": "Algo deu errado. Tente novamente.",
+    "networkError": "Não foi possível conectar ao servidor."
+  },
+  "nav": {
+    "home": "Início"
+  }
+}
