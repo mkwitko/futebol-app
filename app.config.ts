@@ -3,6 +3,9 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
 // Base URL da API: EXPO_PUBLIC_API_URL (env) tem prioridade; senão cai no default local.
 // Ver src/env.ts para o consumo validado (Zod) desse valor.
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3333";
+// Base URL do site (página pública do convidado) — usada para montar o link
+// de convite compartilhado no zap (`/invite/<token>`).
+const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? "http://localhost:5173";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -37,6 +40,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-font",
     "expo-localization",
     "expo-image",
+    "@react-native-community/datetimepicker",
     [
       "expo-splash-screen",
       {
@@ -51,5 +55,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   extra: {
     apiUrl: API_URL,
+    webUrl: WEB_URL,
   },
 });

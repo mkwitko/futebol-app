@@ -1,0 +1,104 @@
+{
+  "create": {
+    "title": "Nova pelada",
+    "dateLabel": "Data",
+    "timeLabel": "Horário",
+    "locationLabel": "Local",
+    "locationPlaceholder": "Ex.: Quadra do Zico",
+    "slotsLabel": "Vagas",
+    "priceLabel": "Preço por pessoa (R$)",
+    "pricePlaceholder": "0,00",
+    "priceHelper": "Deixe em branco se a pelada for gratuita.",
+    "pixKeyLabel": "Chave PIX (opcional)",
+    "pixKeyPlaceholder": "CPF, e-mail, telefone ou chave aleatória",
+    "repeatWeeklyLabel": "Repete toda semana",
+    "repeatWeeklyHint": "Cria peladas recorrentes no mesmo dia e horário.",
+    "submit": "Criar pelada",
+    "submitting": "Criando…",
+    "error": "Não foi possível criar a pelada. Tente novamente."
+  },
+  "detail": {
+    "loadingTitle": "Carregando…",
+    "loadError": "Não foi possível carregar esta pelada.",
+    "createdToast": "Pelada criada!",
+    "slotsConfirmed": "{{confirmed}}/{{slots}} confirmados",
+    "freeMatch": "Gratuita",
+    "status": {
+      "open": "Aberta",
+      "full": "Lotada",
+      "closed": "Fechada",
+      "finished": "Finalizada",
+      "cancelled": "Cancelada"
+    },
+    "tabs": {
+      "list": "Lista",
+      "payment": "Pagamento",
+      "teams": "Times"
+    },
+    "list": {
+      "confirmedTitle": "Confirmados",
+      "waitlistTitle": "Fila de espera",
+      "waitlistPosition": "Posição {{position}} na fila",
+      "emptyTitle": "Ninguém confirmado ainda",
+      "emptyDescription": "Convide o grupo para começar a lotar a pelada.",
+      "confirmPresenceCta": "Confirmar minha presença",
+      "confirmPresenceSuccess": "Presença confirmada!",
+      "confirmPresenceError": "Não foi possível confirmar sua presença.",
+      "removeCta": "Remover",
+      "removeSuccess": "Presença cancelada.",
+      "removeError": "Não foi possível cancelar essa presença.",
+      "loadError": "Não foi possível carregar a lista de presença."
+    },
+    "payment": {
+      "pixKeyLabel": "Chave PIX",
+      "pixKeyEmpty": "O organizador ainda não cadastrou uma chave PIX.",
+      "copyCta": "Copiar chave",
+      "copiedToast": "Chave copiada!",
+      "pending": "Pendente",
+      "paid": "Pago",
+      "confirmCta": "Confirmar pagamento",
+      "undoCta": "Desfazer",
+      "markPaidCta": "Marcar como pago",
+      "confirmSuccess": "Pagamento confirmado!",
+      "confirmError": "Não foi possível confirmar o pagamento.",
+      "markPaidSuccess": "Pagamento marcado!",
+      "markPaidError": "Não foi possível marcar o pagamento.",
+      "emptyTitle": "Ninguém confirmado ainda",
+      "emptyDescription": "A cobrança do PIX aparece aqui assim que alguém confirmar presença."
+    },
+    "teams": {
+      "generateCta": "Montar times",
+      "regenerateCta": "Refazer",
+      "generating": "Montando…",
+      "teamLabel": "Time {{team}}",
+      "overallLabel": "Overall",
+      "generateError": "Não foi possível montar os times.",
+      "emptyTitle": "Times ainda não montados",
+      "emptyDescription": "Monte os times automaticamente a partir dos confirmados."
+    },
+    "actions": {
+      "title": "Ações do organizador",
+      "inviteCta": "Convidar",
+      "finishCta": "Encerrar pelada",
+      "finishConfirmTitle": "Encerrar pelada?",
+      "finishConfirmMessage": "A pelada será marcada como finalizada. Essa ação não pode ser desfeita.",
+      "finishSuccess": "Pelada encerrada!",
+      "finishError": "Não foi possível encerrar a pelada.",
+      "cancelCta": "Cancelar pelada",
+      "cancelConfirmTitle": "Cancelar pelada?",
+      "cancelConfirmMessage": "Todos os confirmados serão avisados. Essa ação não pode ser desfeita.",
+      "cancelSuccess": "Pelada cancelada.",
+      "cancelError": "Não foi possível cancelar a pelada.",
+      "forbidden": "Somente o organizador pode fazer isso."
+    },
+    "invite": {
+      "title": "Convidar para a pelada",
+      "description": "Compartilhe o link no grupo do zap.",
+      "shareCta": "Compartilhar",
+      "copyCta": "Copiar link",
+      "copiedToast": "Link copiado!",
+      "error": "Não foi possível criar o convite. Tente novamente.",
+      "message": "Bora jogar? {{date}} às {{time}} em {{location}}. Confirme presença: {{link}}"
+    }
+  }
+}

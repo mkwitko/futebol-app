@@ -5,7 +5,7 @@ import { resources } from "./resources";
 
 export const DEFAULT_LANGUAGE = "pt-BR";
 export const SUPPORTED_LOCALES = ["pt-BR"] as const; // adicione outros idiomas aqui no futuro
-export const NAMESPACES = ["common", "auth", "groups", "zod"] as const;
+export const NAMESPACES = ["common", "auth", "groups", "matches", "zod"] as const;
 
 /** Idioma inicial a partir do device, com fallback no default (pt-BR). */
 function resolveInitialLanguage(): string {

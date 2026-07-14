@@ -2,22 +2,27 @@ import Constants from "expo-constants";
 import { z } from "zod";
 
 /**
- * Env validada com Zod. A base URL da API vem, em ordem de prioridade:
- * 1. `EXPO_PUBLIC_API_URL` (embutida no bundle pelo Metro)
- * 2. `extra.apiUrl` do `app.config.ts` (que já lê a mesma env, com fallback local)
- * 3. `http://localhost:3333` (default de desenvolvimento)
+ * Env validada com Zod. A base URL da API e a base URL do site (usada para
+ * montar o link de convite do zap — `EXPO_PUBLIC_WEB_URL`) vêm, em ordem de
+ * prioridade:
+ * 1. `EXPO_PUBLIC_*` (embutida no bundle pelo Metro)
+ * 2. `extra.*` do `app.config.ts` (que já lê a mesma env, com fallback local)
+ * 3. Default de desenvolvimento
  */
-const extra = (Constants.expoConfig?.extra ?? {}) as { apiUrl?: string };
+const extra = (Constants.expoConfig?.extra ?? {}) as { apiUrl?: string; webUrl?: string };
 
 const rawEnv = {
   EXPO_PUBLIC_ENV: process.env.EXPO_PUBLIC_ENV ?? "development",
   EXPO_PUBLIC_API_URL:
     process.env.EXPO_PUBLIC_API_URL ?? extra.apiUrl ?? "http://localhost:3333",
+  EXPO_PUBLIC_WEB_URL:
+    process.env.EXPO_PUBLIC_WEB_URL ?? extra.webUrl ?? "http://localhost:5173",
 };
 
 const envSchema = z.object({
   EXPO_PUBLIC_ENV: z.enum(["development", "staging", "production", "test"]).default("development"),
   EXPO_PUBLIC_API_URL: z.string().url(),
+  EXPO_PUBLIC_WEB_URL: z.string().url(),
 });
 
 export const env = envSchema.parse(rawEnv);

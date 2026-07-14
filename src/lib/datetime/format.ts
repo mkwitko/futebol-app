@@ -15,3 +15,19 @@ export function formatShortDate(iso: string): string {
 export function formatMatchDateTime(iso: string): string {
   return format(new Date(iso), "dd/MM · HH:mm", { locale: ptBR });
 }
+
+export function formatTime(iso: string): string {
+  return format(new Date(iso), "HH:mm", { locale: ptBR });
+}
+
+/**
+ * Combina a data (dia/mês/ano) escolhida em um picker com o horário
+ * (hora/minuto) escolhido em outro — usado no form de criar pelada, que
+ * expõe dois campos separados (`DateTimeField` com `mode="date"`/`"time"`).
+ */
+export function combineDateAndTime(date: Date, time: Date): Date {
+  const combined = new Date(date);
+  combined.setHours(time.getHours(), time.getMinutes(), 0, 0);
+  return combined;
+}
+

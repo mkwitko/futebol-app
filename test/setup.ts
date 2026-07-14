@@ -3,6 +3,7 @@ import { initReactI18next } from "react-i18next";
 import auth from "../src/lib/i18n/locales/pt-BR/auth.json";
 import common from "../src/lib/i18n/locales/pt-BR/common.json";
 import groups from "../src/lib/i18n/locales/pt-BR/groups.json";
+import matches from "../src/lib/i18n/locales/pt-BR/matches.json";
 import zod from "../src/lib/i18n/locales/pt-BR/zod.json";
 import { server } from "./mocks/server";
 
@@ -15,9 +16,9 @@ if (!i18n.isInitialized) {
   void i18n.use(initReactI18next).init({
     lng: "pt-BR",
     fallbackLng: "pt-BR",
-    ns: ["common", "auth", "groups", "zod"],
+    ns: ["common", "auth", "groups", "matches", "zod"],
     defaultNS: "common",
-    resources: { "pt-BR": { common, auth, groups, zod } },
+    resources: { "pt-BR": { common, auth, groups, matches, zod } },
     interpolation: { escapeValue: false },
     returnNull: false,
   });

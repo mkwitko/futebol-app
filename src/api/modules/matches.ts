@@ -1,4 +1,4 @@
-import { listMatchesQueryKey } from "@/api/generated/hooks/matchesHooks";
+import { getMatchQueryKey, listMatchesQueryKey } from "@/api/generated/hooks/matchesHooks";
 
 /**
  * Constantes do módulo `matches` — usadas para invalidação de cache (nunca
@@ -7,4 +7,5 @@ import { listMatchesQueryKey } from "@/api/generated/hooks/matchesHooks";
  */
 export const MATCHES = {
   queryKeyRoot: (groupId: string) => listMatchesQueryKey(groupId),
+  detailQueryKey: (matchId: string) => getMatchQueryKey(matchId),
 } as const;

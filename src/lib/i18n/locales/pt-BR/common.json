@@ -22,5 +22,10 @@
   "emptyState": {
     "comingSoonTitle": "Em construção",
     "comingSoonDescription": "Essa tela chega nas próximas atualizações."
+  },
+  "profile": {
+    "playerCardTitle": "Seu PlayerCard",
+    "playerCardTeaser": "Seu perfil de jogador chega em breve — estatísticas reais na próxima fase.",
+    "version": "Versão {{version}}"
   }
 }
