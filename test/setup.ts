@@ -2,6 +2,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import auth from "../src/lib/i18n/locales/pt-BR/auth.json";
 import common from "../src/lib/i18n/locales/pt-BR/common.json";
+import groups from "../src/lib/i18n/locales/pt-BR/groups.json";
 import zod from "../src/lib/i18n/locales/pt-BR/zod.json";
 import { server } from "./mocks/server";
 
@@ -14,9 +15,9 @@ if (!i18n.isInitialized) {
   void i18n.use(initReactI18next).init({
     lng: "pt-BR",
     fallbackLng: "pt-BR",
-    ns: ["common", "auth", "zod"],
+    ns: ["common", "auth", "groups", "zod"],
     defaultNS: "common",
-    resources: { "pt-BR": { common, auth, zod } },
+    resources: { "pt-BR": { common, auth, groups, zod } },
     interpolation: { escapeValue: false },
     returnNull: false,
   });

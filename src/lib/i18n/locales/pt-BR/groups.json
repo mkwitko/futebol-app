@@ -1,0 +1,63 @@
+{
+  "list": {
+    "title": "Suas peladas",
+    "subtitle": "Grupos que você organiza",
+    "createCta": "Criar pelada",
+    "createdAt": "Criada em {{date}}",
+    "emptyTitle": "Crie sua primeira pelada",
+    "emptyDescription": "Organize seu grupo de futebol e comece a marcar as peladas.",
+    "emptyCta": "Criar pelada",
+    "loadError": "Não foi possível carregar suas peladas."
+  },
+  "create": {
+    "title": "Nova pelada",
+    "nameLabel": "Nome do grupo",
+    "namePlaceholder": "Ex.: Pelada de sábado",
+    "submit": "Criar pelada",
+    "submitting": "Criando…",
+    "success": "Pelada criada!",
+    "error": "Não foi possível criar a pelada. Tente novamente."
+  },
+  "detail": {
+    "loadingTitle": "Carregando…",
+    "loadError": "Não foi possível carregar esta pelada.",
+    "rosterTitle": "Elenco",
+    "rosterEmptyTitle": "Ninguém no elenco ainda",
+    "rosterEmptyDescription": "Adicione jogadores para montar os times.",
+    "rosterLoadError": "Não foi possível carregar o elenco.",
+    "addMemberCta": "Adicionar jogador",
+    "matchesTitle": "Peladas",
+    "matchesEmptyTitle": "Nenhuma pelada marcada",
+    "matchesEmptyDescription": "Crie a próxima pelada deste grupo.",
+    "matchesLoadError": "Não foi possível carregar as peladas.",
+    "newMatchCta": "Nova pelada",
+    "status": {
+      "open": "Aberta",
+      "full": "Lotada",
+      "closed": "Fechada",
+      "finished": "Finalizada",
+      "cancelled": "Cancelada"
+    }
+  },
+  "member": {
+    "addTitle": "Adicionar jogador",
+    "editTitle": "Editar jogador",
+    "nameLabel": "Nome",
+    "namePlaceholder": "Nome do jogador",
+    "phoneLabel": "Telefone",
+    "phonePlaceholder": "(00) 00000-0000",
+    "primaryPosLabel": "Posição principal",
+    "secondaryPosLabel": "Posições secundárias",
+    "affinityLabel": "Afinidade",
+    "overallLabel": "Nível (overall)",
+    "submitAdd": "Adicionar",
+    "submitAdding": "Adicionando…",
+    "submitEdit": "Salvar",
+    "submitEditing": "Salvando…",
+    "addSuccess": "Jogador adicionado!",
+    "editSuccess": "Jogador atualizado!",
+    "addError": "Não foi possível adicionar o jogador. Tente novamente.",
+    "editError": "Não foi possível salvar as alterações. Tente novamente.",
+    "nameReadOnlyHint": "O nome não pode ser editado por aqui."
+  }
+}
