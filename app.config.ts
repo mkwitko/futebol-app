@@ -36,6 +36,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-secure-store",
     "expo-font",
     "expo-localization",
+    "expo-image",
     [
       "expo-splash-screen",
       {

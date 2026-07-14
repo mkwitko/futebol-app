@@ -4,6 +4,7 @@ import { Link } from "expo-router";
 import { View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
 import { Text } from "@/components/ui/text";
+import { AuthHero } from "@/components/auth/auth-hero";
 import { RegisterForm } from "@/components/auth/register-form";
 import { useAuth } from "@/hooks/auth/use-auth";
 import type { RegisterFormValues } from "@/schemas/auth/register.schema";
@@ -29,6 +30,8 @@ export default function RegisterScreen() {
 
   return (
     <ScreenContainer>
+      <AuthHero />
+
       <View className="gap-2">
         <Text variant="display" className="text-3xl">
           {t("register.title")}

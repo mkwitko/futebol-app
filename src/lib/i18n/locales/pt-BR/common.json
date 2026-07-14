@@ -1,6 +1,7 @@
 {
   "app": {
-    "name": "Futebol"
+    "name": "Futebol",
+    "tagline": "Sua pelada, organizada."
   },
   "actions": {
     "save": "Salvar",
@@ -15,6 +16,11 @@
     "networkError": "Não foi possível conectar ao servidor."
   },
   "nav": {
-    "home": "Início"
+    "peladas": "Peladas",
+    "profile": "Perfil"
+  },
+  "emptyState": {
+    "comingSoonTitle": "Em construção",
+    "comingSoonDescription": "Essa tela chega nas próximas atualizações."
   }
 }

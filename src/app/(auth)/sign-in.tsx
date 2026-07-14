@@ -4,6 +4,8 @@ import { Link } from "expo-router";
 import { View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
 import { Text } from "@/components/ui/text";
+import { Divider } from "@/components/ui/divider";
+import { AuthHero } from "@/components/auth/auth-hero";
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { useAuth } from "@/hooks/auth/use-auth";
@@ -31,6 +33,8 @@ export default function SignInScreen() {
 
   return (
     <ScreenContainer>
+      <AuthHero />
+
       <View className="gap-2">
         <Text variant="display" className="text-3xl">
           {t("signIn.title")}
@@ -39,6 +43,14 @@ export default function SignInScreen() {
       </View>
 
       <SignInForm onSubmit={onSubmit} submitting={submitting} formError={formError} />
+
+      <View className="flex-row items-center gap-3">
+        <Divider className="flex-1" />
+        <Text variant="muted" className="text-xs uppercase tracking-wide">
+          {t("signIn.orDivider")}
+        </Text>
+        <Divider className="flex-1" />
+      </View>
 
       <GoogleSignInButton />
 

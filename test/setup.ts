@@ -5,6 +5,8 @@ import common from "../src/lib/i18n/locales/pt-BR/common.json";
 import zod from "../src/lib/i18n/locales/pt-BR/zod.json";
 import { server } from "./mocks/server";
 
+// Mock manual (raiz `__mocks__/react-native-reanimated.js`) aplicado automaticamente pelo Jest.
+
 // i18n REAL e síncrono com os recursos pt-BR embutidos — asserts veem o texto
 // traduzido de verdade, sem HTTP backend.
 if (!i18n.isInitialized) {
