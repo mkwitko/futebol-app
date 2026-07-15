@@ -10,6 +10,8 @@ export type StepperProps = {
   max?: number;
   step?: number;
   className?: string;
+  /** Prefixo de testID para os botões +/- (`${testID}-decrement`/`${testID}-increment`) — útil quando várias instâncias aparecem na mesma tela. */
+  testID?: string;
 };
 
 /** Campo numérico com +/- — usado para slots e ratings (0-99). */
@@ -21,6 +23,7 @@ export function Stepper({
   max = 99,
   step = 1,
   className,
+  testID,
 }: StepperProps) {
   const canDecrement = value - step >= min;
   const canIncrement = value + step <= max;
@@ -30,8 +33,9 @@ export function Stepper({
       {label ? <Text className="font-body-medium text-sm text-muted">{label}</Text> : null}
       <View className="flex-row items-center gap-3">
         <Pressable
+          testID={testID ? `${testID}-decrement` : undefined}
           accessibilityRole="button"
-          accessibilityLabel="Diminuir"
+          accessibilityLabel={label ? `Diminuir ${label}` : "Diminuir"}
           disabled={!canDecrement}
           onPress={() => onChange(Math.max(min, value - step))}
           className={cn(
@@ -50,8 +54,9 @@ export function Stepper({
         </Text>
 
         <Pressable
+          testID={testID ? `${testID}-increment` : undefined}
           accessibilityRole="button"
-          accessibilityLabel="Aumentar"
+          accessibilityLabel={label ? `Aumentar ${label}` : "Aumentar"}
           disabled={!canIncrement}
           onPress={() => onChange(Math.min(max, value + step))}
           className={cn(

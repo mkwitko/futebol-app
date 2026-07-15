@@ -33,7 +33,10 @@
     "tabs": {
       "list": "Lista",
       "payment": "Pagamento",
-      "teams": "Times"
+      "teams": "Times",
+      "result": "Resultado",
+      "stats": "Estatísticas",
+      "voting": "Votação"
     },
     "list": {
       "confirmedTitle": "Confirmados",
@@ -99,6 +102,59 @@
       "copiedToast": "Link copiado!",
       "error": "Não foi possível criar o convite. Tente novamente.",
       "message": "Bora jogar? {{date}} às {{time}} em {{location}}. Confirme presença: {{link}}"
+    },
+    "result": {
+      "formDescription": "Registre o placar de cada time. O vencedor é sugerido automaticamente, mas você pode ajustar.",
+      "winnerLabelShort": "Vencedor",
+      "winnerLabel": "Vencedor: {{team}}",
+      "draw": "Empate",
+      "submitCta": "Registrar resultado",
+      "submitting": "Registrando…",
+      "submitSuccess": "Resultado registrado!",
+      "submitError": "Não foi possível registrar o resultado.",
+      "recordedTitle": "Resultado registrado"
+    },
+    "stats": {
+      "formDescription": "Lance gols, assistências e gol contra de quem confirmou presença. Deixe em 0 quem não marcou nada.",
+      "goalsLabel": "Gols",
+      "assistsLabel": "Assist.",
+      "ownGoalsLabel": "Gol contra",
+      "cleanSheetLabel": "Não sofreu gol",
+      "submitCta": "Salvar estatísticas",
+      "submitting": "Salvando…",
+      "submitSuccess": "Estatísticas salvas!",
+      "submitError": "Não foi possível salvar as estatísticas.",
+      "emptyTitle": "Nenhuma estatística ainda",
+      "emptyDescription": "Sem confirmados para lançar estatísticas.",
+      "summaryLine": "{{goals}} gols · {{assists}} assist. · {{ownGoals}} contra",
+      "unknownPlayer": "Jogador"
+    },
+    "voting": {
+      "categories": {
+        "mvp": "MVP da pelada",
+        "melhor_goleiro": "Melhor goleiro",
+        "craque": "Craque do jogo",
+        "fair_play": "Fair play"
+      },
+      "notParticipant": "Só quem confirmou presença na pelada pode votar.",
+      "windowClosed": "A votação está encerrada (48h após a pelada, ou ela ainda não foi finalizada).",
+      "error": "Não foi possível registrar seu voto. Tente novamente.",
+      "tallyTitle": "Apuração",
+      "leaderLabel": "{{name}} ({{votes}} votos)",
+      "noVotesYet": "Sem votos ainda"
+    },
+    "finalize": {
+      "title": "Finalizar pelada",
+      "description": "Encerra a votação e atualiza o nível dos jogadores com base no resultado e nas estatísticas.",
+      "cta": "Finalizar pelada",
+      "finalizing": "Finalizando…",
+      "needsResult": "Registre o resultado antes de finalizar.",
+      "confirmTitle": "Finalizar pelada?",
+      "confirmMessage": "A votação será encerrada e os níveis dos jogadores serão atualizados. Essa ação não pode ser desfeita.",
+      "success": "Pelada finalizada! Níveis atualizados.",
+      "error": "Não foi possível finalizar a pelada.",
+      "closedTitle": "Pelada encerrada",
+      "closedDescription": "A votação foi fechada e os níveis dos jogadores já foram atualizados."
     }
   }
 }

@@ -90,6 +90,42 @@ type TeamsResult = {
   generatedAt: string;
 };
 
+type VoteCategory = "mvp" | "melhor_goleiro" | "craque" | "fair_play";
+
+type MatchResult = {
+  matchId: string;
+  scores: { team: number; goals: number }[];
+  winnerTeam: number | null;
+  recordedById: string;
+  recordedAt: string;
+};
+
+type MatchStat = {
+  id: string;
+  matchId: string;
+  playerId: string;
+  team: number | null;
+  goals: number;
+  assists: number;
+  ownGoals: number;
+  cleanSheet: boolean;
+  source: "organizador" | "colaborativo";
+  createdAt: string;
+  updatedAt: string;
+};
+
+type Vote = {
+  id: string;
+  matchId: string;
+  voterPlayerId: string;
+  category: VoteCategory;
+  votedPlayerId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+const VOTE_CATEGORIES: VoteCategory[] = ["mvp", "melhor_goleiro", "craque", "fair_play"];
+
 /** Overall "conhecido" por jogador — usado só pra montar a resposta mockada de `generateTeams`/`getTeams`. */
 const OVERALL_BY_PLAYER_ID: Record<string, number> = {
   "player-1": 75,
@@ -101,6 +137,10 @@ let membersByGroup: Record<string, Member[]> = { [FAKE_GROUP.id]: [FAKE_MEMBER] 
 let matchesByGroup: Record<string, Match[]> = { [FAKE_GROUP.id]: [FAKE_MATCH] };
 let attendanceByMatch: Record<string, Attendance[]> = { [FAKE_MATCH.id]: [FAKE_ATTENDANCE] };
 let teamsByMatch: Record<string, TeamsResult> = {};
+let resultByMatch: Record<string, MatchResult> = {};
+let statsByMatch: Record<string, MatchStat[]> = {};
+let votesByMatch: Record<string, Vote[]> = {};
+let voteWindowClosedMatches = new Set<string>();
 
 function findMatch(matchId: string): Match | undefined {
   return Object.values(matchesByGroup)
@@ -143,6 +183,10 @@ export function resetGroupsMocks() {
   matchesByGroup = { [FAKE_GROUP.id]: [{ ...FAKE_MATCH }] };
   attendanceByMatch = { [FAKE_MATCH.id]: [{ ...FAKE_ATTENDANCE }] };
   teamsByMatch = {};
+  resultByMatch = {};
+  statsByMatch = {};
+  votesByMatch = {};
+  voteWindowClosedMatches = new Set();
 }
 
 /** Pré-semeia os times persistidos de uma pelada (simula `generateTeams` já ter rodado antes do teste). */
@@ -160,6 +204,51 @@ export function setMembersMock(groupId: string, next: Member[]) {
 
 export function setAttendanceMock(matchId: string, next: Attendance[]) {
   attendanceByMatch[matchId] = next;
+}
+
+/** Troca o `status` de uma pelada já semeada — usado pra simular o pós-jogo (`finished`/`closed`) nos testes de Fase 1. */
+export function setMatchStatusMock(matchId: string, status: Match["status"]) {
+  const match = findMatch(matchId);
+  if (!match) return;
+  const updated = { ...match, status };
+  matchesByGroup[match.groupId] = (matchesByGroup[match.groupId] ?? []).map((m) => (m.id === matchId ? updated : m));
+}
+
+/** Pré-semeia o resultado registrado de uma pelada (simula `recordResult` já ter rodado). */
+export function setResultMock(matchId: string, result: MatchResult | undefined) {
+  if (result) resultByMatch[matchId] = result;
+  else delete resultByMatch[matchId];
+}
+
+/** Pré-semeia as estatísticas lançadas de uma pelada (simula `logStats` já ter rodado). */
+export function setStatsMock(matchId: string, stats: MatchStat[]) {
+  statsByMatch[matchId] = stats;
+}
+
+/** Pré-semeia os votos já registrados de uma pelada (pra testar a tally sem precisar votar antes). */
+export function setVotesMock(matchId: string, votes: Vote[]) {
+  votesByMatch[matchId] = votes;
+}
+
+/** Liga/desliga a janela de votação fechada (`VOTE.WINDOW_CLOSED`, 409) pra uma pelada — testa o estado "votação encerrada". */
+export function setVoteWindowClosedMock(matchId: string, closed: boolean) {
+  if (closed) voteWindowClosedMatches.add(matchId);
+  else voteWindowClosedMatches.delete(matchId);
+}
+
+/** Lê o resultado persistido no mock — usado pra asserções precisas de payload (`recordResult`) nos testes. */
+export function getResultMock(matchId: string) {
+  return resultByMatch[matchId];
+}
+
+/** Lê as estatísticas persistidas no mock — usado pra asserções precisas de payload (`logStats`) nos testes. */
+export function getStatsMock(matchId: string) {
+  return statsByMatch[matchId] ?? [];
+}
+
+/** Lê os votos persistidos no mock — usado pra asserções precisas de payload (`castVote`) nos testes. */
+export function getVotesMock(matchId: string) {
+  return votesByMatch[matchId] ?? [];
 }
 
 export const handlers = [
@@ -393,5 +482,116 @@ export const handlers = [
   http.post(api("/matches/:id/invite"), ({ params }) => {
     const matchId = params.id as string;
     return HttpResponse.json({ token: `invite-token-${matchId}`, sharePath: `/invite/invite-token-${matchId}` }, { status: 201 });
+  }),
+
+  http.post(api("/matches/:id/result"), async ({ request, params }) => {
+    const matchId = params.id as string;
+    const body = (await request.json()) as { scores: { team: number; goals: number }[]; winnerTeam?: number | null };
+    const created: MatchResult = {
+      matchId,
+      scores: body.scores,
+      winnerTeam: body.winnerTeam ?? null,
+      recordedById: FAKE_USER.id,
+      recordedAt: new Date().toISOString(),
+    };
+    resultByMatch[matchId] = created;
+    return HttpResponse.json(created);
+  }),
+
+  http.get(api("/matches/:id/result"), ({ params }) => {
+    const existing = resultByMatch[params.id as string];
+    if (!existing) return HttpResponse.json({ message: "not_found" }, { status: 404 });
+    return HttpResponse.json(existing);
+  }),
+
+  http.post(api("/matches/:id/stats"), async ({ request, params }) => {
+    const matchId = params.id as string;
+    const body = (await request.json()) as {
+      stats: { playerId: string; team?: number; goals?: number; assists?: number; ownGoals?: number; cleanSheet?: boolean }[];
+    };
+    const now = new Date().toISOString();
+    const byPlayer = new Map((statsByMatch[matchId] ?? []).map((entry) => [entry.playerId, entry]));
+    const updated: MatchStat[] = body.stats.map((entry) => {
+      const prior = byPlayer.get(entry.playerId);
+      return {
+        id: prior?.id ?? `stat-${matchId}-${entry.playerId}`,
+        matchId,
+        playerId: entry.playerId,
+        team: entry.team ?? prior?.team ?? null,
+        goals: entry.goals ?? 0,
+        assists: entry.assists ?? 0,
+        ownGoals: entry.ownGoals ?? 0,
+        cleanSheet: entry.cleanSheet ?? false,
+        source: "organizador",
+        createdAt: prior?.createdAt ?? now,
+        updatedAt: now,
+      };
+    });
+    statsByMatch[matchId] = updated;
+    return HttpResponse.json(updated);
+  }),
+
+  http.get(api("/matches/:id/stats"), ({ params }) => {
+    return HttpResponse.json(statsByMatch[params.id as string] ?? []);
+  }),
+
+  http.post(api("/matches/:id/votes"), async ({ request, params }) => {
+    const matchId = params.id as string;
+    if (voteWindowClosedMatches.has(matchId)) {
+      return HttpResponse.json({ message: "vote_window_closed" }, { status: 409 });
+    }
+    const body = (await request.json()) as { category: VoteCategory; votedPlayerId: string };
+    const attendance = attendanceByMatch[matchId] ?? [];
+    const voterAttendance = attendance.find((a) => a.player.userId === FAKE_USER.id);
+    const voterPlayerId = voterAttendance?.player.id ?? `player-${FAKE_USER.id}`;
+
+    const current = votesByMatch[matchId] ?? [];
+    const now = new Date().toISOString();
+    const existingIndex = current.findIndex((v) => v.voterPlayerId === voterPlayerId && v.category === body.category);
+    const vote: Vote = {
+      id: existingIndex >= 0 ? current[existingIndex]!.id : `vote-${matchId}-${current.length + 1}`,
+      matchId,
+      voterPlayerId,
+      category: body.category,
+      votedPlayerId: body.votedPlayerId,
+      createdAt: existingIndex >= 0 ? current[existingIndex]!.createdAt : now,
+      updatedAt: now,
+    };
+    const next = existingIndex >= 0 ? current.map((v, i) => (i === existingIndex ? vote : v)) : [...current, vote];
+    votesByMatch[matchId] = next;
+    return HttpResponse.json(vote);
+  }),
+
+  http.get(api("/matches/:id/votes/tally"), ({ params }) => {
+    const matchId = params.id as string;
+    const votes = votesByMatch[matchId] ?? [];
+    const tally = VOTE_CATEGORIES.map((category) => {
+      const counts = new Map<string, number>();
+      votes
+        .filter((v) => v.category === category)
+        .forEach((v) => counts.set(v.votedPlayerId, (counts.get(v.votedPlayerId) ?? 0) + 1));
+      const tallyRows = Array.from(counts.entries()).map(([playerId, count]) => ({ playerId, votes: count }));
+      let leaderPlayerId: string | null = null;
+      if (tallyRows.length > 0) {
+        const max = Math.max(...tallyRows.map((row) => row.votes));
+        const leaders = tallyRows.filter((row) => row.votes === max);
+        leaderPlayerId = leaders.length === 1 ? leaders[0]!.playerId : null;
+      }
+      return { category, tally: tallyRows, leaderPlayerId };
+    });
+    return HttpResponse.json(tally);
+  }),
+
+  http.post(api("/matches/:id/finalize"), ({ params }) => {
+    const matchId = params.id as string;
+    const match = findMatch(matchId);
+    if (!match) return HttpResponse.json({ message: "not_found" }, { status: 404 });
+    if (match.status !== "finished") {
+      return HttpResponse.json({ message: "match_not_finalizable" }, { status: 409 });
+    }
+    if (!resultByMatch[matchId]) return HttpResponse.json({ message: "result_not_found" }, { status: 404 });
+    const updated = { ...match, status: "closed" as const };
+    matchesByGroup[match.groupId] = (matchesByGroup[match.groupId] ?? []).map((m) => (m.id === matchId ? updated : m));
+    return HttpResponse.json(updated);
   }),
 ];
