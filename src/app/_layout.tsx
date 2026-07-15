@@ -28,6 +28,7 @@ function RootNavigator() {
         <Stack.Screen name="group/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="group/[id]/create-match" options={{ headerShown: false }} />
         <Stack.Screen name="match/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="player/[playerId]" options={{ headerShown: false }} />
       </Stack.Protected>
       <Stack.Protected guard={!isAuthenticated}>
         <Stack.Screen name="(auth)" />

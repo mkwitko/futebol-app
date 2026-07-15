@@ -1,0 +1,29 @@
+{
+  "career": {
+    "title": "Minha carreira",
+    "loadError": "Não foi possível carregar sua carreira.",
+    "emptyDescription": "Jogue sua primeira pelada para começar sua carreira.",
+    "positionsTitle": "Overall por posição",
+    "bestPositionBadge": "Melhor posição",
+    "statsTitle": "Estatísticas",
+    "stats": {
+      "matches": "Partidas",
+      "wins": "Vitórias",
+      "draws": "Empates",
+      "losses": "Derrotas",
+      "winRate": "Aproveitamento",
+      "goals": "Gols",
+      "assists": "Assistências",
+      "cleanSheets": "Sem sofrer gol",
+      "mvpCount": "MVPs",
+      "currentStreak": "Sequência invicta",
+      "bestStreak": "Recorde de sequência"
+    },
+    "shareCta": "Compartilhar perfil",
+    "shareMessage": "Confira meu perfil de jogador ⚽ {{link}}"
+  },
+  "screen": {
+    "loadingTitle": "Carregando…",
+    "loadError": "Não foi possível carregar este jogador."
+  }
+}

@@ -29,6 +29,7 @@
     "rosterEmptyTitle": "Ninguém no elenco ainda",
     "rosterEmptyDescription": "Adicione jogadores para montar os times.",
     "rosterLoadError": "Não foi possível carregar o elenco.",
+    "rosterHint": "Toque para ver a carreira. Toque e segure para editar.",
     "addMemberCta": "Adicionar jogador",
     "matchesTitle": "Peladas",
     "matchesEmptyTitle": "Nenhuma pelada marcada",

@@ -280,6 +280,9 @@ export default function MatchDetailScreen() {
                   confirmingPresence={confirmPresence.isPending}
                   onRemove={handleRemove}
                   onInvite={() => setInviteVisible(true)}
+                  onOpenPlayer={(player) =>
+                    router.push({ pathname: "/player/[playerId]", params: { playerId: player.id, name: player.name } })
+                  }
                 />
               ) : null}
 

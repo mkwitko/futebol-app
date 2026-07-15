@@ -53,6 +53,12 @@ export default function GroupDetailScreen() {
           </Button>
         </View>
 
+        {(membersQuery.data?.length ?? 0) > 0 ? (
+          <Text variant="muted" className="text-xs">
+            {t("groups:detail.rosterHint")}
+          </Text>
+        ) : null}
+
         <QueryState
           isPending={membersQuery.isPending}
           isError={membersQuery.isError}
@@ -73,7 +79,13 @@ export default function GroupDetailScreen() {
                 name={member.player.name}
                 position={member.primaryPos}
                 overall={member.seedOverall[member.primaryPos] ?? 0}
-                onPress={() => setMemberSheet({ visible: true, member })}
+                onPress={() =>
+                  router.push({
+                    pathname: "/player/[playerId]",
+                    params: { playerId: member.player.id, name: member.player.name },
+                  })
+                }
+                onLongPress={() => setMemberSheet({ visible: true, member })}
               />
             ))}
           </View>

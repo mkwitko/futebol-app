@@ -1,23 +1,36 @@
 import Constants from "expo-constants";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { View } from "react-native";
+import { Share, View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
-import { PlayerCard } from "@/components/players/player-card";
+import { CareerSummary } from "@/components/players/career-summary";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Divider } from "@/components/ui/divider";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { buildPlayerProfileUrl } from "@/lib/player/url";
+import { useGetMyPlayer, useGetPlayerCareer } from "@/api/generated/hooks/playersHooks";
 
-/** Overall neutro (nem bronze nem ouro) — placeholder até a carreira real (Fase 1). */
-const TEASER_OVERALL = 60;
+/** Placeholder de carregamento do hero — imita o formato do `PlayerCard` `full`. */
+function CareerHeroSkeleton() {
+  return (
+    <View className="items-center gap-3">
+      <Skeleton className="h-[380px] w-64 rounded-3xl" />
+    </View>
+  );
+}
 
-/** Perfil — dados do usuário logado, sair da conta e teaser do próprio PlayerCard. */
+/** Perfil — dados do usuário logado, a carreira real do jogador ("Minha carreira") e sair da conta. */
 export default function PerfilScreen() {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation(["player", "common"]);
   const { user, signOut } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
+
+  const myPlayerQuery = useGetMyPlayer();
+  const playerId = myPlayerQuery.data?.id;
+  const careerQuery = useGetPlayerCareer(playerId);
 
   const appVersion = Constants.expoConfig?.version ?? "—";
 
@@ -30,6 +43,19 @@ export default function PerfilScreen() {
     } finally {
       setSigningOut(false);
     }
+  };
+
+  const handleShare = async () => {
+    if (!playerId) return;
+    const link = buildPlayerProfileUrl(playerId);
+    await Share.share({ message: t("player:career.shareMessage", { link }) });
+  };
+
+  const isLoading = myPlayerQuery.isPending || (!!playerId && careerQuery.isPending);
+  const isError = myPlayerQuery.isError || careerQuery.isError;
+  const retry = () => {
+    if (myPlayerQuery.isError) void myPlayerQuery.refetch();
+    if (careerQuery.isError) void careerQuery.refetch();
   };
 
   return (
@@ -50,12 +76,34 @@ export default function PerfilScreen() {
 
       <View className="gap-3">
         <Text variant="display" className="text-lg">
-          {t("profile.playerCardTitle")}
+          {t("player:career.title")}
         </Text>
-        <PlayerCard name={user?.name ?? ""} position="atacante" overall={TEASER_OVERALL} variant="full" />
-        <Text variant="muted" className="text-center text-sm">
-          {t("profile.playerCardTeaser")}
-        </Text>
+
+        {isLoading ? <CareerHeroSkeleton /> : null}
+
+        {!isLoading && isError ? (
+          <View className="items-center gap-3 py-6">
+            <Text variant="muted" className="text-center">
+              {t("player:career.loadError")}
+            </Text>
+            <Button variant="secondary" onPress={retry}>
+              {t("common:actions.retry")}
+            </Button>
+          </View>
+        ) : null}
+
+        {!isLoading && !isError && careerQuery.data ? (
+          <CareerSummary
+            testID="my-career-summary"
+            name={myPlayerQuery.data?.name ?? user?.name ?? ""}
+            career={careerQuery.data}
+            action={
+              <Button testID="profile-share-cta" variant="secondary" onPress={() => void handleShare()}>
+                {t("player:career.shareCta")}
+              </Button>
+            }
+          />
+        ) : null}
       </View>
 
       <Divider />
@@ -67,10 +115,10 @@ export default function PerfilScreen() {
           onPress={() => void handleSignOut()}
           loading={signingOut}
         >
-          {t("actions.signOut")}
+          {t("common:actions.signOut")}
         </Button>
         <Text variant="muted" className="text-center text-xs">
-          {t("profile.version", { version: appVersion })}
+          {t("common:profile.version", { version: appVersion })}
         </Text>
       </View>
     </ScreenContainer>

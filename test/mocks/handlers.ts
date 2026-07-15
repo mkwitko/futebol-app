@@ -60,6 +60,75 @@ export const FAKE_ATTENDANCE = {
   player: { id: "player-1", userId: null as string | null, name: "Zico", phone: null as string | null },
 };
 
+export const FAKE_MY_PLAYER = {
+  id: "player-me-1",
+  name: FAKE_USER.name,
+  phone: null as string | null,
+  userId: FAKE_USER.id as string | null,
+};
+
+type PlayerLevel = "bronze" | "prata" | "ouro";
+
+export type Career = {
+  id: string | null;
+  playerId: string;
+  overall: Record<string, number>;
+  affinity: Record<string, number>;
+  level: PlayerLevel;
+  matchesPlayed: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goals: number;
+  assists: number;
+  cleanSheets: number;
+  mvpCount: number;
+  currentStreak: number;
+  bestStreak: number;
+  updatedAt: string | null;
+};
+
+/** Bootstrap default — o corpo zerado que o backend devolve (200, não 404) quando ninguém finalizou uma pelada ainda pro jogador. */
+function emptyCareer(playerId: string): Career {
+  return {
+    id: null,
+    playerId,
+    overall: {},
+    affinity: {},
+    level: "bronze",
+    matchesPlayed: 0,
+    wins: 0,
+    draws: 0,
+    losses: 0,
+    goals: 0,
+    assists: 0,
+    cleanSheets: 0,
+    mvpCount: 0,
+    currentStreak: 0,
+    bestStreak: 0,
+    updatedAt: null,
+  };
+}
+
+export const FAKE_CAREER: Career = {
+  id: "career-1",
+  playerId: FAKE_MY_PLAYER.id,
+  overall: { atacante: 78, meia: 65 },
+  affinity: { atacante: 0.8, meia: 0.4 },
+  level: "prata",
+  matchesPlayed: 12,
+  wins: 7,
+  draws: 2,
+  losses: 3,
+  goals: 9,
+  assists: 4,
+  cleanSheets: 0,
+  mvpCount: 2,
+  currentStreak: 3,
+  bestStreak: 5,
+  updatedAt: "2026-07-01T00:00:00.000Z",
+};
+
 type Group = typeof FAKE_GROUP;
 type Member = typeof FAKE_MEMBER;
 type Match = {
@@ -141,6 +210,8 @@ let resultByMatch: Record<string, MatchResult> = {};
 let statsByMatch: Record<string, MatchStat[]> = {};
 let votesByMatch: Record<string, Vote[]> = {};
 let voteWindowClosedMatches = new Set<string>();
+let myPlayer = { ...FAKE_MY_PLAYER };
+let careerByPlayer: Record<string, Career> = { [FAKE_MY_PLAYER.id]: { ...FAKE_CAREER } };
 
 function findMatch(matchId: string): Match | undefined {
   return Object.values(matchesByGroup)
@@ -187,6 +258,19 @@ export function resetGroupsMocks() {
   statsByMatch = {};
   votesByMatch = {};
   voteWindowClosedMatches = new Set();
+  myPlayer = { ...FAKE_MY_PLAYER };
+  careerByPlayer = { [FAKE_MY_PLAYER.id]: { ...FAKE_CAREER } };
+}
+
+/** Troca o jogador retornado por `GET /players/me` — usado pra testar outro nome/id logado. */
+export function setMyPlayerMock(next: typeof FAKE_MY_PLAYER) {
+  myPlayer = next;
+}
+
+/** Pré-semeia a carreira de um `playerId` — sem entrada, `GET .../career` volta o corpo zerado (bootstrap default). */
+export function setCareerMock(playerId: string, career: Career | undefined) {
+  if (career) careerByPlayer[playerId] = career;
+  else delete careerByPlayer[playerId];
 }
 
 /** Pré-semeia os times persistidos de uma pelada (simula `generateTeams` já ter rodado antes do teste). */
@@ -593,5 +677,14 @@ export const handlers = [
     const updated = { ...match, status: "closed" as const };
     matchesByGroup[match.groupId] = (matchesByGroup[match.groupId] ?? []).map((m) => (m.id === matchId ? updated : m));
     return HttpResponse.json(updated);
+  }),
+
+  http.get(api("/players/me"), () => {
+    return HttpResponse.json(myPlayer);
+  }),
+
+  http.get(api("/players/:playerId/career"), ({ params }) => {
+    const playerId = params.playerId as string;
+    return HttpResponse.json(careerByPlayer[playerId] ?? emptyCareer(playerId));
   }),
 ];

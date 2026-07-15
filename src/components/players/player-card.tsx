@@ -29,15 +29,27 @@ export type PlayerCardProps = {
   position: Position;
   /** 0-99 — o número em destaque do card. */
   overall: number;
+  /**
+   * Tier explícito (ex.: `career.level`, autoritativo do backend). Quando
+   * omitido, o tier é derivado do `overall` via `getTierFromOverall` — as
+   * duas fontes hoje concordam (os limiares em `career-config.ts` do backend
+   * espelham `TIER_MIN_PRATA`/`TIER_MIN_OURO` aqui), mas passar o `level` da
+   * carreira explicitamente evita que as duas escalas precisem ficar em sync
+   * manualmente no futuro.
+   */
+  tier?: Tier;
   avatarUri?: string | null;
   /**
    * Estatísticas agregadas (jogos/vitórias/gols). Omitir por completo quando
-   * ainda não existirem dados (ex.: membro recém-cadastrado na Fase 0) — o
-   * card então mostra só posição + overall, sem uma linha "zerada".
+   * ainda não existirem dados (ex.: membro recém-cadastrado na Fase 0, ou
+   * carreira ainda zerada na Fase 1) — o card então mostra só posição +
+   * overall, sem uma linha "zerada".
    */
   stats?: PlayerCardStats;
   variant?: PlayerCardVariant;
   onPress?: () => void;
+  /** Ação secundária (ex.: editar membro) — mantém `onPress` livre para navegação. */
+  onLongPress?: () => void;
   className?: string;
   testID?: string;
 };
@@ -81,14 +93,16 @@ export function PlayerCard({
   name,
   position,
   overall,
+  tier: tierProp,
   avatarUri,
   stats,
   variant = "full",
   onPress,
+  onLongPress,
   className,
   testID,
 }: PlayerCardProps) {
-  const tier = getTierFromOverall(overall);
+  const tier = tierProp ?? getTierFromOverall(overall);
   const abbreviation = positionAbbreviation(position);
   const reducedMotion = useReducedMotion();
 
@@ -219,7 +233,7 @@ export function PlayerCard({
 
   const accessibilityLabel = `${name}, ${abbreviation}, overall ${overall}, tier ${tierLabel(tier)}`;
 
-  if (!onPress) {
+  if (!onPress && !onLongPress) {
     return (
       <View
         testID={testID}
@@ -237,6 +251,7 @@ export function PlayerCard({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={onPress}
+      onLongPress={onLongPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       className={cn("active:opacity-95", className)}

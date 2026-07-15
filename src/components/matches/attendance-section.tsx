@@ -13,6 +13,8 @@ export type AttendanceSectionProps = {
   confirmingPresence: boolean;
   onRemove: (attId: string) => void;
   onInvite: () => void;
+  /** Abre a carreira do jogador (`/player/[playerId]`) — tocar em qualquer linha da lista/fila. */
+  onOpenPlayer: (player: { id: string; name: string }) => void;
 };
 
 /** Seção "Lista" — confirmados (com contagem) e fila de espera (ordenada por posição). */
@@ -22,6 +24,7 @@ export function AttendanceSection({
   confirmingPresence,
   onRemove,
   onInvite,
+  onOpenPlayer,
 }: AttendanceSectionProps) {
   const { t } = useTranslation("matches");
 
@@ -60,6 +63,7 @@ export function AttendanceSection({
           <ListRow
             key={item.id}
             title={item.player.name}
+            onPress={() => onOpenPlayer(item.player)}
             trailing={
               <View className="flex-row items-center gap-3">
                 <Badge variant={item.paymentStatus === "paid" ? "primary" : "neutral"}>
@@ -89,6 +93,7 @@ export function AttendanceSection({
               key={item.id}
               title={item.player.name}
               subtitle={t("detail.list.waitlistPosition", { position: item.waitlistPos })}
+              onPress={() => onOpenPlayer(item.player)}
               trailing={
                 <Pressable
                   accessibilityRole="button"
