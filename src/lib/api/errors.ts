@@ -10,3 +10,12 @@ import { ApiError } from "@/api/client";
 export function isForbiddenError(error: unknown): boolean {
   return error instanceof ApiError && error.status === 403;
 }
+
+/**
+ * 404 do backend — usado para tratar "ainda não existe" como estado vazio em
+ * vez de erro de tela (ex.: times ainda não montados via `getTeams`, antes do
+ * primeiro `generateTeams`).
+ */
+export function isNotFoundError(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 404;
+}

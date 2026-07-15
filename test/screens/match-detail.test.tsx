@@ -2,7 +2,7 @@ import { screen, userEvent, waitFor } from "@testing-library/react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Share } from "react-native";
 import MatchDetailScreen from "@/app/match/[id]";
-import { FAKE_MATCH, resetGroupsMocks, setAttendanceMock } from "../mocks/handlers";
+import { FAKE_MATCH, resetGroupsMocks, setAttendanceMock, setTeamsMock } from "../mocks/handlers";
 import { renderWithProviders } from "../utils/render";
 
 jest.mock("expo-router", () => {
@@ -51,7 +51,18 @@ describe("Detalhe da pelada", () => {
     expect(screen.getByText("Posição 1 na fila")).toBeOnTheScreen();
   });
 
-  it("generates teams and renders two columns from the mocked response", async () => {
+  it("shows the empty state with a Montar times CTA when teams haven't been generated yet", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MatchDetailScreen />);
+
+    expect(await screen.findByText("Confirmados (1)")).toBeOnTheScreen();
+    await user.press(screen.getByText("Times"));
+
+    expect(await screen.findByText("Times ainda não montados")).toBeOnTheScreen();
+    expect(screen.getByTestId("generate-teams-cta")).toBeOnTheScreen();
+  });
+
+  it("generates teams and renders two columns with server-computed overalls (incl. guests)", async () => {
     setAttendanceMock(FAKE_MATCH.id, [
       {
         id: "att-1",
@@ -71,12 +82,23 @@ describe("Detalhe da pelada", () => {
         paidConfirmedById: null,
         player: { id: "player-2", userId: null, name: "Romário", phone: null },
       },
+      {
+        id: "att-3",
+        matchId: FAKE_MATCH.id,
+        status: "confirmed",
+        waitlistPos: null,
+        paymentStatus: "pending",
+        paidConfirmedById: null,
+        // Convidado avulso, sem registro em `membersByGroup` — antes contribuía 0
+        // no total do time; agora o servidor manda o `overall` dele também.
+        player: { id: "player-guest", userId: null, name: "Convidado", phone: null },
+      },
     ]);
 
     const user = userEvent.setup();
     renderWithProviders(<MatchDetailScreen />);
 
-    expect(await screen.findByText("Confirmados (2)")).toBeOnTheScreen();
+    expect(await screen.findByText("Confirmados (3)")).toBeOnTheScreen();
 
     await user.press(screen.getByText("Times"));
     expect(await screen.findByTestId("generate-teams-cta")).toBeOnTheScreen();
@@ -87,6 +109,39 @@ describe("Detalhe da pelada", () => {
     expect(screen.getByText("Time 2")).toBeOnTheScreen();
     expect(screen.getByText("Zico")).toBeOnTheScreen();
     expect(screen.getByText("Romário")).toBeOnTheScreen();
+    expect(screen.getByText("Convidado")).toBeOnTheScreen();
+    // Time 1 = Zico (75) + Romário (68) = 143 (só aparece no cabeçalho do time).
+    expect(screen.getByText("143")).toBeOnTheScreen();
+    // Time 2 = só o Convidado (fallback 70) — o total do time bate com o overall
+    // dele (não some 0 como no bug antigo), então "70" aparece 2x: cabeçalho + linha do jogador.
+    expect(screen.getAllByText("70")).toHaveLength(2);
+  });
+
+  it("loads persisted teams from getTeams on mount, without needing to regenerate", async () => {
+    setTeamsMock(FAKE_MATCH.id, {
+      matchId: FAKE_MATCH.id,
+      teams: [
+        { team: 0, overallTotal: 75, players: [{ playerId: "player-1", name: "Zico", overall: 75 }] },
+        { team: 1, overallTotal: 68, players: [{ playerId: "player-2", name: "Romário", overall: 68 }] },
+      ],
+      generatedAt: "2026-01-02T00:00:00.000Z",
+    });
+
+    const user = userEvent.setup();
+    renderWithProviders(<MatchDetailScreen />);
+
+    expect(await screen.findByText("Confirmados (1)")).toBeOnTheScreen();
+    await user.press(screen.getByText("Times"));
+
+    expect(await screen.findByText("Time 1")).toBeOnTheScreen();
+    expect(screen.getByText("Zico")).toBeOnTheScreen();
+    expect(screen.getByText("Romário")).toBeOnTheScreen();
+    // Cada time tem só 1 jogador aqui, então o total do time == o overall dele
+    // (2 ocorrências: cabeçalho do time + linha do jogador).
+    expect(screen.getAllByText("75")).toHaveLength(2);
+    expect(screen.getAllByText("68")).toHaveLength(2);
+    expect(screen.queryByTestId("generate-teams-cta")).not.toBeOnTheScreen();
+    expect(screen.getByTestId("regenerate-teams-cta")).toBeOnTheScreen();
   });
 
   it("creates an invite and opens the native share sheet with the link", async () => {

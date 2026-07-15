@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
 import { Card } from "@/components/ui/card";
 import { Text } from "@/components/ui/text";
-import { formatShortDate } from "@/lib/datetime/format";
+import { formatMatchDateTime } from "@/lib/datetime/format";
 import type { ListMyGroups200 } from "@/api/generated/types/ListMyGroups";
 
 export type GroupCardProps = {
@@ -11,11 +11,9 @@ export type GroupCardProps = {
 };
 
 /**
- * Card de grupo na lista "Peladas". `listMyGroups` não traz contagem de
- * membros nem próxima partida (a API não agrega isso ainda) — mostramos só o
- * que é real (nome + data de criação) em vez de inventar um placeholder "0
- * jogadores". Quando a API agregar esses campos, este card é o lugar certo
- * para exibi-los.
+ * Card de grupo na lista "Peladas". `listMyGroups` agrega `memberCount` e
+ * `nextMatch` (próxima pelada em aberto, ou `null`) por grupo — mostramos os
+ * dois; sem próxima pelada marcada, um aviso discreto no lugar de um vazio.
  */
 export function GroupCard({ group, onPress }: GroupCardProps) {
   const { t } = useTranslation("groups");
@@ -33,7 +31,15 @@ export function GroupCard({ group, onPress }: GroupCardProps) {
             {group.name}
           </Text>
           <Text variant="muted" className="text-sm">
-            {t("list.createdAt", { date: formatShortDate(group.createdAt) })}
+            {t("list.memberCount", { count: group.memberCount })}
+          </Text>
+          <Text variant="muted" className="text-sm" numberOfLines={1}>
+            {group.nextMatch
+              ? t("list.nextMatch", {
+                  date: formatMatchDateTime(group.nextMatch.datetime),
+                  location: group.nextMatch.location,
+                })
+              : t("list.noNextMatch")}
           </Text>
         </View>
         <Text className="font-display text-2xl text-muted">›</Text>

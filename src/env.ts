@@ -9,7 +9,12 @@ import { z } from "zod";
  * 2. `extra.*` do `app.config.ts` (que já lê a mesma env, com fallback local)
  * 3. Default de desenvolvimento
  */
-const extra = (Constants.expoConfig?.extra ?? {}) as { apiUrl?: string; webUrl?: string };
+const extra = (Constants.expoConfig?.extra ?? {}) as {
+  apiUrl?: string;
+  webUrl?: string;
+  googleWebClientId?: string;
+  googleIosClientId?: string;
+};
 
 const rawEnv = {
   EXPO_PUBLIC_ENV: process.env.EXPO_PUBLIC_ENV ?? "development",
@@ -17,12 +22,20 @@ const rawEnv = {
     process.env.EXPO_PUBLIC_API_URL ?? extra.apiUrl ?? "http://localhost:3333",
   EXPO_PUBLIC_WEB_URL:
     process.env.EXPO_PUBLIC_WEB_URL ?? extra.webUrl ?? "http://localhost:5173",
+  // Google Sign-In — vazio = feature desligada (botão "em breve"). Ver
+  // .env.example para o que o desenvolvedor precisa configurar.
+  EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID:
+    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? extra.googleWebClientId ?? "",
+  EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID:
+    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? extra.googleIosClientId ?? "",
 };
 
 const envSchema = z.object({
   EXPO_PUBLIC_ENV: z.enum(["development", "staging", "production", "test"]).default("development"),
   EXPO_PUBLIC_API_URL: z.string().url(),
   EXPO_PUBLIC_WEB_URL: z.string().url(),
+  EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: z.string().default(""),
+  EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: z.string().default(""),
 });
 
 export const env = envSchema.parse(rawEnv);

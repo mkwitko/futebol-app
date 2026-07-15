@@ -18,6 +18,12 @@ export const FAKE_GROUP = {
   ownerId: "user-1",
   statsMode: "organizador",
   createdAt: "2026-01-01T00:00:00.000Z",
+  memberCount: 12,
+  nextMatch: { id: "match-1", datetime: "2026-07-18T21:00:00.000Z", location: "Quadra do Zico" } as {
+    id: string;
+    datetime: string;
+    location: string;
+  } | null,
 };
 
 export const FAKE_MEMBER = {
@@ -78,15 +84,52 @@ type Attendance = {
   player: { id: string; userId: string | null; name: string; phone: string | null };
 };
 
+type TeamsResult = {
+  matchId: string;
+  teams: { team: number; overallTotal: number; players: { playerId: string; name: string; overall: number }[] }[];
+  generatedAt: string;
+};
+
+/** Overall "conhecido" por jogador — usado só pra montar a resposta mockada de `generateTeams`/`getTeams`. */
+const OVERALL_BY_PLAYER_ID: Record<string, number> = {
+  "player-1": 75,
+  "player-2": 68,
+};
+
 let groups: Group[] = [FAKE_GROUP];
 let membersByGroup: Record<string, Member[]> = { [FAKE_GROUP.id]: [FAKE_MEMBER] };
 let matchesByGroup: Record<string, Match[]> = { [FAKE_GROUP.id]: [FAKE_MATCH] };
 let attendanceByMatch: Record<string, Attendance[]> = { [FAKE_MATCH.id]: [FAKE_ATTENDANCE] };
+let teamsByMatch: Record<string, TeamsResult> = {};
 
 function findMatch(matchId: string): Match | undefined {
   return Object.values(matchesByGroup)
     .flat()
     .find((m) => m.id === matchId);
+}
+
+/**
+ * Monta a resposta de times a partir dos confirmados da pelada. Todo
+ * jogador — inclusive convidado avulso sem registro em `membersByGroup` —
+ * recebe um `overall` (fallback 70), reproduzindo o comportamento real do
+ * backend depois da correção do bug de "convidado soma 0".
+ */
+function buildTeams(matchId: string): TeamsResult {
+  const confirmed = (attendanceByMatch[matchId] ?? []).filter((a) => a.status === "confirmed");
+  const half = Math.ceil(confirmed.length / 2);
+  const makeTeam = (team: number, members: Attendance[]) => {
+    const players = members.map((a) => ({
+      playerId: a.player.id,
+      name: a.player.name,
+      overall: OVERALL_BY_PLAYER_ID[a.player.id] ?? 70,
+    }));
+    return { team, overallTotal: players.reduce((sum, p) => sum + p.overall, 0), players };
+  };
+  return {
+    matchId,
+    teams: [makeTeam(0, confirmed.slice(0, half)), makeTeam(1, confirmed.slice(half))],
+    generatedAt: new Date().toISOString(),
+  };
 }
 
 /**
@@ -99,6 +142,12 @@ export function resetGroupsMocks() {
   membersByGroup = { [FAKE_GROUP.id]: [{ ...FAKE_MEMBER }] };
   matchesByGroup = { [FAKE_GROUP.id]: [{ ...FAKE_MATCH }] };
   attendanceByMatch = { [FAKE_MATCH.id]: [{ ...FAKE_ATTENDANCE }] };
+  teamsByMatch = {};
+}
+
+/** Pré-semeia os times persistidos de uma pelada (simula `generateTeams` já ter rodado antes do teste). */
+export function setTeamsMock(matchId: string, result: TeamsResult) {
+  teamsByMatch[matchId] = result;
 }
 
 export function setGroupsMock(next: Group[]) {
@@ -122,6 +171,18 @@ export const handlers = [
     return HttpResponse.json({
       accessToken: "fake-access-token",
       refreshToken: "fake-refresh-token",
+      user: FAKE_USER,
+    });
+  }),
+
+  http.post(api("/auth/login-google"), async ({ request }) => {
+    const body = (await request.json()) as { idToken: string };
+    if (!body.idToken) {
+      return HttpResponse.json({ message: "invalid_id_token" }, { status: 401 });
+    }
+    return HttpResponse.json({
+      accessToken: "fake-google-access-token",
+      refreshToken: "fake-google-refresh-token",
       user: FAKE_USER,
     });
   }),
@@ -153,6 +214,8 @@ export const handlers = [
       ownerId: FAKE_USER.id,
       statsMode: body.statsMode ?? "organizador",
       createdAt: new Date().toISOString(),
+      memberCount: 1,
+      nextMatch: null,
     };
     groups = [...groups, created];
     return HttpResponse.json(created, { status: 201 });
@@ -315,16 +378,16 @@ export const handlers = [
 
   http.post(api("/matches/:id/teams"), ({ params }) => {
     const matchId = params.id as string;
-    const confirmed = (attendanceByMatch[matchId] ?? []).filter((a) => a.status === "confirmed");
-    const half = Math.ceil(confirmed.length / 2);
-    return HttpResponse.json({
-      matchId,
-      teams: [
-        { team: 0, players: confirmed.slice(0, half).map((a) => ({ playerId: a.player.id, name: a.player.name })) },
-        { team: 1, players: confirmed.slice(half).map((a) => ({ playerId: a.player.id, name: a.player.name })) },
-      ],
-      generatedAt: new Date().toISOString(),
-    });
+    const result = buildTeams(matchId);
+    teamsByMatch[matchId] = result;
+    return HttpResponse.json(result);
+  }),
+
+  http.get(api("/matches/:id/teams"), ({ params }) => {
+    const matchId = params.id as string;
+    const existing = teamsByMatch[matchId];
+    if (!existing) return HttpResponse.json({ message: "not_found" }, { status: 404 });
+    return HttpResponse.json(existing);
   }),
 
   http.post(api("/matches/:id/invite"), ({ params }) => {

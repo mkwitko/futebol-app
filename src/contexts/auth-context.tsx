@@ -12,9 +12,11 @@ import {
   getMeQueryKey,
   useGetMe,
 } from "@/api/generated/hooks/authHooks/useGetMe";
+import { useLoginGoogleUser } from "@/api/generated/hooks/authHooks/useLoginGoogleUser";
 import { useLoginUser } from "@/api/generated/hooks/authHooks/useLoginUser";
 import { useRegisterUser } from "@/api/generated/hooks/authHooks/useRegisterUser";
 import type { GetMeQueryResponse } from "@/api/generated/types/GetMe";
+import { isGoogleSignInConfigured, signInWithGoogleNative } from "@/lib/auth/google";
 import { forceLogout } from "@/lib/auth/session";
 import { getAccessToken, saveTokens } from "@/lib/auth/tokens";
 
@@ -31,10 +33,11 @@ export type AuthActions = {
   signIn: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   /**
-   * Stub — login com Google exige `@react-native-google-signin/google-signin`
-   * (código nativo + config plugin), o que pede `expo prebuild`/dev client e
-   * credenciais OAuth do Google. Fora do escopo desta fase (fundação). Ver
-   * TODO no botão em `src/components/auth/google-sign-in-button.tsx`.
+   * Login com Google — fluxo nativo real, mas config-gated: só funciona
+   * (e só deve ser chamado) quando `isGoogleSignInConfigured` é `true` (ver
+   * `src/lib/auth/google.ts` e `.env.example`). Sem os client IDs OAuth
+   * configurados, o botão em `src/components/auth/google-sign-in-button.tsx`
+   * fica desabilitado e nem chama isso.
    */
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -66,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useLoginUser();
   const registerMutation = useRegisterUser();
+  const loginGoogleMutation = useLoginGoogleUser();
 
   const signIn = useCallback(
     async (email: string, password: string) => {
@@ -87,11 +91,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [registerMutation, queryClient],
   );
 
-  // TODO(auth-google): trocar pelo fluxo real quando o app tiver dev client +
-  // client IDs OAuth do Google (ver AUTH.md da skill — @react-native-google-signin).
   const signInWithGoogle = useCallback(async () => {
-    throw new Error("google_sign_in_not_implemented");
-  }, []);
+    if (!isGoogleSignInConfigured) {
+      throw new Error("google_sign_in_not_configured");
+    }
+    const idToken = await signInWithGoogleNative();
+    const result = await loginGoogleMutation.mutateAsync({ data: { idToken } });
+    await saveTokens({ accessToken: result.accessToken, refreshToken: result.refreshToken });
+    queryClient.setQueryData(getMeQueryKey(), result.user);
+    setHasToken(true);
+  }, [loginGoogleMutation, queryClient]);
 
   const signOut = useCallback(async () => {
     queryClient.removeQueries({ queryKey: getMeQueryKey() });

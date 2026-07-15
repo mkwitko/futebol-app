@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert } from "react-native";
+import { Alert, View } from "react-native";
 import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { GoogleSignInCancelledError, isGoogleSignInConfigured } from "@/lib/auth/google";
 
 /**
- * TODO(auth-google): stub. O fluxo real precisa de
- * `@react-native-google-signin/google-signin` (código nativo + config plugin),
- * o que exige `expo prebuild` / dev client e client IDs OAuth do Google — fora
- * do escopo desta fase (fundação). O botão existe para o layout da tela de
- * login já prever o espaço; hoje só mostra um aviso de "em breve".
+ * Botão "Entrar com Google" — config-gated (ver `.env.example` +
+ * `src/lib/auth/google.ts`). Sem os client IDs OAuth configurados, fica
+ * desabilitado com um aviso "em breve" (o app continua 100% usável sem
+ * login Google, inclusive no Expo Go, sem exigir build nativo). Configurado,
+ * dispara o fluxo nativo real via `useAuth().signInWithGoogle`.
  */
 export function GoogleSignInButton() {
   const { t } = useTranslation("auth");
@@ -20,15 +22,35 @@ export function GoogleSignInButton() {
     setLoading(true);
     try {
       await signInWithGoogle();
-    } catch {
-      Alert.alert(t("signIn.googleComingSoon"));
+    } catch (error) {
+      if (!(error instanceof GoogleSignInCancelledError)) {
+        Alert.alert(t("signIn.googleError"));
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  if (!isGoogleSignInConfigured) {
+    return (
+      <View className="gap-1">
+        <Button variant="secondary" disabled testID="google-sign-in-cta">
+          {t("signIn.googleButton")}
+        </Button>
+        <Text variant="muted" className="text-center text-xs">
+          {t("signIn.googleComingSoon")}
+        </Text>
+      </View>
+    );
+  }
+
   return (
-    <Button variant="secondary" onPress={() => void onPress()} loading={loading}>
+    <Button
+      variant="secondary"
+      testID="google-sign-in-cta"
+      onPress={() => void onPress()}
+      loading={loading}
+    >
       {t("signIn.googleButton")}
     </Button>
   );

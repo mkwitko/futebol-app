@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { View } from "react-native";
@@ -22,11 +22,10 @@ import { useToast } from "@/hooks/common/use-toast";
 import { useCancelMatch } from "@/hooks/matches/use-cancel-match";
 import { useFinishMatch } from "@/hooks/matches/use-finish-match";
 import { useGenerateTeams } from "@/hooks/teams/use-generate-teams";
+import { useTeams } from "@/hooks/teams/use-teams";
 import { isForbiddenError } from "@/lib/api/errors";
 import { useGetMatch } from "@/api/generated/hooks/matchesHooks";
 import { useListAttendance } from "@/api/generated/hooks/attendanceHooks";
-import { useListMembers } from "@/api/generated/hooks/membersHooks";
-import type { GenerateTeams200 } from "@/api/generated/types/GenerateTeams";
 
 type SectionKey = "list" | "payment" | "teams";
 
@@ -40,12 +39,11 @@ export default function MatchDetailScreen() {
 
   const [section, setSection] = useState<SectionKey>("list");
   const [inviteVisible, setInviteVisible] = useState(false);
-  const [teams, setTeams] = useState<GenerateTeams200 | null>(null);
   const [teamsError, setTeamsError] = useState<string | null>(null);
 
   const matchQuery = useGetMatch(id);
   const attendanceQuery = useListAttendance(id);
-  const membersQuery = useListMembers(matchQuery.data?.groupId);
+  const teamsQuery = useTeams(id);
 
   const confirmPresence = useConfirmPresence(id);
   const cancelPresence = useCancelPresence(id);
@@ -59,14 +57,6 @@ export default function MatchDetailScreen() {
     if (created === "1") toast.show(t("matches:detail.createdToast"));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- só na chegada via redirect do create-match.
   }, [created]);
-
-  const overallByPlayerId = useMemo(() => {
-    const map: Record<string, number> = {};
-    for (const member of membersQuery.data ?? []) {
-      map[member.player.id] = member.seedOverall[member.primaryPos] ?? 0;
-    }
-    return map;
-  }, [membersQuery.data]);
 
   const confirmedCount = attendanceQuery.data?.filter((item) => item.status === "confirmed").length ?? 0;
 
@@ -114,8 +104,7 @@ export default function MatchDetailScreen() {
   const handleGenerateTeams = async () => {
     setTeamsError(null);
     try {
-      const result = await generateTeams.mutateAsync();
-      setTeams(result);
+      await generateTeams.mutateAsync();
     } catch {
       setTeamsError(t("matches:detail.teams.generateError"));
     }
@@ -213,8 +202,8 @@ export default function MatchDetailScreen() {
 
               {section === "teams" ? (
                 <TeamsSection
-                  teams={teams}
-                  overallByPlayerId={overallByPlayerId}
+                  teams={teamsQuery.data}
+                  isLoading={teamsQuery.isPending}
                   onGenerate={() => void handleGenerateTeams()}
                   generating={generateTeams.isPending}
                   error={teamsError}

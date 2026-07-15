@@ -2,27 +2,38 @@ import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
-import type { GenerateTeams200 } from "@/api/generated/types/GenerateTeams";
+import type { GetTeams200 } from "@/api/generated/types/GetTeams";
 
 export type TeamsSectionProps = {
-  teams: GenerateTeams200 | null;
-  /** `playerId` → overall (0-99) — usado só para o total do time; ver nota no `match/[id].tsx`. */
-  overallByPlayerId: Record<string, number>;
+  /** Times persistidos (`getTeams`) — `null` = ainda não montados (404) ou carregando. */
+  teams: GetTeams200 | null;
+  /** Carregando os times persistidos (checagem inicial, antes de decidir vazio/dados). */
+  isLoading: boolean;
   onGenerate: () => void;
   generating: boolean;
   error?: string | null;
 };
 
 /**
- * Seção "Times" — monta/refaz times via `generateTeams`. A resposta da API
- * (`GenerateTeams200`) só traz `playerId`+`name` por jogador, sem overall; o
- * total do time é calculado cruzando com o elenco do grupo
- * (`overallByPlayerId`, construído a partir de `listMembers` no screen) —
- * jogadores sem overall conhecido (ex.: convidado avulso) não somam.
+ * Seção "Times" — lê os times persistidos via `getTeams` (sobrevivem a
+ * navegar pra fora e voltar) e monta/refaz via `generateTeams`. A resposta já
+ * traz `overall` por jogador e `overallTotal` por time calculados pelo
+ * backend (inclui convidados avulsos), então a tela não precisa cruzar com o
+ * elenco do grupo.
  */
-export function TeamsSection({ teams, overallByPlayerId, onGenerate, generating, error }: TeamsSectionProps) {
+export function TeamsSection({ teams, isLoading, onGenerate, generating, error }: TeamsSectionProps) {
   const { t } = useTranslation("matches");
+
+  if (isLoading) {
+    return (
+      <View className="gap-3">
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-32 w-full" />
+      </View>
+    );
+  }
 
   if (!teams) {
     return (
@@ -43,32 +54,30 @@ export function TeamsSection({ teams, overallByPlayerId, onGenerate, generating,
   return (
     <View className="gap-4">
       <View className="flex-row flex-wrap gap-3">
-        {teams.teams.map((team) => {
-          const overallTotal = team.players.reduce(
-            (sum, player) => sum + (overallByPlayerId[player.playerId] ?? 0),
-            0,
-          );
-
-          return (
-            <View key={team.team} className="min-w-[47%] flex-1 gap-2 rounded-2xl border border-line bg-surface p-3">
-              <View className="flex-row items-center justify-between">
-                <Text variant="display" className="text-lg">
-                  {t("detail.teams.teamLabel", { team: team.team + 1 })}
-                </Text>
-                <Text variant="display" className="text-lg">
-                  {overallTotal}
-                </Text>
-              </View>
-              <View className="gap-1">
-                {team.players.map((player) => (
-                  <Text key={player.playerId} className="font-body text-sm text-ink" numberOfLines={1}>
+        {teams.teams.map((team) => (
+          <View key={team.team} className="min-w-[47%] flex-1 gap-2 rounded-2xl border border-line bg-surface p-3">
+            <View className="flex-row items-center justify-between">
+              <Text variant="display" className="text-lg">
+                {t("detail.teams.teamLabel", { team: team.team + 1 })}
+              </Text>
+              <Text variant="display" className="text-lg">
+                {team.overallTotal}
+              </Text>
+            </View>
+            <View className="gap-1">
+              {team.players.map((player) => (
+                <View key={player.playerId} className="flex-row items-center justify-between gap-2">
+                  <Text className="flex-1 font-body text-sm text-ink" numberOfLines={1}>
                     {player.name}
                   </Text>
-                ))}
-              </View>
+                  <Text variant="display" className="text-sm text-muted">
+                    {player.overall}
+                  </Text>
+                </View>
+              ))}
             </View>
-          );
-        })}
+          </View>
+        ))}
       </View>
 
       <Button testID="regenerate-teams-cta" variant="secondary" onPress={onGenerate} loading={generating}>

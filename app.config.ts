@@ -7,6 +7,28 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3333";
 // de convite compartilhado no zap (`/invite/<token>`).
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? "http://localhost:5173";
 
+// Google Sign-In (real, config-gated — ver .env.example para o passo a passo
+// completo). Sem `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, o config plugin do
+// `@react-native-google-signin/google-signin` é omitido: sem ele, o plugin
+// tentaria ler um `GoogleService-Info.plist` do Firebase (que este projeto
+// não usa) e quebraria o `expo prebuild`. O app funciona normalmente sem
+// essas envs — o botão de Google só fica desabilitado ("em breve").
+const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "";
+
+/**
+ * Deriva o "reversed client ID" (URL scheme do iOS) a partir do client ID
+ * OAuth do iOS — formato `<algo>.apps.googleusercontent.com` vira
+ * `com.googleusercontent.apps.<algo>`. É esse scheme que o config plugin
+ * registra no `Info.plist` pra receber o callback do fluxo nativo.
+ */
+function iosUrlSchemeFrom(iosClientId: string): string | null {
+  const suffix = ".apps.googleusercontent.com";
+  if (!iosClientId.endsWith(suffix)) return null;
+  return `com.googleusercontent.apps.${iosClientId.slice(0, -suffix.length)}`;
+}
+
+const googleIosUrlScheme = GOOGLE_IOS_CLIENT_ID ? iosUrlSchemeFrom(GOOGLE_IOS_CLIENT_ID) : null;
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "futebol-app",
@@ -49,6 +71,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         imageWidth: 200,
       },
     ],
+    ...(googleIosUrlScheme
+      ? [["@react-native-google-signin/google-signin", { iosUrlScheme: googleIosUrlScheme }] as [string, unknown]]
+      : []),
   ],
   experiments: {
     typedRoutes: true,
@@ -56,5 +81,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     apiUrl: API_URL,
     webUrl: WEB_URL,
+    googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "",
+    googleIosClientId: GOOGLE_IOS_CLIENT_ID,
   },
 });
