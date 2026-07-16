@@ -21,7 +21,7 @@ export default function RegisterScreen() {
     setSubmitting(true);
     try {
       await register(email, password, name);
-      // Sucesso: guard no root layout navega automaticamente para `(tabs)`.
+      // Sucesso: guard no root layout navega automaticamente para `(drawer)`.
     } catch {
       setFormError(t("register.emailInUse"));
     } finally {

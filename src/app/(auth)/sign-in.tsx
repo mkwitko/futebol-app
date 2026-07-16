@@ -24,7 +24,7 @@ export default function SignInScreen() {
     try {
       await signIn(email, password);
       // Sucesso: `isAuthenticated` vira `true` e o guard no root layout
-      // navega automaticamente para `(tabs)`.
+      // navega automaticamente para `(drawer)`.
     } catch {
       setFormError(t("signIn.invalidCredentials"));
     } finally {

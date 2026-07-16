@@ -1,5 +1,5 @@
 import { screen, userEvent, waitFor } from "@testing-library/react-native";
-import PeladasScreen from "@/app/(tabs)/index";
+import PeladasScreen from "@/app/(drawer)/index";
 import { resetGroupsMocks } from "../mocks/handlers";
 import { renderWithProviders } from "../utils/render";
 

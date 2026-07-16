@@ -1,6 +1,6 @@
 import { screen, userEvent, waitFor } from "@testing-library/react-native";
 import { Share } from "react-native";
-import PerfilScreen from "@/app/(tabs)/perfil";
+import PerfilScreen from "@/app/(drawer)/perfil";
 import { FAKE_CAREER, FAKE_MY_PLAYER, resetGroupsMocks, setCareerMock } from "../mocks/handlers";
 import { renderWithProviders } from "../utils/render";
 

@@ -16,8 +16,9 @@
     "networkError": "Não foi possível conectar ao servidor."
   },
   "nav": {
-    "peladas": "Peladas",
-    "profile": "Perfil"
+    "myGroups": "Meus Grupos",
+    "profile": "Perfil",
+    "config": "Configurações"
   },
   "emptyState": {
     "comingSoonTitle": "Em construção",
@@ -25,5 +26,10 @@
   },
   "profile": {
     "version": "Versão {{version}}"
+  },
+  "config": {
+    "languageLabel": "Idioma",
+    "languageValue": "Português (Brasil)",
+    "aboutLabel": "Sobre"
   }
 }
