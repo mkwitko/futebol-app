@@ -1,8 +1,9 @@
 import Constants from "expo-constants";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Share, View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
+import { AffinityPicker } from "@/components/players/affinity-picker";
 import { CareerSummary } from "@/components/players/career-summary";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,8 +11,18 @@ import { Divider } from "@/components/ui/divider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { useUpdateMyPlayer } from "@/hooks/players/use-update-my-player";
+import {
+  type AffinityMap,
+  affinityMapsEqual,
+  toAffinityMap,
+  toApiAffinity,
+} from "@/lib/player/affinity";
 import { buildPlayerProfileUrl } from "@/lib/player/url";
-import { useGetMyPlayer, useGetPlayerCareer } from "@/api/generated/hooks/playersHooks";
+import {
+  useGetMyPlayer,
+  useGetPlayerCareer,
+} from "@/api/generated/hooks/playersHooks";
 
 /** Placeholder de carregamento do hero — imita o formato do `PlayerCard` `full`. */
 function CareerHeroSkeleton() {
@@ -32,6 +43,19 @@ export default function PerfilScreen() {
   const playerId = myPlayerQuery.data?.id;
   const careerQuery = useGetPlayerCareer(playerId);
 
+  const updateMyPlayer = useUpdateMyPlayer();
+  const savedAffinity = toAffinityMap(myPlayerQuery.data?.affinity);
+  const [affinityDraft, setAffinityDraft] = useState<AffinityMap>({});
+  // Re-seed the editable draft whenever the persisted affinity changes.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: seed on the persisted value's identity
+  useEffect(() => {
+    setAffinityDraft(toAffinityMap(myPlayerQuery.data?.affinity));
+  }, [myPlayerQuery.data?.affinity]);
+  const affinityDirty = !affinityMapsEqual(affinityDraft, savedAffinity);
+  const saveAffinity = async () => {
+    await updateMyPlayer.mutateAsync(toApiAffinity(affinityDraft));
+  };
+
   const appVersion = Constants.expoConfig?.version ?? "—";
 
   const handleSignOut = async () => {
@@ -51,7 +75,8 @@ export default function PerfilScreen() {
     await Share.share({ message: t("player:career.shareMessage", { link }) });
   };
 
-  const isLoading = myPlayerQuery.isPending || (!!playerId && careerQuery.isPending);
+  const isLoading =
+    myPlayerQuery.isPending || (!!playerId && careerQuery.isPending);
   const isError = myPlayerQuery.isError || careerQuery.isError;
   const retry = () => {
     if (myPlayerQuery.isError) void myPlayerQuery.refetch();
@@ -98,12 +123,42 @@ export default function PerfilScreen() {
             name={myPlayerQuery.data?.name ?? user?.name ?? ""}
             career={careerQuery.data}
             action={
-              <Button testID="profile-share-cta" variant="secondary" onPress={() => void handleShare()}>
+              <Button
+                testID="profile-share-cta"
+                variant="secondary"
+                onPress={() => void handleShare()}
+              >
                 {t("player:career.shareCta")}
               </Button>
             }
           />
         ) : null}
+      </View>
+
+      <Divider />
+
+      <View className="gap-3">
+        <Text variant="display" className="text-lg">
+          {t("player:positions.title")}
+        </Text>
+        <Text variant="muted" className="text-sm">
+          {t("player:positions.hint")}
+        </Text>
+        <AffinityPicker
+          value={affinityDraft}
+          onChange={setAffinityDraft}
+          overallByPosition={careerQuery.data?.overall}
+          affinityLabel={t("player:positions.affinityLabel")}
+          overallLabel={t("player:positions.overallLabel")}
+        />
+        <Button
+          testID="profile-save-positions"
+          onPress={() => void saveAffinity()}
+          loading={updateMyPlayer.isPending}
+          disabled={!affinityDirty}
+        >
+          {t("player:positions.save")}
+        </Button>
       </View>
 
       <Divider />

@@ -25,5 +25,12 @@
   "screen": {
     "loadingTitle": "Carregando…",
     "loadError": "Não foi possível carregar este jogador."
+  },
+  "positions": {
+    "title": "Minhas posições",
+    "hint": "Escolha as posições que você joga e o quão bom você é em cada (0-100). Seu overall real vem dos seus jogos.",
+    "affinityLabel": "Afinidade",
+    "overallLabel": "Overall",
+    "save": "Salvar posições"
   }
 }
