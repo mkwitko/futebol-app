@@ -19,6 +19,8 @@ import type { GetMeQueryResponse } from "@/api/generated/types/GetMe";
 import { isGoogleSignInConfigured, signInWithGoogleNative } from "@/lib/auth/google";
 import { forceLogout } from "@/lib/auth/session";
 import { getAccessToken, saveTokens } from "@/lib/auth/tokens";
+import { usePushHandlers } from "@/lib/push/use-push-handlers";
+import { usePushRegistration } from "@/lib/push/use-push-registration";
 
 export type AuthUser = GetMeQueryResponse;
 
@@ -110,6 +112,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isLoading = hasToken === null || (hasToken === true && meQuery.isLoading);
   const isAuthenticated = hasToken === true && !!meQuery.data && !meQuery.isError;
+
+  // Registra o device pra push (FCM) e liga os handlers de mensagem recebida
+  // enquanto a sessão está autenticada (o deep-link abre uma rota protegida).
+  usePushRegistration(isAuthenticated);
+  usePushHandlers(isAuthenticated);
 
   const value = useMemo<AuthState & AuthActions>(
     () => ({

@@ -14,6 +14,7 @@ const extra = (Constants.expoConfig?.extra ?? {}) as {
   webUrl?: string;
   googleWebClientId?: string;
   googleIosClientId?: string;
+  pushEnabled?: string;
 };
 
 const rawEnv = {
@@ -28,6 +29,9 @@ const rawEnv = {
     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? extra.googleWebClientId ?? "",
   EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID:
     process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? extra.googleIosClientId ?? "",
+  // Push (FCM) — "true" liga; vazio/qualquer outra coisa = desligado (Expo Go
+  // roda normalmente sem tocar no Firebase). Ver .env.example.
+  EXPO_PUBLIC_PUSH_ENABLED: process.env.EXPO_PUBLIC_PUSH_ENABLED ?? extra.pushEnabled ?? "false",
 };
 
 const envSchema = z.object({
@@ -36,6 +40,7 @@ const envSchema = z.object({
   EXPO_PUBLIC_WEB_URL: z.string().url(),
   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: z.string().default(""),
   EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: z.string().default(""),
+  EXPO_PUBLIC_PUSH_ENABLED: z.string().default("false"),
 });
 
 export const env = envSchema.parse(rawEnv);

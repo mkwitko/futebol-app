@@ -29,6 +29,17 @@ function iosUrlSchemeFrom(iosClientId: string): string | null {
 
 const googleIosUrlScheme = GOOGLE_IOS_CLIENT_ID ? iosUrlSchemeFrom(GOOGLE_IOS_CLIENT_ID) : null;
 
+// Push (FCM via @react-native-firebase) — OPCIONAL e config-gated, igual ao
+// Google Sign-In. Só com EXPO_PUBLIC_PUSH_ENABLED=true os plugins do Firebase
+// entram (e apontam pros arquivos nativos do Firebase). Sem isso, o prebuild
+// não tentaria ler `google-services.json`/`GoogleService-Info.plist`
+// (ausentes) e quebrar. Ver .env.example.
+const PUSH_ENABLED = process.env.EXPO_PUBLIC_PUSH_ENABLED === "true";
+const ANDROID_GOOGLE_SERVICES =
+  process.env.EXPO_PUBLIC_ANDROID_GOOGLE_SERVICES ?? "./google-services.json";
+const IOS_GOOGLE_SERVICES =
+  process.env.EXPO_PUBLIC_IOS_GOOGLE_SERVICES ?? "./GoogleService-Info.plist";
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "futebol-app",
@@ -41,8 +52,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     userInterfaceStyle: "dark",
+    bundleIdentifier: "com.mauriciooliveira.futebolapp",
+    ...(PUSH_ENABLED ? { googleServicesFile: IOS_GOOGLE_SERVICES } : {}),
   },
   android: {
+    package: "com.mauriciooliveira.futebolapp",
     adaptiveIcon: {
       backgroundColor: "#0B140F",
       foregroundImage: "./assets/android-icon-foreground.png",
@@ -51,6 +65,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     userInterfaceStyle: "dark",
     predictiveBackGestureEnabled: false,
+    ...(PUSH_ENABLED ? { googleServicesFile: ANDROID_GOOGLE_SERVICES } : {}),
   },
   web: {
     favicon: "./assets/favicon.png",
@@ -74,6 +89,26 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ...(googleIosUrlScheme
       ? [["@react-native-google-signin/google-signin", { iosUrlScheme: googleIosUrlScheme }] as [string, unknown]]
       : []),
+    // FCM: os plugins do Firebase + frameworks estáticos no iOS (exigência do
+    // firebase-ios-sdk). Só entram com push ligado — ver PUSH_ENABLED acima.
+    ...(PUSH_ENABLED
+      ? ([
+          "@react-native-firebase/app",
+          "@react-native-firebase/messaging",
+          [
+            "expo-build-properties",
+            {
+              ios: {
+                useFrameworks: "static",
+                forceStaticLinking: ["RNFBApp", "RNFBMessaging"],
+              },
+            },
+          ],
+          // Ícone/cor da notificação Android (meta-data FCM) — ver
+          // plugins/with-notification-icon.js.
+          ["./plugins/with-notification-icon", { color: "#21C776" }],
+        ] as (string | [string, unknown])[])
+      : []),
   ],
   experiments: {
     typedRoutes: true,
@@ -83,5 +118,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     webUrl: WEB_URL,
     googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "",
     googleIosClientId: GOOGLE_IOS_CLIENT_ID,
+    pushEnabled: PUSH_ENABLED ? "true" : "false",
   },
 });

@@ -1,4 +1,7 @@
 import "../../global.css";
+// Registra o background message handler no load (fora do ciclo de componente),
+// como o RNFirebase exige. No-op quando push está desligado.
+import "@/lib/push/background";
 
 import { useEffect, useState } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
