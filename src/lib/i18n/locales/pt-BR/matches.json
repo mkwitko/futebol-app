@@ -213,6 +213,8 @@
     "upcomingEmptyTitle": "Nenhuma pelada gerada ainda",
     "upcomingEmptyDescription": "As próximas peladas desta série aparecem aqui.",
     "endCta": "Encerrar série",
+    "endConfirmTitle": "Encerrar série?",
+    "endConfirmMessage": "Nenhuma nova pelada será gerada a partir desta série. Essa ação não pode ser desfeita.",
     "endSuccess": "Série encerrada.",
     "endError": "Não foi possível encerrar a série.",
     "ruleDescriptions": {

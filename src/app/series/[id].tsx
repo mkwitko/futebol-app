@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
 import { MatchRow } from "@/components/matches/match-row";
 import { QueryState } from "@/components/shared/query-state";
@@ -47,6 +47,12 @@ export default function SeriesDetailScreen() {
       toast.show(t("matches:series.endError"), "danger");
     }
   };
+
+  const confirmEnd = () =>
+    Alert.alert(t("matches:series.endConfirmTitle"), t("matches:series.endConfirmMessage"), [
+      { text: t("common:actions.cancel"), style: "cancel" },
+      { text: t("common:actions.confirm"), style: "destructive", onPress: () => void handleEnd() },
+    ]);
 
   // Índice = dia (0=Dom..6=Sáb) / semana (1..4, -1=última) — pré-resolvidos com
   // chaves literais porque o `TFunction` tipado só aceita chaves conhecidas em
@@ -189,7 +195,7 @@ export default function SeriesDetailScreen() {
             {series.status !== "ended" ? (
               <Button
                 variant="danger"
-                onPress={() => void handleEnd()}
+                onPress={confirmEnd}
                 loading={endSeries.isPending}
                 testID="end-series-cta"
               >
