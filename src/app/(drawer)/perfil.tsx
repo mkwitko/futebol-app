@@ -1,5 +1,5 @@
 import Constants from "expo-constants";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Share, View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
@@ -46,11 +46,14 @@ export default function PerfilScreen() {
   const updateMyPlayer = useUpdateMyPlayer();
   const savedAffinity = toAffinityMap(myPlayerQuery.data?.affinity);
   const [affinityDraft, setAffinityDraft] = useState<AffinityMap>({});
-  // Re-seed the editable draft whenever the persisted affinity changes.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: seed on the persisted value's identity
-  useEffect(() => {
+  // Re-seed the editable draft from the persisted value using React's
+  // adjust-state-during-render pattern (no effect): when the server value's
+  // identity changes (initial load, or refetch after a save), reset the draft.
+  const [seededFrom, setSeededFrom] = useState<Record<string, number> | undefined>(undefined);
+  if (myPlayerQuery.data?.affinity !== seededFrom) {
+    setSeededFrom(myPlayerQuery.data?.affinity);
     setAffinityDraft(toAffinityMap(myPlayerQuery.data?.affinity));
-  }, [myPlayerQuery.data?.affinity]);
+  }
   const affinityDirty = !affinityMapsEqual(affinityDraft, savedAffinity);
   const saveAffinity = async () => {
     await updateMyPlayer.mutateAsync(toApiAffinity(affinityDraft));
