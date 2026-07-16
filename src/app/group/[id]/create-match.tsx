@@ -39,6 +39,11 @@ export default function CreateMatchScreen() {
         return;
       }
 
+      if (recurrence.rule.kind === "manual" && !recurrence.dates?.length) {
+        setFormError(t("create.manualNoDates"));
+        return;
+      }
+
       const series = await createSeries.mutateAsync({
         rule: recurrence.rule,
         time: recurrence.time,
@@ -65,7 +70,11 @@ export default function CreateMatchScreen() {
   return (
     <ScreenContainer className="gap-6">
       <ScreenHeader title={t("create.title")} onBack={() => router.back()} />
-      <CreateMatchForm onSubmit={onSubmit} submitting={createMatch.isPending} formError={formError} />
+      <CreateMatchForm
+        onSubmit={onSubmit}
+        submitting={createMatch.isPending || createSeries.isPending || addSeriesDates.isPending}
+        formError={formError}
+      />
     </ScreenContainer>
   );
 }

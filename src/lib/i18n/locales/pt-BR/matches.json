@@ -41,7 +41,8 @@
     "recurrenceManualRemove": "Remover data",
     "submit": "Criar pelada",
     "submitting": "Criando…",
-    "error": "Não foi possível criar a pelada. Tente novamente."
+    "error": "Não foi possível criar a pelada. Tente novamente.",
+    "manualNoDates": "Adicione ao menos uma data para a série manual."
   },
   "detail": {
     "loadingTitle": "Carregando…",

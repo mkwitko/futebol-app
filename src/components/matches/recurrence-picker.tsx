@@ -5,7 +5,7 @@ import { Chip } from "@/components/ui/chip";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Stepper } from "@/components/ui/stepper";
 import { Text } from "@/components/ui/text";
-import { combineDateAndTime, formatTime } from "@/lib/datetime/format";
+import { combineDateAndTime } from "@/lib/datetime/format";
 import { DateTimeField } from "./date-time-field";
 
 export type WeeklyRule = { kind: "weekly"; weekdays: number[]; interval: number };
@@ -45,9 +45,17 @@ export type RecurrencePickerProps = {
 const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
 const MONTHLY_WEEKS: MonthlyNthWeek[] = [1, 2, 3, 4, -1];
 
-/** "HH:mm" em UTC — a série guarda o horário como UTC puro (ver Task 9/backend). */
+/**
+ * "HH:mm" em UTC — a série guarda o horário como UTC puro (ver Task 9/backend).
+ * Deriva via `getUTCHours`/`getUTCMinutes` (device-timezone-independente) —
+ * NUNCA usar `formatTime` aqui: aquele helper lê hora/minuto LOCAL do `Date`
+ * (para exibição), o que produziria um horário errado combinado com o
+ * weekday/day-of-month UTC já usados pelos defaults deste picker.
+ */
 export function toRuleTime(baseDatetime: Date): string {
-  return formatTime(baseDatetime.toISOString());
+  const hours = String(baseDatetime.getUTCHours()).padStart(2, "0");
+  const minutes = String(baseDatetime.getUTCMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
 }
 
 export function buildWeeklyRule(weekdays: number[], interval: number): WeeklyRule {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { render, screen, userEvent } from "@testing-library/react-native";
-import { RecurrencePicker, type RecurrenceValue } from "@/components/matches/recurrence-picker";
+import { RecurrencePicker, toRuleTime, type RecurrenceValue } from "@/components/matches/recurrence-picker";
 
 // Terça-feira 21:00 UTC — o jest deste repo roda com TZ=UTC (ver package.json
 // `"test": "TZ=UTC jest --forceExit"`), então `getUTCDay()`/local coincidem.
@@ -22,6 +22,25 @@ function Harness({ onChangeSpy }: { onChangeSpy: (value: RecurrenceValue | null)
     />
   );
 }
+
+describe("toRuleTime", () => {
+  it("derives 'HH:mm' from the UTC hour/minute, independently of device TZ", () => {
+    // Construído via `Date.UTC` (não `new Date("...")` local nem getters
+    // locais) — sob QUALQUER fuso do device, `getUTCHours`/`getUTCMinutes`
+    // sempre leem 18:30. Se `toRuleTime` alguma vez voltasse a usar
+    // `formatTime` (que lê hora/minuto LOCAL do `Date`), este teste falharia
+    // em qualquer TZ diferente de UTC — mesmo que o CI rode com `TZ=UTC`.
+    const baseDatetime = new Date(Date.UTC(2026, 0, 6, 18, 30));
+
+    expect(toRuleTime(baseDatetime)).toBe("18:30");
+  });
+
+  it("pads single-digit UTC hour/minute with a leading zero", () => {
+    const baseDatetime = new Date(Date.UTC(2026, 0, 6, 3, 5));
+
+    expect(toRuleTime(baseDatetime)).toBe("03:05");
+  });
+});
 
 describe("RecurrencePicker", () => {
   it("emits null (avulsa) by default and stays null when 'Não (avulsa)' is pressed", async () => {
