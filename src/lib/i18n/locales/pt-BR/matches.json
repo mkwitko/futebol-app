@@ -11,8 +11,34 @@
     "priceHelper": "Deixe em branco se a pelada for gratuita.",
     "pixKeyLabel": "Chave PIX (opcional)",
     "pixKeyPlaceholder": "CPF, e-mail, telefone ou chave aleatória",
-    "repeatWeeklyLabel": "Repete toda semana",
-    "repeatWeeklyHint": "Cria peladas recorrentes no mesmo dia e horário.",
+    "recurrenceLabel": "Repete?",
+    "recurrenceModes": {
+      "none": "Não (avulsa)",
+      "weekly": "Semanal",
+      "biweekly": "Quinzenal/N sem",
+      "monthly": "Mensal",
+      "manual": "Manual"
+    },
+    "recurrenceWeekdaysLabel": "Dias da semana",
+    "recurrenceIntervalLabel": "Repetir a cada quantas semanas",
+    "recurrenceMonthlyVariant": {
+      "dom": "Dia do mês",
+      "nth": "Nª semana"
+    },
+    "recurrenceMonthlyDayLabel": "Dia do mês",
+    "recurrenceMonthlyWeekLabel": "Semana do mês",
+    "recurrenceMonthlyWeekOptions": {
+      "1": "1ª",
+      "2": "2ª",
+      "3": "3ª",
+      "4": "4ª",
+      "-1": "Última"
+    },
+    "recurrenceMonthlyWeekdayLabel": "Dia da semana",
+    "recurrenceManualLabel": "Datas da série",
+    "recurrenceManualAddCta": "Adicionar data",
+    "recurrenceManualEmpty": "Nenhuma data adicionada ainda.",
+    "recurrenceManualRemove": "Remover data",
     "submit": "Criar pelada",
     "submitting": "Criando…",
     "error": "Não foi possível criar a pelada. Tente novamente."
@@ -155,6 +181,45 @@
       "error": "Não foi possível finalizar a pelada.",
       "closedTitle": "Pelada encerrada",
       "closedDescription": "A votação foi fechada e os níveis dos jogadores já foram atualizados."
+    }
+  },
+  "weekdays": {
+    "0": "Dom",
+    "1": "Seg",
+    "2": "Ter",
+    "3": "Qua",
+    "4": "Qui",
+    "5": "Sex",
+    "6": "Sáb"
+  },
+  "series": {
+    "loadingTitle": "Carregando…",
+    "loadError": "Não foi possível carregar esta série.",
+    "detailTitle": "Série",
+    "ruleSummaryLabel": "Frequência",
+    "locationLabel": "Local",
+    "timeLabel": "Horário",
+    "slotsLabel": "Vagas",
+    "priceLabel": "Preço por pessoa",
+    "freeMatch": "Gratuita",
+    "statusLabel": "Status",
+    "status": {
+      "active": "Ativa",
+      "paused": "Pausada",
+      "ended": "Encerrada"
+    },
+    "upcomingTitle": "Próximas peladas",
+    "upcomingEmptyTitle": "Nenhuma pelada gerada ainda",
+    "upcomingEmptyDescription": "As próximas peladas desta série aparecem aqui.",
+    "endCta": "Encerrar série",
+    "endSuccess": "Série encerrada.",
+    "endError": "Não foi possível encerrar a série.",
+    "ruleDescriptions": {
+      "weekly": "Toda semana ({{weekdays}})",
+      "weeklyInterval": "A cada {{interval}} semanas ({{weekdays}})",
+      "monthlyDom": "Todo mês, dia {{day}}",
+      "monthlyNth": "Todo mês, {{week}} {{weekday}}",
+      "manual": "Datas manuais"
     }
   }
 }

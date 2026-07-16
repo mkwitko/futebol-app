@@ -1,13 +1,13 @@
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { Switch, View } from "react-native";
+import { View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Stepper } from "@/components/ui/stepper";
 import { Text } from "@/components/ui/text";
+import { combineDateAndTime } from "@/lib/datetime/format";
 import { asZodMessageKey } from "@/lib/i18n/zod-message";
-import { colors } from "@/lib/theme";
 import {
   createMatchSchema,
   defaultCreateMatchFormValues,
@@ -16,6 +16,7 @@ import {
   type CreateMatchFormValues,
 } from "@/schemas/matches/create-match.schema";
 import { DateTimeField } from "./date-time-field";
+import { RecurrencePicker } from "./recurrence-picker";
 
 export type CreateMatchFormProps = {
   onSubmit: (values: CreateMatchFormValues) => Promise<void>;
@@ -34,6 +35,10 @@ export function CreateMatchForm({ onSubmit, submitting = false, formError }: Cre
     resolver: standardSchemaResolver(createMatchSchema),
     defaultValues: defaultCreateMatchFormValues(),
   });
+
+  const watchedDate = useWatch({ control, name: "date" });
+  const watchedTime = useWatch({ control, name: "time" });
+  const baseDatetime = combineDateAndTime(watchedDate, watchedTime);
 
   return (
     <View className="gap-4">
@@ -129,25 +134,9 @@ export function CreateMatchForm({ onSubmit, submitting = false, formError }: Cre
 
       <Controller
         control={control}
-        name="repeatWeekly"
+        name="recurrence"
         render={({ field: { onChange, value } }) => (
-          <View className="flex-row items-center justify-between gap-3 rounded-2xl border border-line bg-surface-up p-3">
-            <View className="flex-1 gap-0.5">
-              <Text className="font-body-medium text-base text-ink">
-                {t("matches:create.repeatWeeklyLabel")}
-              </Text>
-              <Text variant="muted" className="text-xs">
-                {t("matches:create.repeatWeeklyHint")}
-              </Text>
-            </View>
-            <Switch
-              value={value}
-              onValueChange={onChange}
-              trackColor={{ false: colors.line, true: colors.primary }}
-              thumbColor={colors.ink}
-              accessibilityLabel={t("matches:create.repeatWeeklyLabel")}
-            />
-          </View>
+          <RecurrencePicker value={value} onChange={onChange} baseDatetime={baseDatetime} />
         )}
       />
 
