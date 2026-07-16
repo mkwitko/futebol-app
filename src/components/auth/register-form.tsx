@@ -66,7 +66,7 @@ export function RegisterForm({ onSubmit, submitting = false, formError }: Regist
           <Input
             label={t("auth:register.passwordLabel")}
             placeholder={t("auth:register.passwordPlaceholder")}
-            secureTextEntry
+            secureToggle
             autoCapitalize="none"
             autoComplete="password-new"
             value={value}

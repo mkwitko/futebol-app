@@ -65,6 +65,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     userInterfaceStyle: "dark",
     predictiveBackGestureEnabled: false,
+    // "resize" já é o default do Expo (`android:windowSoftInputMode="adjustResize"`),
+    // mas deixamos explícito: com o edge-to-edge obrigatório (status bar
+    // translúcida) do Android 15+/SDK 57, o próprio `@expo/config-plugins`
+    // avisa que esse resize automático pode falhar — por isso o
+    // `ScreenContainer` (src/components/layout/screen-container.tsx) também
+    // dá um `behavior` real ao `KeyboardAvoidingView` no Android, em vez de
+    // depender só disso.
+    softwareKeyboardLayoutMode: "resize",
     ...(PUSH_ENABLED ? { googleServicesFile: ANDROID_GOOGLE_SERVICES } : {}),
   },
   web: {

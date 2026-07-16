@@ -51,7 +51,7 @@ export function SignInForm({ onSubmit, submitting = false, formError }: SignInFo
           <Input
             label={t("auth:signIn.passwordLabel")}
             placeholder={t("auth:signIn.passwordPlaceholder")}
-            secureTextEntry
+            secureToggle
             autoCapitalize="none"
             autoComplete="password"
             value={value}

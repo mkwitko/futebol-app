@@ -23,6 +23,8 @@ export function AuthHero() {
       />
       <View className="h-px w-14 bg-primary" />
       <Text className="text-center font-display-bold text-4xl uppercase tracking-widest text-ink">
+        {/* "⚽" é um glifo decorativo universal, não precisa de chave de i18n. */}
+        {"⚽ "}
         {t("app.name")}
       </Text>
       <Text className="font-body-medium text-xs uppercase tracking-wide text-muted">
