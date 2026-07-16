@@ -1,4 +1,4 @@
-import { screen, userEvent, waitFor } from "@testing-library/react-native";
+import { screen, userEvent, waitFor, within } from "@testing-library/react-native";
 import { Share } from "react-native";
 import PerfilScreen from "@/app/(drawer)/perfil";
 import { FAKE_CAREER, FAKE_MY_PLAYER, resetGroupsMocks, setCareerMock } from "../mocks/handlers";
@@ -21,10 +21,13 @@ describe("Minha carreira (Perfil)", () => {
     expect(screen.getAllByText("78")).toHaveLength(2);
     expect(screen.getByText("Prata")).toBeOnTheScreen();
 
-    // Overall por posição — as duas posições da carreira mockada.
+    // Overall por posição — as duas posições da carreira mockada. Escopado ao
+    // card de carreira: o editor de afinidade (AffinityPicker) também exibe
+    // labels de posição como chips, então "Atacante"/"Meia" aparecem 2x na tela.
     expect(screen.getByText("Overall por posição")).toBeOnTheScreen();
-    expect(screen.getByText("Atacante")).toBeOnTheScreen();
-    expect(screen.getByText("Meia")).toBeOnTheScreen();
+    const career = within(screen.getByTestId("my-career-summary"));
+    expect(career.getByText("Atacante")).toBeOnTheScreen();
+    expect(career.getByText("Meia")).toBeOnTheScreen();
     expect(screen.getByText("Melhor posição")).toBeOnTheScreen();
     expect(screen.getByText("65")).toBeOnTheScreen();
 

@@ -83,7 +83,9 @@ describe("Mensalidades do grupo", () => {
     renderWithProviders(<MensalidadesScreen />);
 
     expect(await screen.findByText("Alice")).toBeOnTheScreen();
-    expect(screen.getAllByLabelText("Paguei").length).toBe(1);
+    // "Paguei" só aparece depois que o usuário logado (user-1) resolve async
+    // no AuthProvider — espera antes de asserir a contagem.
+    await waitFor(() => expect(screen.getAllByLabelText("Paguei")).toHaveLength(1));
 
     await user.press(screen.getByLabelText("Paguei"));
 
