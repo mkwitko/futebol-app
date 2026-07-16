@@ -6,12 +6,21 @@ const positionSchema = z.enum(POSITIONS as readonly [Position, ...Position[]]);
 const affinityValue = z.number().min(0).max(100);
 const overallValue = z.number().min(0).max(99);
 
+export const BILLING_MODES = ["mensalista", "avulso"] as const;
+export type BillingMode = (typeof BILLING_MODES)[number];
+
 /**
  * `affinity`/`seedOverall` são mantidos como um record completo (as 6
  * posições) no estado do formulário — simplifica o binding via `Controller`
  * (`name={`affinity.${position}`}`) e os defaults. Só as posições
  * selecionadas (`primaryPos` + `secondaryPos`) são enviadas à API no submit
  * (ver `member-sheet.tsx`).
+ *
+ * `billingMode`/`monthlyFeeCentsOverrideInput` só se aplicam no modo `edit`
+ * (a API de criação de membro não aceita esses campos ainda — ver
+ * `AddMemberMutationRequest`). `monthlyFeeCentsOverrideInput` é o texto em
+ * reais (não centavos), convertido no submit via `reaisInputToCents`; campo
+ * vazio → `monthlyFeeCentsOverride: null` (usa a mensalidade padrão do grupo).
  */
 export const memberFormSchema = z.object({
   name: z
@@ -37,6 +46,8 @@ export const memberFormSchema = z.object({
     meia: overallValue,
     atacante: overallValue,
   }),
+  billingMode: z.enum(BILLING_MODES),
+  monthlyFeeCentsOverrideInput: z.string().max(20).optional(),
 });
 
 export type MemberFormValues = z.infer<typeof memberFormSchema>;
@@ -69,5 +80,7 @@ export function defaultMemberFormValues(): MemberFormValues {
       meia: DEFAULT_OVERALL,
       atacante: DEFAULT_OVERALL,
     },
+    billingMode: "avulso",
+    monthlyFeeCentsOverrideInput: "",
   };
 }

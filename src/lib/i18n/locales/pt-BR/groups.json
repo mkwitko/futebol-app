@@ -42,7 +42,18 @@
       "closed": "Fechada",
       "finished": "Finalizada",
       "cancelled": "Cancelada"
-    }
+    },
+    "feeCardTitle": "Mensalidade padrão",
+    "feeCardEmpty": "Não definida",
+    "feeCardEditCta": "Editar",
+    "feeCardSaveCta": "Salvar",
+    "feeCardSaving": "Salvando…",
+    "feeCardCancelCta": "Cancelar",
+    "feeCardPlaceholder": "0,00",
+    "feeCardHint": "Valor cobrado por mês dos jogadores mensalistas. Deixe em branco para não ter mensalidade padrão.",
+    "feeCardSaveSuccess": "Mensalidade padrão atualizada!",
+    "feeCardSaveError": "Não foi possível salvar a mensalidade. Tente novamente.",
+    "mensalidadesCta": "Mensalidades"
   },
   "member": {
     "addTitle": "Adicionar jogador",
@@ -63,6 +74,33 @@
     "editSuccess": "Jogador atualizado!",
     "addError": "Não foi possível adicionar o jogador. Tente novamente.",
     "editError": "Não foi possível salvar as alterações. Tente novamente.",
-    "nameReadOnlyHint": "O nome não pode ser editado por aqui."
+    "nameReadOnlyHint": "O nome não pode ser editado por aqui.",
+    "billingSectionTitle": "Cobrança",
+    "billingModeLabel": "Como esse jogador paga?",
+    "billingMode": {
+      "mensalista": "Mensalista",
+      "avulso": "Avulso"
+    },
+    "feeOverrideLabel": "Mensalidade personalizada (R$)",
+    "feeOverridePlaceholderDefault": "Padrão do grupo: {{amount}}",
+    "feeOverridePlaceholderNone": "Sem mensalidade padrão definida",
+    "feeOverrideHint": "Deixe em branco para usar a mensalidade padrão do grupo."
+  },
+  "mensalidades": {
+    "title": "Mensalidades",
+    "loadingTitle": "Carregando…",
+    "loadError": "Não foi possível carregar as mensalidades.",
+    "monthLabel": "Competência {{month}}",
+    "emptyTitle": "Nenhuma mensalidade este mês",
+    "emptyDescription": "Mensalidades aparecem aqui depois que houver jogadores mensalistas no grupo.",
+    "statusPaid": "Pago",
+    "statusPending": "Pendente",
+    "confirmCta": "Confirmar",
+    "undoCta": "Desfazer",
+    "markPaidCta": "Paguei",
+    "confirmSuccess": "Mensalidade confirmada!",
+    "confirmError": "Não foi possível confirmar a mensalidade. Tente novamente.",
+    "markPaidSuccess": "Mensalidade marcada como paga!",
+    "markPaidError": "Não foi possível marcar a mensalidade como paga. Tente novamente."
   }
 }

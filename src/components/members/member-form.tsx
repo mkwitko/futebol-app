@@ -10,8 +10,9 @@ import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Stepper } from "@/components/ui/stepper";
 import { Text } from "@/components/ui/text";
 import { asZodMessageKey } from "@/lib/i18n/zod-message";
+import { formatCentsToBRL } from "@/lib/money";
 import { POSITIONS, type Position, positionAbbreviation, positionLabel } from "@/lib/player/position";
-import { memberFormSchema, type MemberFormValues } from "@/schemas/members/member-form.schema";
+import { BILLING_MODES, memberFormSchema, type MemberFormValues } from "@/schemas/members/member-form.schema";
 
 export type MemberFormMode = "create" | "edit";
 
@@ -21,6 +22,8 @@ export type MemberFormProps = {
   onSubmit: (values: MemberFormValues) => Promise<void>;
   submitting?: boolean;
   formError?: string | null;
+  /** Mensalidade padrão do grupo (centavos) — usada como placeholder do override, modo `edit`. */
+  groupMonthlyFeeCents?: number | null;
 };
 
 const PRIMARY_POS_OPTIONS = POSITIONS.map((position) => ({
@@ -38,7 +41,14 @@ const AFFINITY_STEP = 5;
  * no modo `edit`, nome/telefone aparecem como texto (não editáveis) em vez de
  * `Input`s que dariam a entender que podem ser salvos.
  */
-export function MemberForm({ mode, defaultValues, onSubmit, submitting = false, formError }: MemberFormProps) {
+export function MemberForm({
+  mode,
+  defaultValues,
+  onSubmit,
+  submitting = false,
+  formError,
+  groupMonthlyFeeCents,
+}: MemberFormProps) {
   const { t } = useTranslation(["groups", "zod"]);
   const {
     control,
@@ -54,6 +64,17 @@ export function MemberForm({ mode, defaultValues, onSubmit, submitting = false, 
   // eslint-disable-next-line react-hooks/incompatible-library -- watch() do RHF não é memoizável pelo React Compiler; comportamento esperado dessa lib.
   const primaryPos = watch("primaryPos");
   const secondaryPos = watch("secondaryPos");
+  const billingMode = watch("billingMode");
+
+  const billingModeOptions = BILLING_MODES.map((value) => ({
+    label: t(`groups:member.billingMode.${value}`),
+    value,
+  }));
+
+  const feeOverridePlaceholder =
+    groupMonthlyFeeCents != null
+      ? t("groups:member.feeOverridePlaceholderDefault", { amount: formatCentsToBRL(groupMonthlyFeeCents) })
+      : t("groups:member.feeOverridePlaceholderNone");
 
   const activePositions = useMemo(
     () => Array.from(new Set<Position>([primaryPos, ...secondaryPos])),
@@ -179,6 +200,37 @@ export function MemberForm({ mode, defaultValues, onSubmit, submitting = false, 
           </View>
         ))}
       </View>
+
+      {mode === "edit" ? (
+        <View className="gap-3 rounded-2xl border border-line bg-surface-up p-3">
+          <Text className="font-body-semibold text-sm text-ink">{t("groups:member.billingSectionTitle")}</Text>
+          <View className="gap-1.5">
+            <Text className="font-body-medium text-sm text-muted">{t("groups:member.billingModeLabel")}</Text>
+            <SegmentedControl
+              options={billingModeOptions}
+              value={billingMode}
+              onChange={(next) => setValue("billingMode", next)}
+            />
+          </View>
+          {billingMode === "mensalista" ? (
+            <Controller
+              control={control}
+              name="monthlyFeeCentsOverrideInput"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label={t("groups:member.feeOverrideLabel")}
+                  placeholder={feeOverridePlaceholder}
+                  helperText={t("groups:member.feeOverrideHint")}
+                  keyboardType="decimal-pad"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                />
+              )}
+            />
+          ) : null}
+        </View>
+      ) : null}
 
       {formError ? (
         <Text className="font-body text-sm text-danger" accessibilityRole="alert">

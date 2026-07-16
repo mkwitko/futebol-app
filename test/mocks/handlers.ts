@@ -17,6 +17,7 @@ export const FAKE_GROUP = {
   name: "Pelada dos Amigos",
   ownerId: "user-1",
   statsMode: "organizador",
+  monthlyFeeCents: null as number | null,
   createdAt: "2026-01-01T00:00:00.000Z",
   memberCount: 12,
   nextMatch: { id: "match-1", datetime: "2026-07-18T21:00:00.000Z", location: "Quadra do Zico" } as {
@@ -34,6 +35,8 @@ export const FAKE_MEMBER = {
   secondaryPos: [] as string[],
   affinity: { atacante: 80 } as Record<string, number>,
   seedOverall: { atacante: 75 } as Record<string, number>,
+  billingMode: "avulso" as "mensalista" | "avulso",
+  monthlyFeeCentsOverride: null as number | null,
   player: { id: "player-1", userId: null as string | null, name: "Zico", phone: null as string | null },
 };
 
@@ -58,6 +61,8 @@ export const FAKE_ATTENDANCE = {
   paymentStatus: "pending" as const,
   paidConfirmedById: null as string | null,
   player: { id: "player-1", userId: null as string | null, name: "Zico", phone: null as string | null },
+  billingMode: "avulso" as "mensalista" | "avulso",
+  monthlyDueStatus: "none" as "paid" | "pending" | "none",
 };
 
 export const FAKE_MY_PLAYER = {
@@ -129,8 +134,16 @@ export const FAKE_CAREER: Career = {
   updatedAt: "2026-07-01T00:00:00.000Z",
 };
 
-type Group = typeof FAKE_GROUP;
-type Member = typeof FAKE_MEMBER;
+// `monthlyFeeCents`/`billingMode`/`monthlyFeeCentsOverride` são opcionais no tipo do mock
+// (mesmo sendo obrigatórios na API real) para não forçar todo handler/fixture
+// pré-existente que cria um `Group`/`Member` a declarar esses campos — quando
+// omitidos, o JSON devolvido simplesmente não os inclui, o que é inofensivo
+// pros testes que não exercitam mensalidade (ver Task 8, mensalista/avulso).
+type Group = Omit<typeof FAKE_GROUP, "monthlyFeeCents"> & { monthlyFeeCents?: number | null };
+type Member = Omit<typeof FAKE_MEMBER, "billingMode" | "monthlyFeeCentsOverride"> & {
+  billingMode?: "mensalista" | "avulso";
+  monthlyFeeCentsOverride?: number | null;
+};
 type Match = {
   id: string;
   groupId: string;
@@ -151,6 +164,20 @@ type Attendance = {
   paymentStatus: "pending" | "paid";
   paidConfirmedById: string | null;
   player: { id: string; userId: string | null; name: string; phone: string | null };
+  billingMode?: "mensalista" | "avulso";
+  monthlyDueStatus?: "paid" | "pending" | "none";
+};
+type Due = {
+  id: string;
+  groupId: string;
+  groupMemberId: string;
+  competencyMonth: string;
+  amountCents: number;
+  status: "pending" | "paid";
+  paidConfirmedById: string | null;
+  provider: "manual" | "stripe";
+  externalRef: string | null;
+  createdAt: string;
 };
 
 type TeamsResult = {
@@ -205,6 +232,7 @@ let groups: Group[] = [FAKE_GROUP];
 let membersByGroup: Record<string, Member[]> = { [FAKE_GROUP.id]: [FAKE_MEMBER] };
 let matchesByGroup: Record<string, Match[]> = { [FAKE_GROUP.id]: [FAKE_MATCH] };
 let attendanceByMatch: Record<string, Attendance[]> = { [FAKE_MATCH.id]: [FAKE_ATTENDANCE] };
+let duesByGroup: Record<string, Due[]> = {};
 let teamsByMatch: Record<string, TeamsResult> = {};
 let resultByMatch: Record<string, MatchResult> = {};
 let statsByMatch: Record<string, MatchStat[]> = {};
@@ -253,6 +281,7 @@ export function resetGroupsMocks() {
   membersByGroup = { [FAKE_GROUP.id]: [{ ...FAKE_MEMBER }] };
   matchesByGroup = { [FAKE_GROUP.id]: [{ ...FAKE_MATCH }] };
   attendanceByMatch = { [FAKE_MATCH.id]: [{ ...FAKE_ATTENDANCE }] };
+  duesByGroup = {};
   teamsByMatch = {};
   resultByMatch = {};
   statsByMatch = {};
@@ -288,6 +317,17 @@ export function setMembersMock(groupId: string, next: Member[]) {
 
 export function setAttendanceMock(matchId: string, next: Attendance[]) {
   attendanceByMatch[matchId] = next;
+}
+
+/** Pré-semeia as mensalidades (`GET /groups/:id/dues`) de um grupo — usado pra testar a tela de mensalidades. */
+export function setDuesMock(groupId: string, next: Due[]) {
+  duesByGroup[groupId] = next;
+}
+
+function findDue(dueId: string): Due | undefined {
+  return Object.values(duesByGroup)
+    .flat()
+    .find((d) => d.id === dueId);
 }
 
 /** Troca o `status` de uma pelada já semeada — usado pra simular o pós-jogo (`finished`/`closed`) nos testes de Fase 1. */
@@ -397,6 +437,20 @@ export const handlers = [
   http.get(api("/groups/:id"), ({ params }) => {
     const group = groups.find((g) => g.id === params.id) ?? FAKE_GROUP;
     return HttpResponse.json(group);
+  }),
+
+  http.patch(api("/groups/:id"), async ({ request, params }) => {
+    const groupId = params.id as string;
+    const body = (await request.json()) as { monthlyFeeCents?: number | null };
+    const existing = groups.find((g) => g.id === groupId) ?? { ...FAKE_GROUP, id: groupId };
+    const updated: Group = {
+      ...existing,
+      monthlyFeeCents: "monthlyFeeCents" in body ? (body.monthlyFeeCents ?? null) : existing.monthlyFeeCents,
+    };
+    groups = groups.some((g) => g.id === groupId)
+      ? groups.map((g) => (g.id === groupId ? updated : g))
+      : [...groups, updated];
+    return HttpResponse.json(updated);
   }),
 
   http.get(api("/groups/:id/members"), ({ params }) => {
@@ -547,6 +601,39 @@ export const handlers = [
     );
     attendanceByMatch[matchId] = updated;
     return HttpResponse.json(updated.find((a) => a.id === attId));
+  }),
+
+  http.get(api("/groups/:id/dues"), ({ params, request }) => {
+    const groupId = params.id as string;
+    const url = new URL(request.url);
+    const month = url.searchParams.get("month");
+    const dues = duesByGroup[groupId] ?? [];
+    const filtered = month ? dues.filter((d) => d.competencyMonth === month) : dues;
+    return HttpResponse.json(filtered);
+  }),
+
+  http.post(api("/dues/:id/confirm"), async ({ request, params }) => {
+    const dueId = params.id as string;
+    const body = ((await request.json().catch(() => null)) as { paid?: boolean } | null) ?? {};
+    const paid = body.paid ?? true;
+    const due = findDue(dueId);
+    if (!due) return HttpResponse.json({ message: "not_found" }, { status: 404 });
+    const updated: Due = {
+      ...due,
+      status: paid ? "paid" : "pending",
+      paidConfirmedById: paid ? FAKE_USER.id : null,
+    };
+    duesByGroup[due.groupId] = (duesByGroup[due.groupId] ?? []).map((d) => (d.id === dueId ? updated : d));
+    return HttpResponse.json(updated);
+  }),
+
+  http.post(api("/dues/:id/mark-paid"), ({ params }) => {
+    const dueId = params.id as string;
+    const due = findDue(dueId);
+    if (!due) return HttpResponse.json({ message: "not_found" }, { status: 404 });
+    const updated: Due = { ...due, status: "paid" };
+    duesByGroup[due.groupId] = (duesByGroup[due.groupId] ?? []).map((d) => (d.id === dueId ? updated : d));
+    return HttpResponse.json(updated);
   }),
 
   http.post(api("/matches/:id/teams"), ({ params }) => {

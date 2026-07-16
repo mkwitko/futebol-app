@@ -66,9 +66,17 @@ export function AttendanceSection({
             onPress={() => onOpenPlayer(item.player)}
             trailing={
               <View className="flex-row items-center gap-3">
-                <Badge variant={item.paymentStatus === "paid" ? "primary" : "neutral"}>
-                  {t(`detail.payment.${item.paymentStatus}`)}
-                </Badge>
+                {item.billingMode === "mensalista" ? (
+                  <Badge variant={item.monthlyDueStatus === "paid" ? "primary" : "neutral"}>
+                    {item.monthlyDueStatus === "paid"
+                      ? t("detail.list.billingMensalistaPaid")
+                      : t("detail.list.billingMensalistaPending")}
+                  </Badge>
+                ) : (
+                  <Badge variant={item.paymentStatus === "paid" ? "primary" : "neutral"}>
+                    {t(`detail.payment.${item.paymentStatus}`)}
+                  </Badge>
+                )}
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={t("detail.list.removeCta")}

@@ -77,7 +77,9 @@
       "removeCta": "Remover",
       "removeSuccess": "Presença cancelada.",
       "removeError": "Não foi possível cancelar essa presença.",
-      "loadError": "Não foi possível carregar a lista de presença."
+      "loadError": "Não foi possível carregar a lista de presença.",
+      "billingMensalistaPaid": "Mensalista • pago",
+      "billingMensalistaPending": "Mensalista • devendo"
     },
     "payment": {
       "pixKeyLabel": "Chave PIX",

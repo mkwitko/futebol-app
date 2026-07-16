@@ -4,3 +4,4 @@ export { MEMBERS } from "./members";
 export { MATCHES } from "./matches";
 export { SERIES } from "./series";
 export { ATTENDANCE } from "./attendance";
+export { DUES } from "./dues";

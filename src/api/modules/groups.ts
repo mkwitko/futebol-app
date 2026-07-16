@@ -1,4 +1,4 @@
-import { listMyGroupsQueryKey } from "@/api/generated/hooks/groupsHooks";
+import { getGroupQueryKey, listMyGroupsQueryKey } from "@/api/generated/hooks/groupsHooks";
 
 /**
  * Constantes do módulo `groups` — usadas para invalidação de cache (nunca
@@ -6,4 +6,5 @@ import { listMyGroupsQueryKey } from "@/api/generated/hooks/groupsHooks";
  */
 export const GROUPS = {
   queryKeyRoot: listMyGroupsQueryKey(),
+  detailQueryKey: (id: string) => getGroupQueryKey(id),
 } as const;

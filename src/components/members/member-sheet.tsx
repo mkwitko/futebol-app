@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Sheet } from "@/components/ui/sheet";
 import { useAddMember } from "@/hooks/members/use-add-member";
 import { useUpdateMember } from "@/hooks/members/use-update-member";
+import { centsToReaisInput, reaisInputToCents } from "@/lib/money";
 import { defaultMemberFormValues, type MemberFormValues } from "@/schemas/members/member-form.schema";
 import type { ListMembers200 } from "@/api/generated/types/ListMembers";
 import { MemberForm, type MemberFormMode } from "./member-form";
@@ -12,6 +13,8 @@ export type MemberSheetProps = {
   groupId: string;
   /** Presente = modo edição (PATCH); ausente = modo criação (POST, jogador convidado). */
   member?: ListMembers200[number];
+  /** Mensalidade padrão do grupo (centavos) — placeholder do override de mensalidade, modo `edit`. */
+  groupMonthlyFeeCents?: number | null;
   onClose: () => void;
   onSaved: (mode: MemberFormMode) => void;
 };
@@ -26,10 +29,19 @@ function memberToFormValues(member: ListMembers200[number]): MemberFormValues {
     secondaryPos: member.secondaryPos,
     affinity: { ...base.affinity, ...member.affinity },
     seedOverall: { ...base.seedOverall, ...member.seedOverall },
+    billingMode: member.billingMode,
+    monthlyFeeCentsOverrideInput: centsToReaisInput(member.monthlyFeeCentsOverride),
   };
 }
 
-export function MemberSheet({ visible, groupId, member, onClose, onSaved }: MemberSheetProps) {
+export function MemberSheet({
+  visible,
+  groupId,
+  member,
+  groupMonthlyFeeCents,
+  onClose,
+  onSaved,
+}: MemberSheetProps) {
   const { t } = useTranslation("groups");
   const [formError, setFormError] = useState<string | null>(null);
   const addMember = useAddMember(groupId);
@@ -65,6 +77,8 @@ export function MemberSheet({ visible, groupId, member, onClose, onSaved }: Memb
           secondaryPos: values.secondaryPos,
           affinity,
           seedOverall,
+          billingMode: values.billingMode,
+          monthlyFeeCentsOverride: reaisInputToCents(values.monthlyFeeCentsOverrideInput) ?? null,
         });
       }
       onSaved(mode);
@@ -89,6 +103,7 @@ export function MemberSheet({ visible, groupId, member, onClose, onSaved }: Memb
         onSubmit={onSubmit}
         submitting={addMember.isPending || updateMember.isPending}
         formError={formError}
+        groupMonthlyFeeCents={groupMonthlyFeeCents}
       />
     </Sheet>
   );

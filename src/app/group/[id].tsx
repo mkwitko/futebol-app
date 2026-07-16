@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
+import { GroupFeeCard } from "@/components/groups/group-fee-card";
 import { MatchRow } from "@/components/matches/match-row";
 import { MemberSheet } from "@/components/members/member-sheet";
 import { PlayerCard } from "@/components/players/player-card";
@@ -13,6 +14,7 @@ import { ScreenHeader } from "@/components/ui/screen-header";
 import { Text } from "@/components/ui/text";
 import { Toast } from "@/components/ui/toast";
 import { useToast } from "@/hooks/common/use-toast";
+import { useUpdateGroup } from "@/hooks/groups/use-update-group";
 import { useGetGroup } from "@/api/generated/hooks/groupsHooks";
 import { useListMembers } from "@/api/generated/hooks/membersHooks";
 import { useListMatches } from "@/api/generated/hooks/matchesHooks";
@@ -32,16 +34,41 @@ export default function GroupDetailScreen() {
   const groupQuery = useGetGroup(id);
   const membersQuery = useListMembers(id);
   const matchesQuery = useListMatches(id);
+  const updateGroup = useUpdateGroup(id);
+
+  const handleSaveFee = async (monthlyFeeCents: number | null) => {
+    await updateGroup.mutateAsync({ monthlyFeeCents });
+    toast.show(t("groups:detail.feeCardSaveSuccess"));
+  };
 
   return (
     <ScreenContainer className="gap-6">
-      <ScreenHeader title={groupQuery.data?.name ?? t("groups:detail.loadingTitle")} onBack={() => router.back()} />
+      <ScreenHeader
+        title={groupQuery.data?.name ?? t("groups:detail.loadingTitle")}
+        onBack={() => router.back()}
+        trailing={
+          <Button
+            testID="group-mensalidades-cta"
+            size="sm"
+            variant="secondary"
+            onPress={() => router.push({ pathname: "/group/[id]/mensalidades", params: { id } })}
+          >
+            {t("groups:detail.mensalidadesCta")}
+          </Button>
+        }
+      />
 
       {toast.message ? (
         <Toast variant="success" onDismiss={toast.dismiss}>
           {toast.message}
         </Toast>
       ) : null}
+
+      <GroupFeeCard
+        monthlyFeeCents={groupQuery.data?.monthlyFeeCents}
+        onSave={handleSaveFee}
+        saving={updateGroup.isPending}
+      />
 
       <View className="gap-3">
         <View className="flex-row items-center justify-between">
@@ -133,6 +160,7 @@ export default function GroupDetailScreen() {
         visible={memberSheet.visible}
         groupId={id}
         member={memberSheet.member}
+        groupMonthlyFeeCents={groupQuery.data?.monthlyFeeCents}
         onClose={() => setMemberSheet({ visible: false })}
         onSaved={(mode) => {
           setMemberSheet({ visible: false });
