@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { View } from "react-native";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { ListRow } from "@/components/ui/list-row";
 import { formatMatchDateTime } from "@/lib/datetime/format";
@@ -17,7 +18,11 @@ const STATUS_BADGE_VARIANT: Record<ListMatches200StatusEnumKey, BadgeVariant> = 
   cancelled: "danger",
 };
 
-/** Linha compacta de pelada — data/hora, local e status. Abre o detalhe (próxima task). */
+/**
+ * Linha compacta de pelada — data/hora, local e status. Abre o detalhe.
+ * `match.seriesId` presente (Task 7, hub do grupo) → mostra o badge
+ * "Recorrente", marcando ocorrências geradas por uma série.
+ */
 export function MatchRow({ match, onPress }: MatchRowProps) {
   const { t } = useTranslation("groups");
 
@@ -27,7 +32,10 @@ export function MatchRow({ match, onPress }: MatchRowProps) {
       subtitle={match.location}
       onPress={onPress}
       trailing={
-        <Badge variant={STATUS_BADGE_VARIANT[match.status]}>{t(`detail.status.${match.status}`)}</Badge>
+        <View className="flex-row items-center gap-2">
+          {match.seriesId ? <Badge variant="line">{t("hub.recurringBadge")}</Badge> : null}
+          <Badge variant={STATUS_BADGE_VARIANT[match.status]}>{t(`detail.status.${match.status}`)}</Badge>
+        </View>
       }
     />
   );

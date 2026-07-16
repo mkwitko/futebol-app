@@ -36,10 +36,16 @@ const AFFINITY_STEP = 5;
 
 /**
  * Form de jogador — compartilhado entre "Adicionar jogador" (`mode="create"`)
- * e "Editar jogador" (`mode="edit"`). A API (`PATCH .../members/:memberId`)
- * só aceita `primaryPos`/`secondaryPos`/`affinity`/`seedOverall` — por isso,
- * no modo `edit`, nome/telefone aparecem como texto (não editáveis) em vez de
- * `Input`s que dariam a entender que podem ser salvos.
+ * e "Editar jogador" (`mode="edit"`), mas com telas bem diferentes desde a
+ * Task 7 (hub do grupo): a API de criação (`POST .../members`) só aceita
+ * `{ name, phone?, billingMode? }` — o jogador é adicionado "sem nota"
+ * (`primaryPos: null`) e se autodeclara depois; por isso, no modo `create`,
+ * as seções de posição/afinidade/overall (que só a API de edição aceita,
+ * `PATCH .../members/:memberId`) ficam ocultas, e a mensalidade personalizada
+ * (`monthlyFeeCentsOverride`, também edição-only) fica de fora — só o
+ * seletor mensalista/avulso aparece nos dois modos. No modo `edit`,
+ * nome/telefone aparecem como texto (não editáveis) em vez de `Input`s que
+ * dariam a entender que podem ser salvos.
  */
 export function MemberForm({
   mode,
@@ -146,90 +152,90 @@ export function MemberForm({
         </View>
       )}
 
-      <View className="gap-1.5">
-        <Text className="font-body-medium text-sm text-muted">{t("groups:member.primaryPosLabel")}</Text>
-        <SegmentedControl options={PRIMARY_POS_OPTIONS} value={primaryPos} onChange={handlePrimaryChange} />
-      </View>
-
-      <View className="gap-1.5">
-        <Text className="font-body-medium text-sm text-muted">{t("groups:member.secondaryPosLabel")}</Text>
-        <View className="flex-row flex-wrap gap-2">
-          {secondaryOptions.map((position) => (
-            <Chip
-              key={position}
-              label={positionLabel(position)}
-              selected={secondaryPos.includes(position)}
-              onPress={() => toggleSecondary(position)}
-              accessibilityLabel={positionLabel(position)}
-            />
-          ))}
-        </View>
-      </View>
-
-      <View className="gap-3">
-        {activePositions.map((position) => (
-          <View key={position} className="gap-3 rounded-2xl border border-line bg-surface-up p-3">
-            <Text className="font-body-semibold text-sm text-ink">{positionLabel(position)}</Text>
-            <Controller
-              control={control}
-              name={`affinity.${position}`}
-              render={({ field: { onChange, value } }) => (
-                <Stepper
-                  label={t("groups:member.affinityLabel")}
-                  value={value}
-                  onChange={onChange}
-                  min={0}
-                  max={AFFINITY_MAX}
-                  step={AFFINITY_STEP}
-                />
-              )}
-            />
-            <Controller
-              control={control}
-              name={`seedOverall.${position}`}
-              render={({ field: { onChange, value } }) => (
-                <Stepper
-                  label={t("groups:member.overallLabel")}
-                  value={value}
-                  onChange={onChange}
-                  min={0}
-                  max={99}
-                />
-              )}
-            />
-          </View>
-        ))}
-      </View>
-
       {mode === "edit" ? (
-        <View className="gap-3 rounded-2xl border border-line bg-surface-up p-3">
-          <Text className="font-body-semibold text-sm text-ink">{t("groups:member.billingSectionTitle")}</Text>
+        <>
           <View className="gap-1.5">
-            <Text className="font-body-medium text-sm text-muted">{t("groups:member.billingModeLabel")}</Text>
-            <SegmentedControl
-              options={billingModeOptions}
-              value={billingMode}
-              onChange={(next) => setValue("billingMode", next)}
-            />
+            <Text className="font-body-medium text-sm text-muted">{t("groups:member.primaryPosLabel")}</Text>
+            <SegmentedControl options={PRIMARY_POS_OPTIONS} value={primaryPos} onChange={handlePrimaryChange} />
           </View>
-          {billingMode === "mensalista" ? (
-            <Controller
-              control={control}
-              name="monthlyFeeCentsOverrideInput"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label={t("groups:member.feeOverrideLabel")}
-                  placeholder={feeOverridePlaceholder}
-                  helperText={t("groups:member.feeOverrideHint")}
-                  keyboardType="decimal-pad"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
+
+          <View className="gap-1.5">
+            <Text className="font-body-medium text-sm text-muted">{t("groups:member.secondaryPosLabel")}</Text>
+            <View className="flex-row flex-wrap gap-2">
+              {secondaryOptions.map((position) => (
+                <Chip
+                  key={position}
+                  label={positionLabel(position)}
+                  selected={secondaryPos.includes(position)}
+                  onPress={() => toggleSecondary(position)}
+                  accessibilityLabel={positionLabel(position)}
                 />
-              )}
+              ))}
+            </View>
+          </View>
+
+          <View className="gap-3">
+            {activePositions.map((position) => (
+              <View key={position} className="gap-3 rounded-2xl border border-line bg-surface-up p-3">
+                <Text className="font-body-semibold text-sm text-ink">{positionLabel(position)}</Text>
+                <Controller
+                  control={control}
+                  name={`affinity.${position}`}
+                  render={({ field: { onChange, value } }) => (
+                    <Stepper
+                      label={t("groups:member.affinityLabel")}
+                      value={value}
+                      onChange={onChange}
+                      min={0}
+                      max={AFFINITY_MAX}
+                      step={AFFINITY_STEP}
+                    />
+                  )}
+                />
+                <Controller
+                  control={control}
+                  name={`seedOverall.${position}`}
+                  render={({ field: { onChange, value } }) => (
+                    <Stepper
+                      label={t("groups:member.overallLabel")}
+                      value={value}
+                      onChange={onChange}
+                      min={0}
+                      max={99}
+                    />
+                  )}
+                />
+              </View>
+            ))}
+          </View>
+        </>
+      ) : null}
+
+      <View className="gap-1.5">
+        <Text className="font-body-medium text-sm text-muted">{t("groups:member.billingModeLabel")}</Text>
+        <SegmentedControl
+          options={billingModeOptions}
+          value={billingMode}
+          onChange={(next) => setValue("billingMode", next)}
+        />
+      </View>
+
+      {mode === "edit" && billingMode === "mensalista" ? (
+        <Controller
+          control={control}
+          name="monthlyFeeCentsOverrideInput"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              label={t("groups:member.feeOverrideLabel")}
+              placeholder={feeOverridePlaceholder}
+              helperText={t("groups:member.feeOverrideHint")}
+              keyboardType="decimal-pad"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
             />
-          ) : null}
-        </View>
+          )}
+        />
       ) : null}
 
       {formError ? (

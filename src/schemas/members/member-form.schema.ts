@@ -16,11 +16,12 @@ export type BillingMode = (typeof BILLING_MODES)[number];
  * selecionadas (`primaryPos` + `secondaryPos`) são enviadas à API no submit
  * (ver `member-sheet.tsx`).
  *
- * `billingMode`/`monthlyFeeCentsOverrideInput` só se aplicam no modo `edit`
- * (a API de criação de membro não aceita esses campos ainda — ver
- * `AddMemberMutationRequest`). `monthlyFeeCentsOverrideInput` é o texto em
- * reais (não centavos), convertido no submit via `reaisInputToCents`; campo
- * vazio → `monthlyFeeCentsOverride: null` (usa a mensalidade padrão do grupo).
+ * `billingMode` é enviado nos dois modos (`AddMemberMutationRequest` aceita
+ * `billingMode?` desde a Task 7); `monthlyFeeCentsOverrideInput` só se aplica
+ * no modo `edit` (a API de criação de membro não aceita esse campo). É o
+ * texto em reais (não centavos), convertido no submit via
+ * `reaisInputToCents`; campo vazio → `monthlyFeeCentsOverride: null` (usa a
+ * mensalidade padrão do grupo).
  */
 export const memberFormSchema = z.object({
   name: z

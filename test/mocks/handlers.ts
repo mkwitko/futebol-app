@@ -31,13 +31,22 @@ export const FAKE_MEMBER = {
   id: "member-1",
   groupId: "group-1",
   role: "jogador",
-  primaryPos: "atacante",
+  primaryPos: "atacante" as string | null,
   secondaryPos: [] as string[],
   affinity: { atacante: 80 } as Record<string, number>,
   seedOverall: { atacante: 75 } as Record<string, number>,
   billingMode: "avulso" as "mensalista" | "avulso",
   monthlyFeeCentsOverride: null as number | null,
-  player: { id: "player-1", userId: null as string | null, name: "Zico", phone: null as string | null },
+  player: {
+    id: "player-1",
+    userId: null as string | null,
+    name: "Zico",
+    phone: null as string | null,
+    // Task 1 (backend): mapa de afinidade autodeclarado pelo próprio jogador
+    // (`Player.affinity`) — distinto de `affinity`/`seedOverall` acima, que
+    // são a nota que o organizador dá ao membro (`GroupMember`).
+    affinity: {} as Record<string, number>,
+  },
 };
 
 export const FAKE_MATCH = {
@@ -458,24 +467,32 @@ export const handlers = [
   }),
 
   http.post(api("/groups/:id/members"), async ({ request, params }) => {
+    // Task 1 (backend, UX overhaul): body minimizado — o membro entra "sem
+    // nota" (`primaryPos: null`) e se autodeclara depois; ver
+    // `add-member.schema.ts` no backend.
     const body = (await request.json()) as {
       name: string;
       phone?: string;
-      primaryPos: string;
-      secondaryPos?: string[];
-      affinity?: Record<string, number>;
-      seedOverall?: Record<string, number>;
+      billingMode?: "mensalista" | "avulso";
     };
     const groupId = params.id as string;
     const created: Member = {
       id: `member-${(membersByGroup[groupId]?.length ?? 0) + 1}`,
       groupId,
       role: "jogador",
-      primaryPos: body.primaryPos,
-      secondaryPos: body.secondaryPos ?? [],
-      affinity: body.affinity ?? {},
-      seedOverall: body.seedOverall ?? {},
-      player: { id: `player-${groupId}-new`, userId: null, name: body.name, phone: body.phone ?? null },
+      primaryPos: null,
+      secondaryPos: [],
+      affinity: {},
+      seedOverall: {},
+      billingMode: body.billingMode ?? "avulso",
+      monthlyFeeCentsOverride: null,
+      player: {
+        id: `player-${groupId}-new`,
+        userId: null,
+        name: body.name,
+        phone: body.phone ?? null,
+        affinity: {},
+      },
     };
     membersByGroup[groupId] = [...(membersByGroup[groupId] ?? []), created];
     return HttpResponse.json(created, { status: 201 });

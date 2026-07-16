@@ -24,14 +24,14 @@ const SELF_MEMBER = {
   ...FAKE_MEMBER,
   id: "member-self",
   billingMode: "mensalista" as const,
-  player: { id: "player-self", userId: "user-1", name: "Alice", phone: null },
+  player: { ...FAKE_MEMBER.player, id: "player-self", userId: "user-1", name: "Alice", phone: null },
 };
 
 const OTHER_MEMBER = {
   ...FAKE_MEMBER,
   id: "member-other",
   billingMode: "mensalista" as const,
-  player: { id: "player-other", userId: null, name: "Zico", phone: null },
+  player: { ...FAKE_MEMBER.player, id: "player-other", userId: null, name: "Zico", phone: null },
 };
 
 describe("Mensalidades do grupo", () => {

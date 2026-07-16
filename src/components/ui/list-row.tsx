@@ -9,11 +9,13 @@ export type ListRowProps = {
   leading?: ReactNode;
   trailing?: ReactNode;
   onPress?: () => void;
+  /** Ação secundária (ex.: editar) — mantém `onPress` livre para navegação, mesmo padrão do `PlayerCard`. */
+  onLongPress?: () => void;
   className?: string;
 };
 
 /** Linha de lista genérica — leading (avatar/ícone) + título/subtítulo + trailing (badge/valor/chevron). */
-export function ListRow({ title, subtitle, leading, trailing, onPress, className }: ListRowProps) {
+export function ListRow({ title, subtitle, leading, trailing, onPress, onLongPress, className }: ListRowProps) {
   const content = (
     <View className={cn("min-h-[44px] flex-row items-center gap-3 px-4 py-3", className)}>
       {leading}
@@ -31,10 +33,15 @@ export function ListRow({ title, subtitle, leading, trailing, onPress, className
     </View>
   );
 
-  if (!onPress) return content;
+  if (!onPress && !onLongPress) return content;
 
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} className="active:bg-surface-up">
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      onLongPress={onLongPress}
+      className="active:bg-surface-up"
+    >
       {content}
     </Pressable>
   );

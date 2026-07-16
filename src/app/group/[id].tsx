@@ -1,44 +1,93 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable, View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
-import { GroupFeeCard } from "@/components/groups/group-fee-card";
+import { GroupSettingsSheet } from "@/components/groups/group-settings-sheet";
+import { MensalidadesContent } from "@/components/groups/mensalidades-content";
+import { NextMatchCard } from "@/components/groups/next-match-card";
 import { MatchRow } from "@/components/matches/match-row";
 import { MemberSheet } from "@/components/members/member-sheet";
-import { PlayerCard } from "@/components/players/player-card";
 import { QueryState } from "@/components/shared/query-state";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Divider } from "@/components/ui/divider";
+import { ListRow } from "@/components/ui/list-row";
 import { ScreenHeader } from "@/components/ui/screen-header";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
 import { Toast } from "@/components/ui/toast";
+import { useConfirmPresence } from "@/hooks/attendance/use-confirm-presence";
 import { useToast } from "@/hooks/common/use-toast";
 import { useUpdateGroup } from "@/hooks/groups/use-update-group";
+import { isForbiddenError } from "@/lib/api/errors";
+import { colors } from "@/lib/theme";
+import { positionLabel } from "@/lib/player/position";
 import { useGetGroup } from "@/api/generated/hooks/groupsHooks";
 import { useListMembers } from "@/api/generated/hooks/membersHooks";
 import { useListMatches } from "@/api/generated/hooks/matchesHooks";
+import { useListAttendance } from "@/api/generated/hooks/attendanceHooks";
 import type { ListMembers200 } from "@/api/generated/types/ListMembers";
 
+type HubTab = "peladas" | "jogadores" | "mensalidades";
 type MemberSheetState = { visible: boolean; member?: ListMembers200[number] };
 
-/** Detalhe do grupo — elenco (jogadores) + peladas (partidas) marcadas. */
+/**
+ * Hub do grupo (Task 7) — substitui a antiga tela "elenco + peladas" por um
+ * card "PRÓXIMA" (a pelada futura mais próxima, com ações rápidas) seguido
+ * de abas em memória (Peladas / Jogadores / Mensalidades, sem novas rotas)
+ * que reaproveitam os componentes já existentes de cada domínio.
+ */
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { t } = useTranslation(["groups", "common"]);
+  const { t } = useTranslation(["groups", "matches", "common"]);
   const toast = useToast();
 
+  const [tab, setTab] = useState<HubTab>("peladas");
   const [memberSheet, setMemberSheet] = useState<MemberSheetState>({ visible: false });
+  const [settingsVisible, setSettingsVisible] = useState(false);
 
   const groupQuery = useGetGroup(id);
   const membersQuery = useListMembers(id);
   const matchesQuery = useListMatches(id);
   const updateGroup = useUpdateGroup(id);
 
+  const nextMatch = useMemo(() => {
+    const now = new Date().getTime();
+    return (matchesQuery.data ?? [])
+      .filter((match) => match.status !== "cancelled" && new Date(match.datetime).getTime() > now)
+      .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime())[0];
+  }, [matchesQuery.data]);
+
+  const nextMatchAttendanceQuery = useListAttendance(nextMatch?.id);
+  const nextMatchConfirmedCount = nextMatchAttendanceQuery.data?.filter(
+    (item) => item.status === "confirmed",
+  ).length;
+
+  const confirmPresence = useConfirmPresence(nextMatch?.id ?? "");
+
+  const upcomingMatches = useMemo(
+    () => [...(matchesQuery.data ?? [])].sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()),
+    [matchesQuery.data],
+  );
+
   const handleSaveFee = async (monthlyFeeCents: number | null) => {
     await updateGroup.mutateAsync({ monthlyFeeCents });
-    toast.show(t("groups:detail.feeCardSaveSuccess"));
+    toast.show(t("groups:hub.settingsFeeSaveSuccess"));
+  };
+
+  const handleConfirmMyPresence = async () => {
+    if (!nextMatch) return;
+    try {
+      await confirmPresence.mutateAsync();
+      toast.show(t("groups:hub.confirmPresenceSuccess"));
+    } catch (error) {
+      toast.show(
+        isForbiddenError(error) ? t("matches:detail.actions.forbidden") : t("groups:hub.confirmPresenceError"),
+        "danger",
+      );
+    }
   };
 
   return (
@@ -47,105 +96,65 @@ export default function GroupDetailScreen() {
         title={groupQuery.data?.name ?? t("groups:detail.loadingTitle")}
         onBack={() => router.back()}
         trailing={
-          <Button
-            testID="group-mensalidades-cta"
-            size="sm"
-            variant="secondary"
-            onPress={() => router.push({ pathname: "/group/[id]/mensalidades", params: { id } })}
+          <Pressable
+            testID="group-settings-cta"
+            accessibilityRole="button"
+            accessibilityLabel={t("groups:hub.settingsCta")}
+            hitSlop={8}
+            onPress={() => setSettingsVisible(true)}
+            className="h-11 w-11 items-center justify-center rounded-full active:bg-surface-up"
           >
-            {t("groups:detail.mensalidadesCta")}
-          </Button>
+            <Ionicons name="settings-outline" size={22} color={colors.ink} />
+          </Pressable>
         }
       />
 
       {toast.message ? (
-        <Toast variant="success" onDismiss={toast.dismiss}>
+        <Toast variant={toast.variant} onDismiss={toast.dismiss}>
           {toast.message}
         </Toast>
       ) : null}
 
-      <GroupFeeCard
-        monthlyFeeCents={groupQuery.data?.monthlyFeeCents}
-        onSave={handleSaveFee}
-        saving={updateGroup.isPending}
+      <NextMatchCard
+        match={nextMatch}
+        confirmedCount={nextMatchConfirmedCount}
+        confirmingPresence={confirmPresence.isPending}
+        onConfirmPresence={() => void handleConfirmMyPresence()}
+        onOpenMatch={() => nextMatch && router.push({ pathname: "/match/[id]", params: { id: nextMatch.id } })}
+        onCreateMatch={() => router.push({ pathname: "/group/[id]/create-match", params: { id } })}
       />
 
-      <View className="gap-3">
-        <View className="flex-row items-center justify-between">
-          <Text variant="display" className="text-lg">
-            {t("groups:detail.rosterTitle")}
-          </Text>
-          <Button size="sm" variant="secondary" onPress={() => setMemberSheet({ visible: true })}>
-            {t("groups:detail.addMemberCta")}
-          </Button>
-        </View>
+      <SegmentedControl
+        value={tab}
+        onChange={setTab}
+        options={[
+          { label: t("groups:hub.tabs.peladas"), value: "peladas" },
+          { label: t("groups:hub.tabs.jogadores"), value: "jogadores" },
+          { label: t("groups:hub.tabs.mensalidades"), value: "mensalidades" },
+        ]}
+      />
 
-        {(membersQuery.data?.length ?? 0) > 0 ? (
-          <Text variant="muted" className="text-xs">
-            {t("groups:detail.rosterHint")}
-          </Text>
-        ) : null}
+      <Button
+        testID="hub-new-match-cta"
+        variant="secondary"
+        onPress={() => router.push({ pathname: "/group/[id]/create-match", params: { id } })}
+      >
+        {t("groups:hub.newMatchCta")}
+      </Button>
 
-        <QueryState
-          isPending={membersQuery.isPending}
-          isError={membersQuery.isError}
-          isEmpty={(membersQuery.data?.length ?? 0) === 0}
-          errorMessage={t("groups:detail.rosterLoadError")}
-          retryLabel={t("common:actions.retry")}
-          onRetry={() => void membersQuery.refetch()}
-          emptyTitle={t("groups:detail.rosterEmptyTitle")}
-          emptyDescription={t("groups:detail.rosterEmptyDescription")}
-          emptyActionLabel={t("groups:detail.addMemberCta")}
-          onEmptyAction={() => setMemberSheet({ visible: true })}
-        >
-          <View className="gap-2">
-            {membersQuery.data?.map((member) => (
-              <PlayerCard
-                key={member.id}
-                variant="compact"
-                name={member.player.name}
-                position={member.primaryPos}
-                overall={member.seedOverall[member.primaryPos] ?? 0}
-                onPress={() =>
-                  router.push({
-                    pathname: "/player/[playerId]",
-                    params: { playerId: member.player.id, name: member.player.name },
-                  })
-                }
-                onLongPress={() => setMemberSheet({ visible: true, member })}
-              />
-            ))}
-          </View>
-        </QueryState>
-      </View>
-
-      <Divider />
-
-      <View className="gap-3">
-        <View className="flex-row items-center justify-between">
-          <Text variant="display" className="text-lg">
-            {t("groups:detail.matchesTitle")}
-          </Text>
-          <Button
-            size="sm"
-            onPress={() => router.push({ pathname: "/group/[id]/create-match", params: { id } })}
-          >
-            {t("groups:detail.newMatchCta")}
-          </Button>
-        </View>
-
+      {tab === "peladas" ? (
         <QueryState
           isPending={matchesQuery.isPending}
           isError={matchesQuery.isError}
           isEmpty={(matchesQuery.data?.length ?? 0) === 0}
-          errorMessage={t("groups:detail.matchesLoadError")}
+          errorMessage={t("groups:hub.peladasLoadError")}
           retryLabel={t("common:actions.retry")}
           onRetry={() => void matchesQuery.refetch()}
-          emptyTitle={t("groups:detail.matchesEmptyTitle")}
-          emptyDescription={t("groups:detail.matchesEmptyDescription")}
+          emptyTitle={t("groups:hub.peladasEmptyTitle")}
+          emptyDescription={t("groups:hub.peladasEmptyDescription")}
         >
           <View className="gap-2">
-            {matchesQuery.data?.map((match) => (
+            {upcomingMatches.map((match) => (
               <MatchRow
                 key={match.id}
                 match={match}
@@ -154,7 +163,62 @@ export default function GroupDetailScreen() {
             ))}
           </View>
         </QueryState>
-      </View>
+      ) : null}
+
+      {tab === "jogadores" ? (
+        <View className="gap-3">
+          <View className="flex-row items-center justify-between">
+            <Text variant="muted" className="text-xs">
+              {t("groups:detail.rosterHint")}
+            </Text>
+            <Button
+              testID="hub-add-member-cta"
+              size="sm"
+              variant="secondary"
+              onPress={() => setMemberSheet({ visible: true })}
+            >
+              {t("groups:hub.jogadoresAddCta")}
+            </Button>
+          </View>
+
+          <QueryState
+            isPending={membersQuery.isPending}
+            isError={membersQuery.isError}
+            isEmpty={(membersQuery.data?.length ?? 0) === 0}
+            errorMessage={t("groups:hub.jogadoresLoadError")}
+            retryLabel={t("common:actions.retry")}
+            onRetry={() => void membersQuery.refetch()}
+            emptyTitle={t("groups:hub.jogadoresEmptyTitle")}
+            emptyDescription={t("groups:hub.jogadoresEmptyDescription")}
+            emptyActionLabel={t("groups:hub.jogadoresAddCta")}
+            onEmptyAction={() => setMemberSheet({ visible: true })}
+          >
+            <View className="gap-2">
+              {membersQuery.data?.map((member) => (
+                <ListRow
+                  key={member.id}
+                  title={member.player.name}
+                  subtitle={member.primaryPos ? positionLabel(member.primaryPos) : t("groups:hub.jogadoresNoPosition")}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/player/[playerId]",
+                      params: { playerId: member.player.id, name: member.player.name },
+                    })
+                  }
+                  onLongPress={() => setMemberSheet({ visible: true, member })}
+                  trailing={
+                    <Badge variant={member.billingMode === "mensalista" ? "primary" : "neutral"}>
+                      {t(`groups:member.billingMode.${member.billingMode}`)}
+                    </Badge>
+                  }
+                />
+              ))}
+            </View>
+          </QueryState>
+        </View>
+      ) : null}
+
+      {tab === "mensalidades" ? <MensalidadesContent groupId={id} /> : null}
 
       <MemberSheet
         visible={memberSheet.visible}
@@ -166,6 +230,15 @@ export default function GroupDetailScreen() {
           setMemberSheet({ visible: false });
           toast.show(t(mode === "create" ? "groups:member.addSuccess" : "groups:member.editSuccess"));
         }}
+      />
+
+      <GroupSettingsSheet
+        visible={settingsVisible}
+        onClose={() => setSettingsVisible(false)}
+        groupName={groupQuery.data?.name}
+        monthlyFeeCents={groupQuery.data?.monthlyFeeCents}
+        onSaveFee={handleSaveFee}
+        savingFee={updateGroup.isPending}
       />
     </ScreenContainer>
   );

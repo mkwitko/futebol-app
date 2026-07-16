@@ -75,7 +75,6 @@
     "addError": "Não foi possível adicionar o jogador. Tente novamente.",
     "editError": "Não foi possível salvar as alterações. Tente novamente.",
     "nameReadOnlyHint": "O nome não pode ser editado por aqui.",
-    "billingSectionTitle": "Cobrança",
     "billingModeLabel": "Como esse jogador paga?",
     "billingMode": {
       "mensalista": "Mensalista",
@@ -85,6 +84,35 @@
     "feeOverridePlaceholderDefault": "Padrão do grupo: {{amount}}",
     "feeOverridePlaceholderNone": "Sem mensalidade padrão definida",
     "feeOverrideHint": "Deixe em branco para usar a mensalidade padrão do grupo."
+  },
+  "hub": {
+    "tabs": {
+      "peladas": "Peladas",
+      "jogadores": "Jogadores",
+      "mensalidades": "Mensalidades"
+    },
+    "nextTitle": "Próxima",
+    "nextEmptyDescription": "Nenhuma pelada marcada. Crie a próxima pelada deste grupo.",
+    "nextEmptyCta": "Nova pelada",
+    "confirmPresenceCta": "Confirmar",
+    "confirmPresenceSuccess": "Presença confirmada!",
+    "confirmPresenceError": "Não foi possível confirmar sua presença.",
+    "viewTeamsCta": "Times",
+    "recurringBadge": "Recorrente",
+    "newMatchCta": "+ Nova pelada",
+    "settingsCta": "Configurações do grupo",
+    "settingsTitle": "Configurações do grupo",
+    "settingsNameLabel": "Nome do grupo",
+    "settingsNameHint": "Renomear o grupo ainda não é suportado por aqui.",
+    "settingsFeeSaveSuccess": "Mensalidade padrão atualizada!",
+    "jogadoresAddCta": "+ Jogador",
+    "jogadoresEmptyTitle": "Ninguém no elenco ainda",
+    "jogadoresEmptyDescription": "Adicione jogadores para montar os times.",
+    "jogadoresLoadError": "Não foi possível carregar o elenco.",
+    "jogadoresNoPosition": "Sem posição definida",
+    "peladasEmptyTitle": "Nenhuma pelada marcada",
+    "peladasEmptyDescription": "Crie a próxima pelada deste grupo.",
+    "peladasLoadError": "Não foi possível carregar as peladas."
   },
   "mensalidades": {
     "title": "Mensalidades",

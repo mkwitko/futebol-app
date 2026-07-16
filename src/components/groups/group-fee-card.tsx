@@ -14,8 +14,8 @@ export type GroupFeeCardProps = {
 };
 
 /**
- * Card "Mensalidade padrão" no detalhe do grupo — única affordance de edição
- * de `monthlyFeeCents` hoje (não há tela de configurações do grupo ainda).
+ * Card "Mensalidade padrão" — affordance de edição de `monthlyFeeCents`,
+ * hoje embutido no `GroupSettingsSheet` (⚙ do hub do grupo, Task 7).
  * Edição inline (sem `Sheet`/RHF): é um único campo de dinheiro, então o
  * estado local (`editing`/`input`) já resolve sem a cerimônia de um form.
  * Campo vazio ao salvar → `monthlyFeeCents: null` (sem mensalidade padrão).

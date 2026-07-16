@@ -25,7 +25,11 @@ function memberToFormValues(member: ListMembers200[number]): MemberFormValues {
     ...base,
     name: member.player.name,
     phone: member.player.phone ?? "",
-    primaryPos: member.primaryPos,
+    // `primaryPos` é `null` pra membros ainda não avaliados pelo organizador
+    // (Task 1 backend — adicionar membro não define posição nenhuma mais);
+    // o form sempre precisa de um valor não-nulo pro `SegmentedControl`, daí
+    // o fallback pro default (`base.primaryPos`, "atacante").
+    primaryPos: member.primaryPos ?? base.primaryPos,
     secondaryPos: member.secondaryPos,
     affinity: { ...base.affinity, ...member.affinity },
     seedOverall: { ...base.seedOverall, ...member.seedOverall },
@@ -55,23 +59,23 @@ export function MemberSheet({
 
   const onSubmit = async (values: MemberFormValues) => {
     setFormError(null);
-    const positions = Array.from(new Set([values.primaryPos, ...values.secondaryPos]));
-    const affinity = Object.fromEntries(positions.map((position) => [position, values.affinity[position]]));
-    const seedOverall = Object.fromEntries(
-      positions.map((position) => [position, values.seedOverall[position]]),
-    );
 
     try {
       if (mode === "create") {
+        // Form curto (Task 7, hub do grupo) — a API de criação só aceita
+        // `{ name, phone?, billingMode? }`; posição/afinidade/overall não
+        // fazem parte do body (o jogador se autodeclara depois).
         await addMember.mutateAsync({
           name: values.name,
           phone: values.phone?.trim() ? values.phone.trim() : undefined,
-          primaryPos: values.primaryPos,
-          secondaryPos: values.secondaryPos,
-          affinity,
-          seedOverall,
+          billingMode: values.billingMode,
         });
       } else if (member) {
+        const positions = Array.from(new Set([values.primaryPos, ...values.secondaryPos]));
+        const affinity = Object.fromEntries(positions.map((position) => [position, values.affinity[position]]));
+        const seedOverall = Object.fromEntries(
+          positions.map((position) => [position, values.seedOverall[position]]),
+        );
         await updateMember.mutateAsync(member.id, {
           primaryPos: values.primaryPos,
           secondaryPos: values.secondaryPos,
