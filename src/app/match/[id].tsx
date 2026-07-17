@@ -13,6 +13,7 @@ import { ResultSection } from "@/components/matches/result-section";
 import { StatsSection } from "@/components/matches/stats-section";
 import { TeamsSection } from "@/components/matches/teams-section";
 import { VotingSection } from "@/components/matches/voting-section";
+import { VenueSummary } from "@/components/venues/venue-summary";
 import { ScreenContainer } from "@/components/layout/screen-container";
 import { QueryState } from "@/components/shared/query-state";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -254,6 +255,8 @@ export default function MatchDetailScreen() {
         {match ? (
           <View className="gap-6">
             <MatchHeader match={match} confirmedCount={confirmedCount} />
+
+            {match.venueId ? <VenueSummary venueId={match.venueId} /> : null}
 
             <SegmentedControl
               value={section}

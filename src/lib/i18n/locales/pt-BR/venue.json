@@ -1,0 +1,15 @@
+{
+  "summary": {
+    "title": "Quadra",
+    "loadError": "Não foi possível carregar a quadra."
+  },
+  "amenities": {
+    "gramado": "Gramado",
+    "iluminacao": "Iluminação",
+    "estacionamento": "Estacionamento",
+    "vestiario": "Vestiário",
+    "bar": "Bar",
+    "lanchonete": "Lanchonete",
+    "cobertura": "Cobertura"
+  }
+}

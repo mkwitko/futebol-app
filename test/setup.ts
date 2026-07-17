@@ -7,6 +7,7 @@ import discover from "../src/lib/i18n/locales/pt-BR/discover.json";
 import groups from "../src/lib/i18n/locales/pt-BR/groups.json";
 import matches from "../src/lib/i18n/locales/pt-BR/matches.json";
 import player from "../src/lib/i18n/locales/pt-BR/player.json";
+import venue from "../src/lib/i18n/locales/pt-BR/venue.json";
 import zod from "../src/lib/i18n/locales/pt-BR/zod.json";
 import { server } from "./mocks/server";
 
@@ -52,9 +53,9 @@ if (!i18n.isInitialized) {
   void i18n.use(initReactI18next).init({
     lng: "pt-BR",
     fallbackLng: "pt-BR",
-    ns: ["common", "auth", "billing", "discover", "groups", "matches", "player", "zod"],
+    ns: ["common", "auth", "billing", "discover", "groups", "matches", "player", "venue", "zod"],
     defaultNS: "common",
-    resources: { "pt-BR": { common, auth, billing, discover, groups, matches, player, zod } },
+    resources: { "pt-BR": { common, auth, billing, discover, groups, matches, player, venue, zod } },
     interpolation: { escapeValue: false },
     returnNull: false,
   });
