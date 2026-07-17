@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
+import { AchievementsGrid } from "@/components/players/achievements-grid";
 import { CareerSummary } from "@/components/players/career-summary";
 import { Button } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -47,7 +48,17 @@ export default function PlayerCareerScreen() {
       ) : null}
 
       {careerQuery.data ? (
-        <CareerSummary testID="player-career-summary" name={name ?? ""} career={careerQuery.data} />
+        <>
+          <CareerSummary
+            testID="player-career-summary"
+            name={name ?? ""}
+            career={careerQuery.data}
+          />
+          <AchievementsGrid
+            achievements={careerQuery.data.achievements ?? []}
+            title={t("player:achievements.title")}
+          />
+        </>
       ) : null}
     </ScreenContainer>
   );

@@ -32,7 +32,8 @@ import { type SkillKey, skillsEqual, toSkillList } from "@/lib/player/skills";
 import { buildPlayerProfileUrl } from "@/lib/player/url";
 import { CardFieldsEditor, type CardFieldsValue } from "@/components/players/card-fields-editor";
 import type { GetMyPlayer200 } from "@/api/generated/types/GetMyPlayer";
-import { useGetMyPlayer } from "@/api/generated/hooks/playersHooks";
+import { useGetMyPlayer, useGetPlayerCareer } from "@/api/generated/hooks/playersHooks";
+import { AchievementsGrid } from "@/components/players/achievements-grid";
 
 /** Placeholder de carregamento do hero — imita o formato do `PlayerCard` `full`. */
 function CareerHeroSkeleton() {
@@ -51,6 +52,7 @@ export default function PerfilScreen() {
 
   const myPlayerQuery = useGetMyPlayer();
   const playerId = myPlayerQuery.data?.id;
+  const careerQuery = useGetPlayerCareer(playerId);
   const updateMyPlayer = useUpdateMyPlayer();
   const { pickAndUpload, uploading: uploadingAvatar } = useAvatarUpload();
 
@@ -164,6 +166,13 @@ export default function PerfilScreen() {
               </Button>
             </View>
           </View>
+        ) : null}
+
+        {careerQuery.data ? (
+          <AchievementsGrid
+            achievements={careerQuery.data.achievements ?? []}
+            title={t("player:achievements.title")}
+          />
         ) : null}
       </View>
 

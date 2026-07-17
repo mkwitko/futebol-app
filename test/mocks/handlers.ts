@@ -113,6 +113,7 @@ export type Career = {
   mvpCount: number;
   currentStreak: number;
   bestStreak: number;
+  achievements: { key: string; label: string; description: string; icon: string; unlocked: boolean }[];
   updatedAt: string | null;
 };
 
@@ -134,6 +135,7 @@ function emptyCareer(playerId: string): Career {
     mvpCount: 0,
     currentStreak: 0,
     bestStreak: 0,
+    achievements: [],
     updatedAt: null,
   };
 }
@@ -154,6 +156,10 @@ export const FAKE_CAREER: Career = {
   mvpCount: 2,
   currentStreak: 3,
   bestStreak: 5,
+  achievements: [
+    { key: "primeiro_gol", label: "Primeiro gol", description: "Marque seu primeiro gol", icon: "⚽", unlocked: true },
+    { key: "goleador_10", label: "Goleador", description: "10 gols na carreira", icon: "🎯", unlocked: false },
+  ],
   updatedAt: "2026-07-01T00:00:00.000Z",
 };
 

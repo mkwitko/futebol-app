@@ -36,6 +36,7 @@ describe("Carreira de outro jogador", () => {
       mvpCount: 5,
       currentStreak: 6,
       bestStreak: 8,
+      achievements: [],
       updatedAt: "2026-07-10T00:00:00.000Z",
     });
 
