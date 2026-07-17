@@ -4,7 +4,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Text } from "@/components/ui/text";
 import type { AttributeCategory } from "@/lib/player/attributes";
-import { type FieldPosition, fieldPositionAbbreviation } from "@/lib/player/position";
+import { bestFieldPosition, fieldPositionAbbreviation } from "@/lib/player/position";
 import { type SkillKey, skillLabel, toSkillList } from "@/lib/player/skills";
 import { getTierFromOverall, tierColor } from "@/lib/player/tier";
 import { cn } from "@/lib/utils";
@@ -53,16 +53,6 @@ function StatPair({ abbr, value }: { abbr: string; value: number }) {
   );
 }
 
-/** Melhor posição (maior overall) do mapa `overallByPosition`. */
-function bestPosition(map: Partial<Record<string, number>>): { pos: FieldPosition; ovr: number } | null {
-  let best: { pos: FieldPosition; ovr: number } | null = null;
-  for (const [pos, ovr] of Object.entries(map)) {
-    if (ovr == null) continue;
-    if (!best || ovr > best.ovr) best = { pos: pos as FieldPosition, ovr };
-  }
-  return best;
-}
-
 export type FifaCardProps = {
   player: GetMyPlayer200;
   avatarUri?: string | null;
@@ -79,7 +69,7 @@ export function FifaCard({ player, avatarUri }: FifaCardProps) {
   const cat = (player.categoryOverall ?? {}) as Partial<Record<AttributeCategory, number>>;
   const overall = player.generalOverall ?? 0;
   const tier = getTierFromOverall(overall);
-  const best = bestPosition((player.overallByPosition ?? {}) as Partial<Record<string, number>>);
+  const best = bestFieldPosition((player.overallByPosition ?? {}) as Partial<Record<string, number>>);
   const skills = toSkillList(player.skills as string[] | undefined) as SkillKey[];
 
   const age = player.birthYear ? new Date().getFullYear() - player.birthYear : null;

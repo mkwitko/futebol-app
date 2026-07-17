@@ -93,6 +93,19 @@ export function fieldPositionLabel(p: FieldPosition): string {
 export function fieldPositionAbbreviation(p: FieldPosition): string {
   return FIELD_POSITION_ABBREVIATIONS[p];
 }
+
+/** Melhor posição (maior overall) de um mapa `overallByPosition`. */
+export function bestFieldPosition(
+  map: Partial<Record<string, number>>,
+): { pos: FieldPosition; ovr: number } | null {
+  let best: { pos: FieldPosition; ovr: number } | null = null;
+  for (const [pos, ovr] of Object.entries(map)) {
+    if (ovr == null) continue;
+    if (!best || ovr > best.ovr) best = { pos: pos as FieldPosition, ovr };
+  }
+  return best;
+}
+
 export function isGoalkeeper(p: string): boolean {
   return p.endsWith("_goleiro");
 }
