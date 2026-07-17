@@ -23,13 +23,14 @@ import { useUpdateGroup } from "@/hooks/groups/use-update-group";
 import { isForbiddenError } from "@/lib/api/errors";
 import { colors } from "@/lib/theme";
 import { positionLabel } from "@/lib/player/position";
-import { useGetGroup } from "@/api/generated/hooks/groupsHooks";
+import { useGetGroup, useGetGroupRanking } from "@/api/generated/hooks/groupsHooks";
+import { RankingSection } from "@/components/groups/ranking-section";
 import { useListMembers } from "@/api/generated/hooks/membersHooks";
 import { useListMatches } from "@/api/generated/hooks/matchesHooks";
 import { useListAttendance } from "@/api/generated/hooks/attendanceHooks";
 import type { ListMembers200 } from "@/api/generated/types/ListMembers";
 
-type HubTab = "peladas" | "jogadores" | "mensalidades";
+type HubTab = "peladas" | "jogadores" | "ranking" | "mensalidades";
 type MemberSheetState = { visible: boolean; member?: ListMembers200[number] };
 
 /**
@@ -51,6 +52,7 @@ export default function GroupDetailScreen() {
   const groupQuery = useGetGroup(id);
   const membersQuery = useListMembers(id);
   const matchesQuery = useListMatches(id);
+  const rankingQuery = useGetGroupRanking(id, { query: { enabled: tab === "ranking" } });
   const updateGroup = useUpdateGroup(id);
 
   const nextMatch = useMemo(() => {
@@ -130,6 +132,7 @@ export default function GroupDetailScreen() {
         options={[
           { label: t("groups:hub.tabs.peladas"), value: "peladas" },
           { label: t("groups:hub.tabs.jogadores"), value: "jogadores" },
+          { label: t("groups:hub.tabs.ranking"), value: "ranking" },
           { label: t("groups:hub.tabs.mensalidades"), value: "mensalidades" },
         ]}
       />
@@ -216,6 +219,25 @@ export default function GroupDetailScreen() {
             </View>
           </QueryState>
         </View>
+      ) : null}
+
+      {tab === "ranking" ? (
+        <QueryState
+          isPending={rankingQuery.isPending}
+          isError={rankingQuery.isError}
+          isEmpty={
+            !!rankingQuery.data &&
+            rankingQuery.data.points.length === 0 &&
+            rankingQuery.data.goals.length === 0
+          }
+          errorMessage={t("groups:hub.rankingLoadError")}
+          retryLabel={t("common:actions.retry")}
+          onRetry={() => void rankingQuery.refetch()}
+          emptyTitle={t("groups:hub.rankingEmptyTitle")}
+          emptyDescription={t("groups:hub.rankingEmptyDescription")}
+        >
+          {rankingQuery.data ? <RankingSection ranking={rankingQuery.data} /> : null}
+        </QueryState>
       ) : null}
 
       {tab === "mensalidades" ? <MensalidadesContent groupId={id} /> : null}
