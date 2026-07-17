@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Drawer } from "expo-router/drawer";
 import { useTranslation } from "react-i18next";
+import { DrawerAppContent } from "@/components/layout/drawer-content";
 import { colors, fonts } from "@/lib/theme";
 import { usePaymentsEnabled } from "@/hooks/billing/use-entitlements";
 
@@ -12,6 +13,7 @@ export default function DrawerLayout() {
 
   return (
     <Drawer
+      drawerContent={(props) => <DrawerAppContent {...props} />}
       screenOptions={{
         headerShown: true,
         headerStyle: { backgroundColor: colors.bg },
