@@ -811,4 +811,5 @@ export const handlers = [
     const playerId = params.playerId as string;
     return HttpResponse.json(careerByPlayer[playerId] ?? emptyCareer(playerId));
   }),
+  http.get(api("/players/:playerId/timeline"), () => HttpResponse.json({ events: [] })),
 ];

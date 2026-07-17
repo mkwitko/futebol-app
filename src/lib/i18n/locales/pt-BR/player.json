@@ -78,5 +78,14 @@
   },
   "achievements": {
     "title": "Conquistas"
+  },
+  "timeline": {
+    "title": "Timeline",
+    "buckets": {
+      "hoje": "Hoje",
+      "ontem": "Ontem",
+      "semana": "Esta semana",
+      "antes": "Antes"
+    }
   }
 }

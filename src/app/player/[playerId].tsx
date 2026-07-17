@@ -4,11 +4,12 @@ import { View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
 import { AchievementsGrid } from "@/components/players/achievements-grid";
 import { CareerSummary } from "@/components/players/career-summary";
+import { PlayerTimeline } from "@/components/players/player-timeline";
 import { Button } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
-import { useGetPlayerCareer } from "@/api/generated/hooks/playersHooks";
+import { useGetPlayerCareer, useGetPlayerTimeline } from "@/api/generated/hooks/playersHooks";
 
 /**
  * Carreira de outro jogador — mesma composição (`CareerSummary`) de "Minha
@@ -25,6 +26,7 @@ export default function PlayerCareerScreen() {
   const { t } = useTranslation(["player", "common"]);
 
   const careerQuery = useGetPlayerCareer(playerId);
+  const timelineQuery = useGetPlayerTimeline(playerId);
 
   return (
     <ScreenContainer className="gap-6">
@@ -58,6 +60,9 @@ export default function PlayerCareerScreen() {
             achievements={careerQuery.data.achievements ?? []}
             title={t("player:achievements.title")}
           />
+          {timelineQuery.data && timelineQuery.data.events.length > 0 ? (
+            <PlayerTimeline events={timelineQuery.data.events} title={t("player:timeline.title")} />
+          ) : null}
         </>
       ) : null}
     </ScreenContainer>
