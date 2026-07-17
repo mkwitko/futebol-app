@@ -38,14 +38,11 @@ export function DrawerAppContent(props: DrawerContentComponentProps) {
       <Pressable onPress={goToProfile} accessibilityRole="button" testID="drawer-banner">
         <View
           style={{
-            backgroundColor: colors.surfaceUp,
-            paddingTop: insets.top + 20,
-            paddingBottom: 20,
+            paddingTop: insets.top + 24,
+            paddingBottom: 24,
             paddingHorizontal: 16,
             alignItems: "center",
             gap: 8,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.line,
           }}
         >
           {isPending ? (
@@ -95,7 +92,9 @@ export function DrawerAppContent(props: DrawerContentComponentProps) {
           )}
         </View>
       </Pressable>
-      <DrawerItemList {...props} />
+      <View style={{ marginTop: 12 }}>
+        <DrawerItemList {...props} />
+      </View>
     </DrawerContentScrollView>
   );
 }
