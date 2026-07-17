@@ -42,11 +42,11 @@ export function DrawerAppContent(props: DrawerContentComponentProps) {
           style={{ paddingVertical: 24, paddingHorizontal: 16, alignItems: "center", gap: 8 }}
         >
           {isPending ? (
-            <>
+            <View testID="drawer-banner-skeleton" style={{ alignItems: "center", gap: 8 }}>
               <Skeleton className="h-24 w-24 rounded-full" />
               <Skeleton className="h-5 w-32" />
               <Skeleton className="h-4 w-24" />
-            </>
+            </View>
           ) : (
             <>
               <Avatar name={name} uri={player?.avatarUrl} size="xl" />
