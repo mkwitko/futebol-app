@@ -90,6 +90,16 @@
   },
   "rankings": {
     "globalTitle": "Rankings globais",
-    "globalHint": "Os melhores de todas as peladas. Ranking por cidade chega em breve."
+    "globalHint": "Os melhores de todas as peladas.",
+    "scopeGlobal": "Global",
+    "scopeCity": "Minha cidade",
+    "cityHint": "Os melhores de {{city}}.",
+    "noCityTitle": "Qual é a sua cidade?",
+    "noCityHint": "Informe sua cidade pra ver o ranking local — ou use sua localização.",
+    "useLocationCta": "Usar minha localização",
+    "cityInputLabel": "Cidade",
+    "cityInputPlaceholder": "Ex.: Porto Alegre",
+    "citySaveCta": "Ver ranking da cidade",
+    "permissionDenied": "Sem acesso à localização. Digite sua cidade acima."
   }
 }

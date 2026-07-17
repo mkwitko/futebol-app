@@ -16,6 +16,32 @@ jest.mock("react-native-keyboard-controller", () =>
   require("react-native-keyboard-controller/jest"),
 );
 
+// `react-native-maps` é nativo (LocationPicker) — não linka no Jest. Stub em
+// React puro (sem `require("react-native")`, que dispararia o transform do
+// NativeWind e vazaria `_ReactNativeCSSInterop` pra dentro da factory): o
+// MapView só renderiza os filhos e expõe um `animateToRegion` no-op.
+jest.mock("react-native-maps", () => {
+  const React = require("react");
+  const MapView = React.forwardRef((_props: unknown, ref: unknown) => {
+    React.useImperativeHandle(ref, () => ({ animateToRegion: jest.fn() }));
+    return null;
+  });
+  MapView.displayName = "MapView";
+  const Marker = () => null;
+  return { __esModule: true, default: MapView, Marker };
+});
+
+// `expo-location` é nativo — stub com coords/cidade fake e permissão concedida.
+jest.mock("expo-location", () => ({
+  requestForegroundPermissionsAsync: jest.fn(async () => ({ granted: true, status: "granted" })),
+  getCurrentPositionAsync: jest.fn(async () => ({
+    coords: { latitude: -30.0346, longitude: -51.2177 },
+  })),
+  reverseGeocodeAsync: jest.fn(async () => [
+    { city: "Porto Alegre", subregion: "Porto Alegre", street: "Av. Ipiranga", name: "1000" },
+  ]),
+}));
+
 // i18n REAL e síncrono com os recursos pt-BR embutidos — asserts veem o texto
 // traduzido de verdade, sem HTTP backend.
 if (!i18n.isInitialized) {
