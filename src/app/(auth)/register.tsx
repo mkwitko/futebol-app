@@ -16,11 +16,11 @@ export default function RegisterScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const onSubmit = async ({ email, password, name }: RegisterFormValues) => {
+  const onSubmit = async ({ email, password, name, roles }: RegisterFormValues) => {
     setFormError(null);
     setSubmitting(true);
     try {
-      await register(email, password, name);
+      await register(email, password, name, roles);
       // Sucesso: guard no root layout navega automaticamente para `(drawer)`.
     } catch {
       setFormError(t("register.emailInUse"));

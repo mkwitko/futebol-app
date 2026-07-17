@@ -7,12 +7,17 @@ import { AttributeBudget } from "@/components/players/attribute-budget";
 import { FifaCard } from "@/components/players/fifa-card";
 import { PitchAffinity } from "@/components/players/pitch-affinity";
 import { SkillPicker } from "@/components/players/skill-picker";
+import { RoleSelector } from "@/components/auth/role-selector";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Divider } from "@/components/ui/divider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
-import { useAuth } from "@/hooks/auth/use-auth";
+import { Toast } from "@/components/ui/toast";
+import { DEFAULT_ROLES, type Role, rolesEqual } from "@/lib/auth/roles";
+import { useAuth, type AuthUser } from "@/hooks/auth/use-auth";
+import { useToast } from "@/hooks/common/use-toast";
+import { useUpdateRoles } from "@/hooks/auth/use-update-roles";
 import { useAvatarUpload } from "@/hooks/players/use-avatar-upload";
 import { useUpdateMyPlayer } from "@/hooks/players/use-update-my-player";
 import {
@@ -51,9 +56,32 @@ function CareerHeroSkeleton() {
 
 /** Perfil — usuário logado, carreira real, editor de posições/atributos/skills e sair. */
 export default function PerfilScreen() {
-  const { t } = useTranslation(["player", "common"]);
+  const { t } = useTranslation(["player", "common", "auth"]);
   const { user, signOut } = useAuth();
+  const toast = useToast();
   const [signingOut, setSigningOut] = useState(false);
+
+  // Rascunho editável dos tipos de conta, re-semeado do valor persistido via o
+  // padrão adjust-state-during-render (sem effect): quando a identidade do
+  // `user` muda, reseta o rascunho.
+  const updateRoles = useUpdateRoles();
+  const [rolesDraft, setRolesDraft] = useState<Role[]>(DEFAULT_ROLES);
+  const [rolesSeededFrom, setRolesSeededFrom] = useState<AuthUser | null>(null);
+  if (user !== rolesSeededFrom) {
+    setRolesSeededFrom(user);
+    setRolesDraft((user?.roles as Role[] | undefined) ?? DEFAULT_ROLES);
+  }
+  const savedRoles = (user?.roles as Role[] | undefined) ?? DEFAULT_ROLES;
+  const rolesDirty = !rolesEqual(rolesDraft, savedRoles);
+
+  const handleSaveRoles = async () => {
+    try {
+      await updateRoles.mutateAsync({ data: { roles: rolesDraft } });
+      toast.show(t("auth:roles.saveSuccess"));
+    } catch {
+      toast.show(t("auth:roles.saveError"), "danger");
+    }
+  };
 
   const myPlayerQuery = useGetMyPlayer();
   const playerId = myPlayerQuery.data?.id;
@@ -128,6 +156,12 @@ export default function PerfilScreen() {
           </Text>
         </View>
       </View>
+
+      {toast.message ? (
+        <Toast variant={toast.variant} onDismiss={toast.dismiss}>
+          {toast.message}
+        </Toast>
+      ) : null}
 
       <Divider />
 
@@ -276,6 +310,27 @@ export default function PerfilScreen() {
           saving={updateMyPlayer.isPending}
           saveLabel={t("player:card.save")}
         />
+      </View>
+
+      <Divider />
+
+      {/* Tipo de conta (roles) — feature-unlock/intenção, não autorização */}
+      <View className="gap-3">
+        <Text variant="display" className="text-lg">
+          {t("auth:roles.profileTitle")}
+        </Text>
+        <Text variant="muted" className="text-sm">
+          {t("auth:roles.profileHint")}
+        </Text>
+        <RoleSelector value={rolesDraft} onChange={setRolesDraft} testIDPrefix="profile-role" />
+        <Button
+          testID="profile-save-roles"
+          onPress={() => void handleSaveRoles()}
+          loading={updateRoles.isPending}
+          disabled={!rolesDirty || rolesDraft.length === 0}
+        >
+          {t("auth:roles.save")}
+        </Button>
       </View>
 
       <Divider />

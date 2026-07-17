@@ -1,6 +1,7 @@
 import { screen, userEvent, waitFor } from "@testing-library/react-native";
 import { Share } from "react-native";
 import PerfilScreen from "@/app/(drawer)/perfil";
+import { saveTokens } from "@/lib/auth/tokens";
 import { FAKE_MY_PLAYER, resetGroupsMocks } from "../mocks/handlers";
 import { renderWithProviders } from "../utils/render";
 
@@ -38,5 +39,30 @@ describe("Minha carreira (Perfil)", () => {
     expect(message).toContain("Confira meu perfil de jogador");
 
     shareSpy.mockRestore();
+  });
+});
+
+describe("Tipo de conta (Perfil)", () => {
+  beforeEach(async () => {
+    resetGroupsMocks();
+    // Com token, `getMe` carrega o usuário logado (roles) — habilita a edição.
+    await saveTokens({ accessToken: "test-access-token", refreshToken: "test-refresh-token" });
+  });
+
+  it("edits and saves the account types, showing a success toast", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<PerfilScreen />);
+
+    // Seção de tipo de conta renderizada; jogador já vem selecionado.
+    const jogadorChip = await screen.findByTestId("profile-role-jogador");
+    expect(jogadorChip.props.accessibilityState).toEqual(
+      expect.objectContaining({ selected: true }),
+    );
+
+    // Marca "organizador" → rascunho sujo → botão habilita.
+    await user.press(screen.getByTestId("profile-role-organizador"));
+    await user.press(screen.getByTestId("profile-save-roles"));
+
+    expect(await screen.findByText("Tipos de conta atualizados.")).toBeOnTheScreen();
   });
 });

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ROLE_KEYS } from "@/lib/auth/roles";
 
 export const registerSchema = z
   .object({
@@ -9,6 +10,7 @@ export const registerSchema = z
     email: z.string().min(1, { message: "zod:required" }).email({ message: "zod:email" }),
     password: z.string().min(8, { message: "zod:minLength" }),
     confirmPassword: z.string().min(1, { message: "zod:required" }),
+    roles: z.array(z.enum(ROLE_KEYS)).min(1, { message: "zod:required" }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "zod:passwordMismatch",

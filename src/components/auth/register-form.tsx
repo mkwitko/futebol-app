@@ -5,7 +5,9 @@ import { View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
+import { RoleSelector } from "@/components/auth/role-selector";
 import { asZodMessageKey } from "@/lib/i18n/zod-message";
+import { DEFAULT_ROLES } from "@/lib/auth/roles";
 import { registerSchema, type RegisterFormValues } from "@/schemas/auth/register.schema";
 
 export type RegisterFormProps = {
@@ -22,7 +24,7 @@ export function RegisterForm({ onSubmit, submitting = false, formError }: Regist
     formState: { errors },
   } = useForm<RegisterFormValues>({
     resolver: standardSchemaResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "", roles: DEFAULT_ROLES },
   });
 
   return (
@@ -93,6 +95,28 @@ export function RegisterForm({ onSubmit, submitting = false, formError }: Regist
               errors.confirmPassword ? t(asZodMessageKey(errors.confirmPassword.message)) : undefined
             }
           />
+        )}
+      />
+      <Controller
+        control={control}
+        name="roles"
+        render={({ field: { onChange, value } }) => (
+          <View className="gap-2">
+            <View className="gap-1">
+              <Text className="font-body-medium text-sm text-muted">
+                {t("auth:register.accountTypeLabel")}
+              </Text>
+              <Text variant="muted" className="text-xs">
+                {t("auth:register.accountTypeHint")}
+              </Text>
+            </View>
+            <RoleSelector value={value} onChange={onChange} testIDPrefix="register-role" />
+            {errors.roles ? (
+              <Text className="font-body text-sm text-danger">
+                {t(asZodMessageKey(errors.roles.message))}
+              </Text>
+            ) : null}
+          </View>
         )}
       />
       {formError ? (

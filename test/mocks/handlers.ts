@@ -7,9 +7,27 @@ const FAKE_USER = {
   id: "user-1",
   email: "alice@futebol.app",
   name: "Alice",
+  roles: ["jogador"] as ("jogador" | "organizador" | "quadra")[],
   hasPassword: true,
   googleSub: null,
+  lastCity: null as string | null,
+  lastLat: null as number | null,
+  lastLng: null as number | null,
   createdAt: "2026-01-01T00:00:00.000Z",
+};
+
+export const FAKE_VENUE = {
+  id: "venue-1",
+  ownerId: "user-1",
+  name: "Arena Central",
+  latitude: -30.0346,
+  longitude: -51.2177,
+  address: "Av. Ipiranga, 1000",
+  city: "Porto Alegre",
+  amenities: ["gramado", "iluminacao", "estacionamento"] as string[],
+  phone: "51999999999" as string | null,
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z",
 };
 
 export const FAKE_GROUP = {
@@ -300,6 +318,8 @@ let myPlayer = { ...FAKE_MY_PLAYER };
 let careerByPlayer: Record<string, Career> = { [FAKE_MY_PLAYER.id]: { ...FAKE_CAREER } };
 let joinRequestsByMatch: Record<string, JoinRequest[]> = {};
 let discoverResults: DiscoverMatch[] = [];
+let me = { ...FAKE_USER };
+let venuesById: Record<string, typeof FAKE_VENUE> = { [FAKE_VENUE.id]: { ...FAKE_VENUE } };
 
 // Entitlements (`GET /billing/me`). Default: pagamentos habilitados, sem
 // features. Testes de bypass revisor usam `setBillingMock({ paymentsEnabled: false })`.
@@ -371,6 +391,13 @@ export function resetGroupsMocks() {
   careerByPlayer = { [FAKE_MY_PLAYER.id]: { ...FAKE_CAREER } };
   joinRequestsByMatch = {};
   discoverResults = [];
+  me = { ...FAKE_USER };
+  venuesById = { [FAKE_VENUE.id]: { ...FAKE_VENUE } };
+}
+
+/** Pré-semeia uma quadra (`GET /venues/:id`) — usado pra exibir a quadra na partida. */
+export function setVenueMock(venue: typeof FAKE_VENUE) {
+  venuesById[venue.id] = venue;
 }
 
 /** Pré-semeia os pedidos de entrada pendentes de uma pelada (inbox do organizador). */
@@ -497,19 +524,42 @@ export const handlers = [
     });
   }),
 
-  http.post(api("/auth/register"), async () => {
+  http.post(api("/auth/register"), async ({ request }) => {
+    const body = (await request.json()) as {
+      email: string;
+      name: string;
+      roles?: ("jogador" | "organizador" | "quadra")[];
+    };
+    me = {
+      ...FAKE_USER,
+      email: body.email,
+      name: body.name,
+      roles: body.roles && body.roles.length > 0 ? body.roles : ["jogador"],
+    };
     return HttpResponse.json(
       {
         accessToken: "fake-access-token",
         refreshToken: "fake-refresh-token",
-        user: FAKE_USER,
+        user: me,
       },
       { status: 201 },
     );
   }),
 
   http.get(api("/auth/me"), () => {
-    return HttpResponse.json(FAKE_USER);
+    return HttpResponse.json(me);
+  }),
+
+  http.patch(api("/auth/me/roles"), async ({ request }) => {
+    const body = (await request.json()) as { roles: ("jogador" | "organizador" | "quadra")[] };
+    me = { ...me, roles: body.roles };
+    return HttpResponse.json(me);
+  }),
+
+  http.get(api("/venues/:id"), ({ params }) => {
+    const venue = venuesById[params.id as string];
+    if (!venue) return HttpResponse.json({ message: "not_found" }, { status: 404 });
+    return HttpResponse.json(venue);
   }),
 
   http.get(api("/groups"), () => {

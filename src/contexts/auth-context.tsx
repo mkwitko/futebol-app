@@ -21,6 +21,7 @@ import {
   signInWithGoogleNative,
   signOutGoogleNative,
 } from "@/lib/auth/google";
+import type { Role } from "@/lib/auth/roles";
 import { forceLogout } from "@/lib/auth/session";
 import { getAccessToken, saveTokens } from "@/lib/auth/tokens";
 import { usePushHandlers } from "@/lib/push/use-push-handlers";
@@ -37,7 +38,11 @@ export type AuthState = {
 export type AuthActions = {
   /** E-mail/senha — a única forma de login funcional nesta fase. */
   signIn: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  /**
+   * Cadastro por e-mail/senha. `roles` = tipos de conta (feature-unlock, não
+   * autz); se omitido/vazio, o backend usa o default `["jogador"]`.
+   */
+  register: (email: string, password: string, name: string, roles?: Role[]) => Promise<void>;
   /**
    * Login com Google — fluxo nativo real, mas config-gated: só funciona
    * (e só deve ser chamado) quando `isGoogleSignInConfigured` é `true` (ver
@@ -88,8 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async (email: string, password: string, name: string) => {
-      const result = await registerMutation.mutateAsync({ data: { email, password, name } });
+    async (email: string, password: string, name: string, roles?: Role[]) => {
+      const result = await registerMutation.mutateAsync({
+        data: { email, password, name, ...(roles && roles.length > 0 ? { roles } : {}) },
+      });
       await saveTokens({ accessToken: result.accessToken, refreshToken: result.refreshToken });
       queryClient.setQueryData(getMeQueryKey(), result.user);
       setHasToken(true);
