@@ -13,6 +13,7 @@ import { Divider } from "@/components/ui/divider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { useAvatarUpload } from "@/hooks/players/use-avatar-upload";
 import { useUpdateMyPlayer } from "@/hooks/players/use-update-my-player";
 import {
   type AffinityMap,
@@ -51,6 +52,7 @@ export default function PerfilScreen() {
   const myPlayerQuery = useGetMyPlayer();
   const playerId = myPlayerQuery.data?.id;
   const updateMyPlayer = useUpdateMyPlayer();
+  const { pickAndUpload, uploading: uploadingAvatar } = useAvatarUpload();
 
   // Rascunhos editáveis, re-semeados do valor persistido via o padrão
   // adjust-state-during-render (sem effect): quando a identidade do `data`
@@ -141,14 +143,26 @@ export default function PerfilScreen() {
 
         {!isLoading && !isError && myPlayerQuery.data ? (
           <View className="gap-3">
-            <FifaCard player={myPlayerQuery.data} />
-            <Button
-              testID="profile-share-cta"
-              variant="secondary"
-              onPress={() => void handleShare()}
-            >
-              {t("player:career.shareCta")}
-            </Button>
+            <FifaCard player={myPlayerQuery.data} avatarUri={myPlayerQuery.data.avatarUrl} />
+            <View className="flex-row gap-3">
+              <Button
+                testID="profile-avatar-cta"
+                className="flex-1"
+                variant="secondary"
+                onPress={() => void pickAndUpload()}
+                loading={uploadingAvatar}
+              >
+                {t("player:card.photoCta")}
+              </Button>
+              <Button
+                testID="profile-share-cta"
+                className="flex-1"
+                variant="secondary"
+                onPress={() => void handleShare()}
+              >
+                {t("player:career.shareCta")}
+              </Button>
+            </View>
           </View>
         ) : null}
       </View>

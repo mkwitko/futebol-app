@@ -68,6 +68,12 @@
   },
   "card": {
     "title": "Dados da carta",
-    "save": "Salvar dados"
+    "save": "Salvar dados",
+    "photoCta": "Trocar foto"
+  },
+  "search": {
+    "label": "Buscar jogador",
+    "placeholder": "Nome do jogador",
+    "empty": "Nenhum jogador encontrado."
   }
 }

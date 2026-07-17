@@ -43,6 +43,16 @@ export default function DrawerLayout() {
         }}
       />
       <Drawer.Screen
+        name="buscar"
+        options={{
+          title: t("nav.search"),
+          drawerLabel: t("nav.search"),
+          drawerIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "search" : "search-outline"} size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
         name="perfil"
         options={{
           title: t("nav.profile"),
