@@ -34,10 +34,10 @@ describe("PlayerCard", () => {
   });
 
   it("renders a compact roster row with overall, abbreviation and name", () => {
-    render(<PlayerCard name="Carla Dias" position="campo_lateral" overall={76} variant="compact" />);
+    render(<PlayerCard name="Carla Dias" position="campo_zagueiro" overall={76} variant="compact" />);
 
     expect(screen.getByText("76")).toBeOnTheScreen();
-    expect(screen.getByText("LAT")).toBeOnTheScreen();
+    expect(screen.getByText("ZAG")).toBeOnTheScreen();
     expect(screen.getByText("Carla Dias")).toBeOnTheScreen();
   });
 
@@ -47,7 +47,7 @@ describe("PlayerCard", () => {
     render(
       <PlayerCard
         name="Dani Rocha"
-        position="campo_ala_volante"
+        position="campo_volante"
         overall={70}
         variant="compact"
         onPress={onPress}

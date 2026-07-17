@@ -59,14 +59,14 @@ export function modalityLabel(m: Modality): string {
 }
 
 export type FieldPosition =
-  | "futsal_goleiro" | "futsal_fixo" | "futsal_ala" | "futsal_pivo"
-  | "society_goleiro" | "society_lateral" | "society_volante" | "society_meia" | "society_ala" | "society_atacante"
-  | "campo_goleiro" | "campo_lateral" | "campo_ala_volante" | "campo_meia_esq" | "campo_meia" | "campo_meia_dir" | "campo_camisa10" | "campo_ponta_esq" | "campo_atacante" | "campo_ponta_dir";
+  | "futsal_goleiro" | "futsal_fixo" | "futsal_ala_esq" | "futsal_ala_dir" | "futsal_pivo"
+  | "society_goleiro" | "society_zagueiro" | "society_lateral_esq" | "society_lateral_dir" | "society_volante" | "society_meia" | "society_ala_esq" | "society_ala_dir" | "society_atacante"
+  | "campo_goleiro" | "campo_zagueiro" | "campo_lateral_esq" | "campo_lateral_dir" | "campo_volante" | "campo_meia_esq" | "campo_meia" | "campo_meia_dir" | "campo_camisa10" | "campo_ponta_esq" | "campo_atacante" | "campo_ponta_dir";
 
 export const MODALITY_POSITIONS: Record<Modality, readonly FieldPosition[]> = {
-  futsal: ["futsal_goleiro", "futsal_fixo", "futsal_ala", "futsal_pivo"],
-  society: ["society_goleiro", "society_lateral", "society_volante", "society_meia", "society_ala", "society_atacante"],
-  campo: ["campo_goleiro", "campo_lateral", "campo_ala_volante", "campo_meia_esq", "campo_meia", "campo_meia_dir", "campo_camisa10", "campo_ponta_esq", "campo_atacante", "campo_ponta_dir"],
+  futsal: ["futsal_goleiro", "futsal_fixo", "futsal_ala_esq", "futsal_ala_dir", "futsal_pivo"],
+  society: ["society_goleiro", "society_zagueiro", "society_lateral_esq", "society_lateral_dir", "society_volante", "society_meia", "society_ala_esq", "society_ala_dir", "society_atacante"],
+  campo: ["campo_goleiro", "campo_zagueiro", "campo_lateral_esq", "campo_lateral_dir", "campo_volante", "campo_meia_esq", "campo_meia", "campo_meia_dir", "campo_camisa10", "campo_ponta_esq", "campo_atacante", "campo_ponta_dir"],
 };
 
 export const FIELD_POSITIONS: readonly FieldPosition[] = [
@@ -76,15 +76,15 @@ export const FIELD_POSITIONS: readonly FieldPosition[] = [
 ];
 
 const FIELD_POSITION_LABELS: Record<FieldPosition, string> = {
-  futsal_goleiro: "Goleiro", futsal_fixo: "Fixo", futsal_ala: "Ala", futsal_pivo: "Pivô",
-  society_goleiro: "Goleiro", society_lateral: "Lateral/Zagueiro", society_volante: "Volante", society_meia: "Meio de campo", society_ala: "Ala", society_atacante: "Atacante",
-  campo_goleiro: "Goleiro", campo_lateral: "Lateral/Zagueiro", campo_ala_volante: "Ala/Volante", campo_meia_esq: "Meia esquerda", campo_meia: "Meio de campo", campo_meia_dir: "Meia direita", campo_camisa10: "Camisa 10", campo_ponta_esq: "Ponta esquerda", campo_atacante: "Atacante", campo_ponta_dir: "Ponta direita",
+  futsal_goleiro: "Goleiro", futsal_fixo: "Fixo", futsal_ala_esq: "Ala esquerda", futsal_ala_dir: "Ala direita", futsal_pivo: "Pivô",
+  society_goleiro: "Goleiro", society_zagueiro: "Zagueiro", society_lateral_esq: "Lateral esquerdo", society_lateral_dir: "Lateral direito", society_volante: "Volante", society_meia: "Meio de campo", society_ala_esq: "Ala esquerda", society_ala_dir: "Ala direita", society_atacante: "Atacante",
+  campo_goleiro: "Goleiro", campo_zagueiro: "Zagueiro", campo_lateral_esq: "Lateral esquerdo", campo_lateral_dir: "Lateral direito", campo_volante: "Volante", campo_meia_esq: "Meia esquerda", campo_meia: "Meio de campo", campo_meia_dir: "Meia direita", campo_camisa10: "Camisa 10", campo_ponta_esq: "Ponta esquerda", campo_atacante: "Atacante", campo_ponta_dir: "Ponta direita",
 };
 
 const FIELD_POSITION_ABBREVIATIONS: Record<FieldPosition, string> = {
-  futsal_goleiro: "GOL", futsal_fixo: "FIX", futsal_ala: "ALA", futsal_pivo: "PIV",
-  society_goleiro: "GOL", society_lateral: "LAT", society_volante: "VOL", society_meia: "MEI", society_ala: "ALA", society_atacante: "ATA",
-  campo_goleiro: "GOL", campo_lateral: "LAT", campo_ala_volante: "AVO", campo_meia_esq: "MEE", campo_meia: "MEI", campo_meia_dir: "MED", campo_camisa10: "C10", campo_ponta_esq: "PEE", campo_atacante: "ATA", campo_ponta_dir: "PED",
+  futsal_goleiro: "GOL", futsal_fixo: "FIX", futsal_ala_esq: "AE", futsal_ala_dir: "AD", futsal_pivo: "PIV",
+  society_goleiro: "GOL", society_zagueiro: "ZAG", society_lateral_esq: "LE", society_lateral_dir: "LD", society_volante: "VOL", society_meia: "MEI", society_ala_esq: "ME", society_ala_dir: "MD", society_atacante: "ATA",
+  campo_goleiro: "GOL", campo_zagueiro: "ZAG", campo_lateral_esq: "LE", campo_lateral_dir: "LD", campo_volante: "VOL", campo_meia_esq: "ME", campo_meia: "MEI", campo_meia_dir: "MD", campo_camisa10: "C10", campo_ponta_esq: "PE", campo_atacante: "ATA", campo_ponta_dir: "PD",
 };
 
 export function fieldPositionLabel(p: FieldPosition): string {

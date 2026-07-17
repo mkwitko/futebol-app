@@ -23,29 +23,35 @@ import { colors, gradeColor } from "@/lib/theme";
 
 /** Onde cada posição fica no campinho (% do container, atacando pra cima), por modalidade. */
 const POSITION_SPOTS: Record<FieldPosition, { left: DimensionValue; top: DimensionValue }> = {
-  // FUTSAL (quadra, 4 de linha)
+  // FUTSAL (quadra, 4 de linha: fixo, 2 alas, pivô)
   futsal_goleiro: { left: "50%", top: "90%" },
   futsal_fixo: { left: "50%", top: "68%" },
-  futsal_ala: { left: "24%", top: "45%" },
-  futsal_pivo: { left: "50%", top: "16%" },
+  futsal_ala_esq: { left: "24%", top: "44%" },
+  futsal_ala_dir: { left: "76%", top: "44%" },
+  futsal_pivo: { left: "50%", top: "15%" },
   // SOCIETY 7
-  society_goleiro: { left: "50%", top: "90%" },
-  society_lateral: { left: "30%", top: "70%" },
-  society_volante: { left: "50%", top: "58%" },
-  society_meia: { left: "50%", top: "40%" },
-  society_ala: { left: "72%", top: "45%" },
-  society_atacante: { left: "50%", top: "15%" },
+  society_goleiro: { left: "50%", top: "91%" },
+  society_zagueiro: { left: "50%", top: "73%" },
+  society_lateral_esq: { left: "20%", top: "68%" },
+  society_lateral_dir: { left: "80%", top: "68%" },
+  society_volante: { left: "50%", top: "54%" },
+  society_meia: { left: "50%", top: "38%" },
+  society_ala_esq: { left: "22%", top: "34%" },
+  society_ala_dir: { left: "78%", top: "34%" },
+  society_atacante: { left: "50%", top: "14%" },
   // CAMPO 11
-  campo_goleiro: { left: "50%", top: "92%" },
-  campo_lateral: { left: "28%", top: "74%" },
-  campo_ala_volante: { left: "50%", top: "62%" },
-  campo_meia_esq: { left: "26%", top: "46%" },
-  campo_meia: { left: "50%", top: "48%" },
-  campo_meia_dir: { left: "74%", top: "46%" },
-  campo_camisa10: { left: "50%", top: "30%" },
-  campo_ponta_esq: { left: "22%", top: "16%" },
-  campo_atacante: { left: "50%", top: "12%" },
-  campo_ponta_dir: { left: "78%", top: "16%" },
+  campo_goleiro: { left: "50%", top: "93%" },
+  campo_zagueiro: { left: "50%", top: "78%" },
+  campo_lateral_esq: { left: "18%", top: "74%" },
+  campo_lateral_dir: { left: "82%", top: "74%" },
+  campo_volante: { left: "50%", top: "60%" },
+  campo_meia_esq: { left: "24%", top: "48%" },
+  campo_meia: { left: "50%", top: "46%" },
+  campo_meia_dir: { left: "76%", top: "48%" },
+  campo_camisa10: { left: "50%", top: "31%" },
+  campo_ponta_esq: { left: "20%", top: "16%" },
+  campo_atacante: { left: "50%", top: "13%" },
+  campo_ponta_dir: { left: "80%", top: "16%" },
 };
 
 /** Chaves i18n literais por grau (o `t` do i18next só aceita chaves conhecidas). */
