@@ -43,6 +43,16 @@ export default function DrawerLayout() {
         }}
       />
       <Drawer.Screen
+        name="rankings"
+        options={{
+          title: t("nav.rankings"),
+          drawerLabel: t("nav.rankings"),
+          drawerIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "trophy" : "trophy-outline"} size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
         name="buscar"
         options={{
           title: t("nav.search"),

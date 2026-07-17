@@ -87,5 +87,9 @@
       "semana": "Esta semana",
       "antes": "Antes"
     }
+  },
+  "rankings": {
+    "globalTitle": "Rankings globais",
+    "globalHint": "Os melhores de todas as peladas. Ranking por cidade chega em breve."
   }
 }
