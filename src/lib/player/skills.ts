@@ -7,7 +7,7 @@
 export const SKILL_CATALOG = {
   chute_rasteiro: "artilharia", cabeceio_preciso: "artilharia", acrobata: "artilharia",
   chute_colocado: "artilharia", cavadinha: "artilharia", pombo_sem_asas: "artilharia", bola_parada: "artilharia",
-  tecnica: "controle_bola", veloz: "controle_bola", dominio: "controle_bola", malvadeza: "controle_bola", cabeca_fria: "controle_bola",
+  tecnica: "controle_bola", veloz: "controle_bola", dominio: "controle_bola", ginga: "controle_bola", cabeca_fria: "controle_bola",
   forca_aerea: "defesa", cercar: "defesa", barreira: "defesa", interceptacao_ps: "defesa", antecipacao: "defesa", carrinho_limpo: "defesa",
   solidez: "fisico", xerife: "fisico", pe_de_vento: "fisico", incansavel: "fisico", lateral_longo: "fisico",
   sai_que_e_sua: "goleiro", arremesso_longo: "goleiro", usa_os_pes: "goleiro", saida_aerea: "goleiro", braco_elastico: "goleiro", deflector: "goleiro",
@@ -34,7 +34,7 @@ export const SKILL_CATEGORY_LABELS: Record<SkillCategory, string> = {
 export const SKILL_LABELS: Record<SkillKey, string> = {
   chute_rasteiro: "Chute rasteiro", cabeceio_preciso: "Cabeceio preciso", acrobata: "Acrobata",
   chute_colocado: "Chute colocado", cavadinha: "Cavadinha", pombo_sem_asas: "Pombo sem asas", bola_parada: "Bola parada",
-  tecnica: "Técnica", veloz: "Veloz", dominio: "Domínio", malvadeza: "Malvadeza", cabeca_fria: "Cabeça fria",
+  tecnica: "Técnica", veloz: "Veloz", dominio: "Domínio", ginga: "Ginga", cabeca_fria: "Cabeça fria",
   forca_aerea: "Força aérea", cercar: "Cercar", barreira: "Barreira", interceptacao_ps: "Interceptação", antecipacao: "Antecipação", carrinho_limpo: "Carrinho limpo",
   solidez: "Solidez", xerife: "Xerife", pe_de_vento: "Pé de vento", incansavel: "Incansável", lateral_longo: "Lateral longo",
   sai_que_e_sua: "Sai que é sua", arremesso_longo: "Arremesso longo", usa_os_pes: "Usa os pés", saida_aerea: "Saída aérea", braco_elastico: "Braço elástico", deflector: "Deflector",
