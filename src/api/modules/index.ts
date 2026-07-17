@@ -1,4 +1,5 @@
 export { AUTH } from "./auth";
+export { BILLING } from "./billing";
 export { GROUPS } from "./groups";
 export { MEMBERS } from "./members";
 export { MATCHES } from "./matches";
