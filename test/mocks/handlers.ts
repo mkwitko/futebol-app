@@ -18,6 +18,8 @@ export const FAKE_GROUP = {
   ownerId: "user-1",
   statsMode: "organizador",
   monthlyFeeCents: null as number | null,
+  isPublic: false,
+  joinPolicy: "open" as "open" | "request",
   createdAt: "2026-01-01T00:00:00.000Z",
   memberCount: 12,
   nextMatch: { id: "match-1", datetime: "2026-07-18T21:00:00.000Z", location: "Quadra do Zico" } as {
@@ -249,6 +251,33 @@ type Vote = {
   updatedAt: string;
 };
 
+type JoinRequest = {
+  id: string;
+  matchId: string;
+  playerId: string;
+  playerName: string;
+  createdAt: string;
+};
+
+type DiscoverMatch = {
+  matchId: string;
+  groupId: string;
+  groupName: string;
+  datetime: string;
+  location: string;
+  address: string | null;
+  city: string | null;
+  latitude: number;
+  longitude: number;
+  priceCents: number;
+  slots: number;
+  confirmedCount: number;
+  distanceKm: number;
+  modality: "futsal" | "society" | "campo";
+  joinPolicy: "open" | "request";
+  full: boolean;
+};
+
 const VOTE_CATEGORIES: VoteCategory[] = ["mvp", "melhor_goleiro", "craque", "fair_play"];
 
 /** Overall "conhecido" por jogador — usado só pra montar a resposta mockada de `generateTeams`/`getTeams`. */
@@ -269,6 +298,8 @@ let votesByMatch: Record<string, Vote[]> = {};
 let voteWindowClosedMatches = new Set<string>();
 let myPlayer = { ...FAKE_MY_PLAYER };
 let careerByPlayer: Record<string, Career> = { [FAKE_MY_PLAYER.id]: { ...FAKE_CAREER } };
+let joinRequestsByMatch: Record<string, JoinRequest[]> = {};
+let discoverResults: DiscoverMatch[] = [];
 
 // Entitlements (`GET /billing/me`). Default: pagamentos habilitados, sem
 // features. Testes de bypass revisor usam `setBillingMock({ paymentsEnabled: false })`.
@@ -338,6 +369,23 @@ export function resetGroupsMocks() {
   voteWindowClosedMatches = new Set();
   myPlayer = { ...FAKE_MY_PLAYER };
   careerByPlayer = { [FAKE_MY_PLAYER.id]: { ...FAKE_CAREER } };
+  joinRequestsByMatch = {};
+  discoverResults = [];
+}
+
+/** Pré-semeia os pedidos de entrada pendentes de uma pelada (inbox do organizador). */
+export function setJoinRequestsMock(matchId: string, next: JoinRequest[]) {
+  joinRequestsByMatch[matchId] = next;
+}
+
+/** Lê os pedidos de entrada persistidos no mock — usado pra asserção de decisão (approve/reject). */
+export function getJoinRequestsMock(matchId: string) {
+  return joinRequestsByMatch[matchId] ?? [];
+}
+
+/** Pré-semeia os resultados de `GET /discover` (peladas públicas por raio). */
+export function setDiscoverMock(next: DiscoverMatch[]) {
+  discoverResults = next;
 }
 
 /** Troca o jogador retornado por `GET /players/me` — usado pra testar outro nome/id logado. */
@@ -475,6 +523,8 @@ export const handlers = [
       name: body.name,
       ownerId: FAKE_USER.id,
       statsMode: body.statsMode ?? "organizador",
+      isPublic: false,
+      joinPolicy: "open",
       createdAt: new Date().toISOString(),
       memberCount: 1,
       nextMatch: null,
@@ -490,11 +540,17 @@ export const handlers = [
 
   http.patch(api("/groups/:id"), async ({ request, params }) => {
     const groupId = params.id as string;
-    const body = (await request.json()) as { monthlyFeeCents?: number | null };
+    const body = (await request.json()) as {
+      monthlyFeeCents?: number | null;
+      isPublic?: boolean;
+      joinPolicy?: "open" | "request";
+    };
     const existing = groups.find((g) => g.id === groupId) ?? { ...FAKE_GROUP, id: groupId };
     const updated: Group = {
       ...existing,
       monthlyFeeCents: "monthlyFeeCents" in body ? (body.monthlyFeeCents ?? null) : existing.monthlyFeeCents,
+      isPublic: "isPublic" in body ? !!body.isPublic : existing.isPublic,
+      joinPolicy: body.joinPolicy ?? existing.joinPolicy,
     };
     groups = groups.some((g) => g.id === groupId)
       ? groups.map((g) => (g.id === groupId ? updated : g))
@@ -832,6 +888,48 @@ export const handlers = [
     return HttpResponse.json(careerByPlayer[playerId] ?? emptyCareer(playerId));
   }),
   http.get(api("/players/:playerId/timeline"), () => HttpResponse.json({ events: [] })),
+
+  http.get(api("/discover"), () => HttpResponse.json(discoverResults)),
+
+  http.post(api("/matches/:id/join-request"), ({ params }) => {
+    const matchId = params.id as string;
+    const current = joinRequestsByMatch[matchId] ?? [];
+    const created: JoinRequest = {
+      id: `jr-${matchId}-${current.length + 1}`,
+      matchId,
+      playerId: `player-${FAKE_USER.id}`,
+      playerName: FAKE_USER.name,
+      createdAt: new Date().toISOString(),
+    };
+    joinRequestsByMatch[matchId] = [...current, created];
+    return HttpResponse.json(
+      { id: created.id, matchId, playerId: created.playerId, status: "pending", createdAt: created.createdAt },
+      { status: 201 },
+    );
+  }),
+
+  http.get(api("/matches/:id/join-requests"), ({ params }) => {
+    return HttpResponse.json(joinRequestsByMatch[params.id as string] ?? []);
+  }),
+
+  http.post(api("/matches/:id/join-requests/:reqId/decision"), async ({ request, params }) => {
+    const matchId = params.id as string;
+    const reqId = params.reqId as string;
+    const body = (await request.json()) as { approve: boolean };
+    const current = joinRequestsByMatch[matchId] ?? [];
+    const target = current.find((r) => r.id === reqId);
+    // Aprovar/recusar remove o pedido da lista de pendentes.
+    joinRequestsByMatch[matchId] = current.filter((r) => r.id !== reqId);
+    return HttpResponse.json({
+      id: reqId,
+      matchId,
+      playerId: target?.playerId ?? "player-x",
+      status: body.approve ? "approved" : "rejected",
+      decidedById: FAKE_USER.id,
+      createdAt: target?.createdAt ?? new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+  }),
 
   http.get(api("/billing/me"), () => HttpResponse.json(billingMe)),
   http.post(api("/billing/checkout"), () =>

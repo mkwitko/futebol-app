@@ -6,3 +6,5 @@ export { MATCHES } from "./matches";
 export { SERIES } from "./series";
 export { ATTENDANCE } from "./attendance";
 export { DUES } from "./dues";
+export { DISCOVER } from "./discover";
+export { JOIN_REQUESTS } from "./join-requests";

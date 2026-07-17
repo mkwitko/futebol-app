@@ -3,6 +3,7 @@ import { initReactI18next } from "react-i18next";
 import auth from "../src/lib/i18n/locales/pt-BR/auth.json";
 import billing from "../src/lib/i18n/locales/pt-BR/billing.json";
 import common from "../src/lib/i18n/locales/pt-BR/common.json";
+import discover from "../src/lib/i18n/locales/pt-BR/discover.json";
 import groups from "../src/lib/i18n/locales/pt-BR/groups.json";
 import matches from "../src/lib/i18n/locales/pt-BR/matches.json";
 import player from "../src/lib/i18n/locales/pt-BR/player.json";
@@ -41,6 +42,7 @@ jest.mock("expo-location", () => ({
   reverseGeocodeAsync: jest.fn(async () => [
     { city: "Porto Alegre", subregion: "Porto Alegre", street: "Av. Ipiranga", name: "1000" },
   ]),
+  geocodeAsync: jest.fn(async () => [{ latitude: -30.0346, longitude: -51.2177 }]),
 }));
 
 // i18n REAL e síncrono com os recursos pt-BR embutidos — asserts veem o texto
@@ -50,9 +52,9 @@ if (!i18n.isInitialized) {
   void i18n.use(initReactI18next).init({
     lng: "pt-BR",
     fallbackLng: "pt-BR",
-    ns: ["common", "auth", "billing", "groups", "matches", "player", "zod"],
+    ns: ["common", "auth", "billing", "discover", "groups", "matches", "player", "zod"],
     defaultNS: "common",
-    resources: { "pt-BR": { common, auth, billing, groups, matches, player, zod } },
+    resources: { "pt-BR": { common, auth, billing, discover, groups, matches, player, zod } },
     interpolation: { escapeValue: false },
     returnNull: false,
   });

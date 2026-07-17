@@ -17,9 +17,11 @@ import { ScreenHeader } from "@/components/ui/screen-header";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
 import { Toast } from "@/components/ui/toast";
+import { useAuth } from "@/hooks/auth/use-auth";
 import { useConfirmPresence } from "@/hooks/attendance/use-confirm-presence";
 import { useToast } from "@/hooks/common/use-toast";
 import { useUpdateGroup } from "@/hooks/groups/use-update-group";
+import type { JoinPolicy } from "@/components/groups/group-settings-sheet";
 import { isForbiddenError } from "@/lib/api/errors";
 import { colors } from "@/lib/theme";
 import { positionLabel } from "@/lib/player/position";
@@ -44,6 +46,7 @@ export default function GroupDetailScreen() {
   const router = useRouter();
   const { t } = useTranslation(["groups", "matches", "common"]);
   const toast = useToast();
+  const { user } = useAuth();
 
   const [tab, setTab] = useState<HubTab>("peladas");
   const [memberSheet, setMemberSheet] = useState<MemberSheetState>({ visible: false });
@@ -74,9 +77,20 @@ export default function GroupDetailScreen() {
     [matchesQuery.data],
   );
 
+  const isOwner = !!groupQuery.data && groupQuery.data.ownerId === user?.id;
+
   const handleSaveFee = async (monthlyFeeCents: number | null) => {
     await updateGroup.mutateAsync({ monthlyFeeCents });
     toast.show(t("groups:hub.settingsFeeSaveSuccess"));
+  };
+
+  const handleSavePublic = async (next: { isPublic?: boolean; joinPolicy?: JoinPolicy }) => {
+    try {
+      await updateGroup.mutateAsync(next);
+      toast.show(t("groups:hub.settingsPublicSaveSuccess"));
+    } catch {
+      toast.show(t("groups:hub.settingsPublicSaveError"), "danger");
+    }
   };
 
   const handleConfirmMyPresence = async () => {
@@ -261,6 +275,11 @@ export default function GroupDetailScreen() {
         monthlyFeeCents={groupQuery.data?.monthlyFeeCents}
         onSaveFee={handleSaveFee}
         savingFee={updateGroup.isPending}
+        isOwner={isOwner}
+        isPublic={groupQuery.data?.isPublic}
+        joinPolicy={groupQuery.data?.joinPolicy}
+        onSavePublic={handleSavePublic}
+        savingPublic={updateGroup.isPending}
       />
     </ScreenContainer>
   );

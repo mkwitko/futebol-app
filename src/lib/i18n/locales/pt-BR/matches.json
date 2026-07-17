@@ -187,6 +187,16 @@
       "error": "Não foi possível finalizar o futebol.",
       "closedTitle": "Futebol encerrado",
       "closedDescription": "A votação foi fechada e os níveis dos jogadores já foram atualizados."
+    },
+    "joinRequests": {
+      "title": "Pedidos pra entrar",
+      "empty": "Nenhum pedido pendente.",
+      "loadError": "Não foi possível carregar os pedidos.",
+      "approveCta": "Aprovar",
+      "rejectCta": "Recusar",
+      "approveSuccess": "Pedido aprovado! Jogador confirmado.",
+      "rejectSuccess": "Pedido recusado.",
+      "decideError": "Não foi possível processar o pedido."
     }
   },
   "weekdays": {

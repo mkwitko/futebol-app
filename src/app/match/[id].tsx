@@ -5,6 +5,7 @@ import { View } from "react-native";
 import { AttendanceSection } from "@/components/matches/attendance-section";
 import { FinalizeSection } from "@/components/matches/finalize-section";
 import { InviteSheet } from "@/components/matches/invite-sheet";
+import { JoinRequestsSection } from "@/components/matches/join-requests-section";
 import { MatchHeader } from "@/components/matches/match-header";
 import { OrganizerActions } from "@/components/matches/organizer-actions";
 import { PaymentSection } from "@/components/matches/payment-section";
@@ -34,6 +35,7 @@ import { useTeams } from "@/hooks/teams/use-teams";
 import { useCastVote } from "@/hooks/votes/use-cast-vote";
 import { isConflictError, isForbiddenError } from "@/lib/api/errors";
 import { useGetMatch } from "@/api/generated/hooks/matchesHooks";
+import { useGetGroup } from "@/api/generated/hooks/groupsHooks";
 import { useListAttendance } from "@/api/generated/hooks/attendanceHooks";
 import { useListStats } from "@/api/generated/hooks/statsHooks";
 import { useGetVoteTally } from "@/api/generated/hooks/votesHooks";
@@ -66,6 +68,13 @@ export default function MatchDetailScreen() {
 
   const match = matchQuery.data;
   const isPostGame = match?.status === "finished" || match?.status === "closed";
+
+  // Grupo da pelada — usado pra saber se sou o dono e se o grupo pede
+  // aprovação de entrada (`joinPolicy=request`), o que habilita o inbox de
+  // pedidos abaixo da lista de presença.
+  const groupQuery = useGetGroup(match?.groupId, { query: { enabled: !!match?.groupId } });
+  const isOwner = !!groupQuery.data && groupQuery.data.ownerId === user?.id;
+  const showJoinRequests = isOwner && groupQuery.data?.joinPolicy === "request" && !isPostGame;
 
   const resultQuery = useResult(id, isPostGame);
   const statsQuery = useListStats(id, { query: { enabled: isPostGame } });
@@ -274,16 +283,19 @@ export default function MatchDetailScreen() {
               emptyTitle=""
             >
               {section === "list" ? (
-                <AttendanceSection
-                  attendance={attendanceQuery.data ?? []}
-                  onConfirmMyPresence={handleConfirmMyPresence}
-                  confirmingPresence={confirmPresence.isPending}
-                  onRemove={handleRemove}
-                  onInvite={() => setInviteVisible(true)}
-                  onOpenPlayer={(player) =>
-                    router.push({ pathname: "/player/[playerId]", params: { playerId: player.id, name: player.name } })
-                  }
-                />
+                <View className="gap-6">
+                  <AttendanceSection
+                    attendance={attendanceQuery.data ?? []}
+                    onConfirmMyPresence={handleConfirmMyPresence}
+                    confirmingPresence={confirmPresence.isPending}
+                    onRemove={handleRemove}
+                    onInvite={() => setInviteVisible(true)}
+                    onOpenPlayer={(player) =>
+                      router.push({ pathname: "/player/[playerId]", params: { playerId: player.id, name: player.name } })
+                    }
+                  />
+                  {showJoinRequests ? <JoinRequestsSection matchId={id} /> : null}
+                </View>
               ) : null}
 
               {section === "payment" ? (

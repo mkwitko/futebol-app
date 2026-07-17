@@ -1,8 +1,14 @@
 import { useTranslation } from "react-i18next";
-import { View } from "react-native";
+import { Switch, View } from "react-native";
 import { GroupFeeCard } from "@/components/groups/group-fee-card";
+import { FeatureGate } from "@/components/billing/feature-gate";
 import { Sheet } from "@/components/ui/sheet";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
+import { colors } from "@/lib/theme";
+import type { UpdateGroupMutationRequestJoinPolicyEnumKey } from "@/api/generated/types/UpdateGroup";
+
+export type JoinPolicy = UpdateGroupMutationRequestJoinPolicyEnumKey;
 
 export type GroupSettingsSheetProps = {
   visible: boolean;
@@ -11,12 +17,20 @@ export type GroupSettingsSheetProps = {
   monthlyFeeCents: number | null | undefined;
   onSaveFee: (monthlyFeeCents: number | null) => Promise<void>;
   savingFee?: boolean;
+  /** Só o dono do grupo vê a seção de descoberta pública. */
+  isOwner?: boolean;
+  isPublic?: boolean;
+  joinPolicy?: JoinPolicy;
+  onSavePublic?: (next: { isPublic?: boolean; joinPolicy?: JoinPolicy }) => Promise<void>;
+  savingPublic?: boolean;
 };
 
 /**
  * Configurações do grupo (atalho ⚙ no hub) — nome (somente leitura: a API de
- * grupo ainda não aceita renomear, só `PATCH .../groups/:id { monthlyFeeCents }`)
- * + mensalidade padrão, reaproveitando o `GroupFeeCard` já existente.
+ * grupo ainda não aceita renomear) + mensalidade padrão + descoberta pública.
+ * A seção pública (toggle "Grupo público" + política de entrada) só aparece
+ * pro dono e é gated por `public_groups` via `FeatureGate` (sem a feature →
+ * CTA de upgrade; conta revisora → escondida).
  */
 export function GroupSettingsSheet({
   visible,
@@ -25,6 +39,11 @@ export function GroupSettingsSheet({
   monthlyFeeCents,
   onSaveFee,
   savingFee = false,
+  isOwner = false,
+  isPublic = false,
+  joinPolicy = "open",
+  onSavePublic,
+  savingPublic = false,
 }: GroupSettingsSheetProps) {
   const { t } = useTranslation("groups");
 
@@ -40,6 +59,50 @@ export function GroupSettingsSheet({
         </View>
 
         <GroupFeeCard monthlyFeeCents={monthlyFeeCents} onSave={onSaveFee} saving={savingFee} />
+
+        {isOwner ? (
+          <FeatureGate feature="public_groups">
+            <View className="gap-3 rounded-2xl border border-line bg-surface p-4" testID="group-public-settings">
+              <Text variant="display" className="text-base">
+                {t("hub.settingsPublicTitle")}
+              </Text>
+
+              <View className="flex-row items-center justify-between gap-3">
+                <View className="flex-1 gap-1">
+                  <Text className="font-body-semibold text-sm text-ink">
+                    {t("hub.settingsPublicToggleLabel")}
+                  </Text>
+                  <Text variant="muted" className="text-xs">
+                    {t("hub.settingsPublicToggleHint")}
+                  </Text>
+                </View>
+                <Switch
+                  value={isPublic}
+                  disabled={savingPublic}
+                  onValueChange={(next) => void onSavePublic?.({ isPublic: next })}
+                  trackColor={{ true: colors.primary, false: colors.line }}
+                  testID="group-public-toggle"
+                />
+              </View>
+
+              {isPublic ? (
+                <View className="gap-2">
+                  <Text className="font-body-medium text-sm text-muted">
+                    {t("hub.settingsJoinPolicyLabel")}
+                  </Text>
+                  <SegmentedControl<JoinPolicy>
+                    value={joinPolicy}
+                    onChange={(next) => void onSavePublic?.({ joinPolicy: next })}
+                    options={[
+                      { label: t("hub.settingsJoinPolicyOpen"), value: "open" },
+                      { label: t("hub.settingsJoinPolicyRequest"), value: "request" },
+                    ]}
+                  />
+                </View>
+              ) : null}
+            </View>
+          </FeatureGate>
+        ) : null}
       </View>
     </Sheet>
   );

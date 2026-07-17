@@ -1,0 +1,38 @@
+{
+  "title": "Descobrir",
+  "subtitle": "Peladas públicas perto de você.",
+  "locating": "Localizando…",
+  "location": {
+    "needTitle": "Onde você quer jogar?",
+    "needHint": "Precisamos da sua localização pra mostrar as peladas públicas por perto.",
+    "useLocationCta": "Usar minha localização",
+    "permissionDenied": "Sem permissão de localização. Ative nas configurações do aparelho e tente de novo."
+  },
+  "filters": {
+    "radiusLabel": "Raio",
+    "radius": "{{km}} km",
+    "modalityLabel": "Modalidade",
+    "modalityAll": "Todas",
+    "maxPriceLabel": "Preço máximo (R$)",
+    "maxPricePlaceholder": "Ex.: 30"
+  },
+  "modality": {
+    "futsal": "Futsal",
+    "society": "Society",
+    "campo": "Campo"
+  },
+  "empty": "Nenhuma pelada pública encontrada por aqui. Tente aumentar o raio.",
+  "loadError": "Não foi possível carregar as peladas.",
+  "card": {
+    "slots": "{{confirmed}}/{{slots}} confirmados",
+    "full": "Lotada",
+    "distance": "{{km}} km de distância",
+    "free": "Gratuita",
+    "joinOpenCta": "Entrar",
+    "joinRequestCta": "Pedir pra entrar",
+    "joinOpenSuccess": "Presença confirmada! Você entrou na pelada.",
+    "joinOpenError": "Não foi possível entrar na pelada.",
+    "joinRequestSuccess": "Pedido enviado! O organizador vai avaliar.",
+    "joinRequestError": "Não foi possível enviar o pedido."
+  }
+}

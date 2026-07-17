@@ -67,6 +67,16 @@ export default function DrawerLayout() {
         }}
       />
       <Drawer.Screen
+        name="descobrir"
+        options={{
+          title: t("nav.discover"),
+          drawerLabel: t("nav.discover"),
+          drawerIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "compass" : "compass-outline"} size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
         name="planos"
         options={{
           title: t("nav.plans"),
