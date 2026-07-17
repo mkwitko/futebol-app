@@ -270,6 +270,26 @@ let voteWindowClosedMatches = new Set<string>();
 let myPlayer = { ...FAKE_MY_PLAYER };
 let careerByPlayer: Record<string, Career> = { [FAKE_MY_PLAYER.id]: { ...FAKE_CAREER } };
 
+// Entitlements (`GET /billing/me`). Default: pagamentos habilitados, sem
+// features. Testes de bypass revisor usam `setBillingMock({ paymentsEnabled: false })`.
+let billingMe: { features: string[]; paymentsEnabled: boolean } = {
+  features: [],
+  paymentsEnabled: true,
+};
+
+/** Sobrescreve o retorno de `GET /billing/me` (features/paymentsEnabled). */
+export function setBillingMock(next: { features?: string[]; paymentsEnabled?: boolean }) {
+  billingMe = {
+    features: next.features ?? billingMe.features,
+    paymentsEnabled: next.paymentsEnabled ?? billingMe.paymentsEnabled,
+  };
+}
+
+/** Reseta o estado de billing — chamar em `beforeEach` de testes de billing. */
+export function resetBillingMocks() {
+  billingMe = { features: [], paymentsEnabled: true };
+}
+
 function findMatch(matchId: string): Match | undefined {
   return Object.values(matchesByGroup)
     .flat()
@@ -812,4 +832,12 @@ export const handlers = [
     return HttpResponse.json(careerByPlayer[playerId] ?? emptyCareer(playerId));
   }),
   http.get(api("/players/:playerId/timeline"), () => HttpResponse.json({ events: [] })),
+
+  http.get(api("/billing/me"), () => HttpResponse.json(billingMe)),
+  http.post(api("/billing/checkout"), () =>
+    HttpResponse.json({ url: "https://checkout.stripe.test/session" }),
+  ),
+  http.post(api("/billing/portal"), () =>
+    HttpResponse.json({ url: "https://portal.stripe.test/session" }),
+  ),
 ];

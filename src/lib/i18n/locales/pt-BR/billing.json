@@ -1,0 +1,36 @@
+{
+  "planos": {
+    "title": "Planos",
+    "subtitle": "Desbloqueie recursos premium da sua conta.",
+    "subscribe": "Assinar",
+    "manage": "Gerenciar assinatura",
+    "organizer": {
+      "title": "Plano Organizador",
+      "tagline": "Para quem toca a pelada."
+    },
+    "player": {
+      "title": "Plano Jogador",
+      "tagline": "Para quem quer ir além em campo."
+    }
+  },
+  "features": {
+    "public_groups": "Grupos públicos e descoberta",
+    "organizer_ai": "Assistente de organização com IA",
+    "seasons": "Temporadas e campeonatos",
+    "advanced_stats": "Estatísticas avançadas",
+    "cosmetics": "Cosméticos e personalização"
+  },
+  "upgrade": {
+    "title": "Recurso premium",
+    "description": "Assine um plano para desbloquear este recurso.",
+    "cta": "Ver planos"
+  },
+  "return": {
+    "success": "Tudo certo! Atualizando sua assinatura…",
+    "cancel": "Compra cancelada. Voltando…"
+  },
+  "errors": {
+    "checkout": "Não foi possível iniciar a assinatura. Tente novamente.",
+    "portal": "Não foi possível abrir o gerenciamento. Tente novamente."
+  }
+}

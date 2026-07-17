@@ -2,9 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { Drawer } from "expo-router/drawer";
 import { useTranslation } from "react-i18next";
 import { colors, fonts } from "@/lib/theme";
+import { usePaymentsEnabled } from "@/hooks/billing/use-entitlements";
 
 export default function DrawerLayout() {
   const { t } = useTranslation("common");
+  // Bypass revisor: sem pagamentos habilitados, a entrada "Planos" some do
+  // drawer (o revisor da loja vê o app sem compras in-app).
+  const paymentsEnabled = usePaymentsEnabled();
 
   return (
     <Drawer
@@ -59,6 +63,18 @@ export default function DrawerLayout() {
           drawerLabel: t("nav.search"),
           drawerIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "search" : "search-outline"} size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="planos"
+        options={{
+          title: t("nav.plans"),
+          drawerLabel: t("nav.plans"),
+          // Escondida (não desmontada) quando pagamentos estão off/revisor.
+          drawerItemStyle: paymentsEnabled ? undefined : { display: "none" },
+          drawerIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "star" : "star-outline"} size={22} color={color} />
           ),
         }}
       />

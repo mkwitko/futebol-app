@@ -1,6 +1,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import auth from "../src/lib/i18n/locales/pt-BR/auth.json";
+import billing from "../src/lib/i18n/locales/pt-BR/billing.json";
 import common from "../src/lib/i18n/locales/pt-BR/common.json";
 import groups from "../src/lib/i18n/locales/pt-BR/groups.json";
 import matches from "../src/lib/i18n/locales/pt-BR/matches.json";
@@ -49,9 +50,9 @@ if (!i18n.isInitialized) {
   void i18n.use(initReactI18next).init({
     lng: "pt-BR",
     fallbackLng: "pt-BR",
-    ns: ["common", "auth", "groups", "matches", "player", "zod"],
+    ns: ["common", "auth", "billing", "groups", "matches", "player", "zod"],
     defaultNS: "common",
-    resources: { "pt-BR": { common, auth, groups, matches, player, zod } },
+    resources: { "pt-BR": { common, auth, billing, groups, matches, player, zod } },
     interpolation: { escapeValue: false },
     returnNull: false,
   });
