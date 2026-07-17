@@ -44,6 +44,10 @@ export default function CreateMatchScreen() {
           priceCents: reaisInputToCents(values.priceInput),
           pixKey: values.pixKey?.trim() ? values.pixKey.trim() : undefined,
           modality: values.modality,
+          latitude: values.latitude ?? undefined,
+          longitude: values.longitude ?? undefined,
+          city: values.city ?? undefined,
+          address: values.address ?? undefined,
         });
         router.replace({ pathname: "/match/[id]", params: { id: match.id, created: "1" } });
         return;

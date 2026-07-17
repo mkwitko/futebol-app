@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LocationPicker } from "@/components/location/location-picker";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Stepper } from "@/components/ui/stepper";
 import { Text } from "@/components/ui/text";
@@ -32,6 +33,7 @@ export function CreateMatchForm({ onSubmit, submitting = false, formError }: Cre
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<CreateMatchFormValues>({
     resolver: standardSchemaResolver(createMatchSchema),
@@ -41,6 +43,16 @@ export function CreateMatchForm({ onSubmit, submitting = false, formError }: Cre
   const watchedDate = useWatch({ control, name: "date" });
   const watchedTime = useWatch({ control, name: "time" });
   const baseDatetime = combineDateAndTime(watchedDate, watchedTime);
+
+  // Geo é um grupo de 4 campos (lat/lng/city/address) editados juntos pelo
+  // LocationPicker — observamos os 4 e setamos os 4 de uma vez no onChange.
+  const geo = useWatch({ control, name: ["latitude", "longitude", "city", "address"] });
+  const geoValue = {
+    latitude: geo[0] ?? null,
+    longitude: geo[1] ?? null,
+    city: geo[2] ?? null,
+    address: geo[3] ?? null,
+  };
 
   return (
     <View className="gap-4">
@@ -87,6 +99,22 @@ export function CreateMatchForm({ onSubmit, submitting = false, formError }: Cre
           />
         )}
       />
+
+      <View className="gap-2">
+        <Text className="font-body-medium text-sm text-muted">
+          {t("matches:create.geoLabel")}
+        </Text>
+        <Text className="font-body text-xs text-muted">{t("matches:create.geoHint")}</Text>
+        <LocationPicker
+          value={geoValue}
+          onChange={(next) => {
+            setValue("latitude", next.latitude);
+            setValue("longitude", next.longitude);
+            setValue("city", next.city);
+            setValue("address", next.address);
+          }}
+        />
+      </View>
 
       <Controller
         control={control}

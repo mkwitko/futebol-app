@@ -28,6 +28,13 @@ export const createMatchSchema = z.object({
   priceInput: z.string().max(20).optional(),
   pixKey: z.string().max(140, { message: "zod:maxLength" }).optional(),
   modality: z.enum(["futsal", "society", "campo"]),
+  // Geo do local (LocationPicker). Todos opcionais/nullable — pelada sem mapa
+  // fica `null` e o backend aceita. `location` (texto livre) continua sendo o
+  // nome/apelido do campo; estes só guardam coords/cidade/endereço pra geo.
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
+  city: z.string().max(120).nullable().optional(),
+  address: z.string().max(200).nullable().optional(),
   recurrence: z.custom<RecurrenceValue | null>(),
 });
 
@@ -51,6 +58,10 @@ export function defaultCreateMatchFormValues(): CreateMatchFormValues {
     priceInput: "",
     pixKey: "",
     modality: "campo",
+    latitude: null,
+    longitude: null,
+    city: null,
+    address: null,
     recurrence: null,
   };
 }

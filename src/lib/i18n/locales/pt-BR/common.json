@@ -53,5 +53,14 @@
     "languageLabel": "Idioma",
     "languageValue": "Português (Brasil)",
     "aboutLabel": "Sobre"
+  },
+  "location": {
+    "useMyLocation": "Usar minha localização",
+    "locating": "Localizando…",
+    "permissionDenied": "Sem acesso à localização. Digite a cidade abaixo.",
+    "searchLabel": "Buscar endereço",
+    "searchPlaceholder": "Rua, bairro ou local",
+    "cityLabel": "Cidade",
+    "cityPlaceholder": "Ex.: Porto Alegre"
   }
 }

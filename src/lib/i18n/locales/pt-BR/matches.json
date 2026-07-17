@@ -5,6 +5,8 @@
     "timeLabel": "Horário",
     "locationLabel": "Local",
     "locationPlaceholder": "Ex.: Quadra do Zico",
+    "geoLabel": "Onde é a pelada?",
+    "geoHint": "Arraste o pino ou use sua localização pra marcar o campo no mapa.",
     "modalityLabel": "Modalidade",
     "slotsLabel": "Vagas",
     "priceLabel": "Preço por pessoa (R$)",
