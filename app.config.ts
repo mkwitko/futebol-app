@@ -86,6 +86,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-localization",
     "expo-image",
     "@react-native-community/datetimepicker",
+    // Mapa nativo do LocationPicker (criar pelada / cidade do jogador). No
+    // Android o Google Maps SDK exige uma chave pra renderizar; lida de env
+    // (vazia = mapa em branco no Android, mas o app não quebra). iOS usa Apple
+    // Maps (sem chave). Exibir o mapa não é cobrado — o custo é só Places
+    // (config-gated em env.ts). Requer `expo prebuild` + build nativo.
+    [
+      "react-native-maps",
+      { androidGoogleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY ?? "" },
+    ],
     // Notifee é autolinkado sempre que instalado (independe de push); seu AAR
     // core vem de um maven repo local. Registra esse repo no root build.gradle.
     // Ver plugins/with-notifee-repo.js.
@@ -137,5 +146,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "",
     googleIosClientId: GOOGLE_IOS_CLIENT_ID,
     pushEnabled: PUSH_ENABLED ? "true" : "false",
+    placesAutocompleteEnabled: process.env.EXPO_PUBLIC_PLACES_AUTOCOMPLETE_ENABLED ?? "false",
+    googlePlacesApiKey: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY ?? "",
   },
 });
