@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { Share, View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
 import { AttributeBudget } from "@/components/players/attribute-budget";
-import { CareerSummary } from "@/components/players/career-summary";
 import { FifaCard } from "@/components/players/fifa-card";
 import { PitchAffinity } from "@/components/players/pitch-affinity";
 import { SkillPicker } from "@/components/players/skill-picker";
@@ -32,7 +31,7 @@ import { type SkillKey, skillsEqual, toSkillList } from "@/lib/player/skills";
 import { buildPlayerProfileUrl } from "@/lib/player/url";
 import { CardFieldsEditor, type CardFieldsValue } from "@/components/players/card-fields-editor";
 import type { GetMyPlayer200 } from "@/api/generated/types/GetMyPlayer";
-import { useGetMyPlayer, useGetPlayerCareer } from "@/api/generated/hooks/playersHooks";
+import { useGetMyPlayer } from "@/api/generated/hooks/playersHooks";
 
 /** Placeholder de carregamento do hero — imita o formato do `PlayerCard` `full`. */
 function CareerHeroSkeleton() {
@@ -51,7 +50,6 @@ export default function PerfilScreen() {
 
   const myPlayerQuery = useGetMyPlayer();
   const playerId = myPlayerQuery.data?.id;
-  const careerQuery = useGetPlayerCareer(playerId);
   const updateMyPlayer = useUpdateMyPlayer();
 
   // Rascunhos editáveis, re-semeados do valor persistido via o padrão
@@ -101,11 +99,10 @@ export default function PerfilScreen() {
     await Share.share({ message: t("player:career.shareMessage", { link }) });
   };
 
-  const isLoading = myPlayerQuery.isPending || (!!playerId && careerQuery.isPending);
-  const isError = myPlayerQuery.isError || careerQuery.isError;
+  const isLoading = myPlayerQuery.isPending;
+  const isError = myPlayerQuery.isError;
   const retry = () => {
     if (myPlayerQuery.isError) void myPlayerQuery.refetch();
-    if (careerQuery.isError) void careerQuery.refetch();
   };
 
   return (
@@ -142,25 +139,17 @@ export default function PerfilScreen() {
           </View>
         ) : null}
 
-        {!isLoading && myPlayerQuery.data ? (
-          <FifaCard player={myPlayerQuery.data} />
-        ) : null}
-
-        {!isLoading && !isError && careerQuery.data ? (
-          <CareerSummary
-            testID="my-career-summary"
-            name={myPlayerQuery.data?.name ?? user?.name ?? ""}
-            career={careerQuery.data}
-            action={
-              <Button
-                testID="profile-share-cta"
-                variant="secondary"
-                onPress={() => void handleShare()}
-              >
-                {t("player:career.shareCta")}
-              </Button>
-            }
-          />
+        {!isLoading && !isError && myPlayerQuery.data ? (
+          <View className="gap-3">
+            <FifaCard player={myPlayerQuery.data} />
+            <Button
+              testID="profile-share-cta"
+              variant="secondary"
+              onPress={() => void handleShare()}
+            >
+              {t("player:career.shareCta")}
+            </Button>
+          </View>
         ) : null}
       </View>
 

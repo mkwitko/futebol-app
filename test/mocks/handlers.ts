@@ -79,6 +79,20 @@ export const FAKE_MY_PLAYER = {
   name: FAKE_USER.name,
   phone: null as string | null,
   userId: FAKE_USER.id as string | null,
+  affinity: { campo_atacante: 100, campo_meia: 60 } as Record<string, number>,
+  attributes: {} as Record<string, number>,
+  skills: ["chute_colocado"] as string[],
+  dominantFoot: "right" as "left" | "right" | "both" | null,
+  weakFoot: 4 as number | null,
+  skillMoves: 5 as number | null,
+  heightCm: 180 as number | null,
+  weightKg: 75 as number | null,
+  birthYear: 2000 as number | null,
+  preferredTeam: "Barcelona" as string | null,
+  nationality: "Brasil" as string | null,
+  categoryOverall: { ritmo: 81, finalizacao: 86, passe: 79, drible: 82, defesa: 65, fisico: 88, goleiro: 50 } as Record<string, number>,
+  overallByPosition: { campo_atacante: 84, campo_meia: 70 } as Record<string, number>,
+  generalOverall: 84,
 };
 
 type PlayerLevel = "bronze" | "prata" | "ouro";

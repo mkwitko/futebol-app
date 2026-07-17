@@ -1,7 +1,7 @@
-import { screen, userEvent, waitFor, within } from "@testing-library/react-native";
+import { screen, userEvent, waitFor } from "@testing-library/react-native";
 import { Share } from "react-native";
 import PerfilScreen from "@/app/(drawer)/perfil";
-import { FAKE_CAREER, FAKE_MY_PLAYER, resetGroupsMocks, setCareerMock } from "../mocks/handlers";
+import { FAKE_MY_PLAYER, resetGroupsMocks } from "../mocks/handlers";
 import { renderWithProviders } from "../utils/render";
 
 describe("Minha carreira (Perfil)", () => {
@@ -9,49 +9,19 @@ describe("Minha carreira (Perfil)", () => {
     resetGroupsMocks();
   });
 
-  it("renders the player's real career: hero overall, level tier and the full stats block", async () => {
+  it("renders the player's FIFA card: general overall, best position, categories", async () => {
     renderWithProviders(<PerfilScreen />);
 
     expect(await screen.findByText("Minha carreira")).toBeOnTheScreen();
 
-    // Hero — overall da melhor posição (atacante: 78) + tier ("prata" -> badge "Prata").
-    // "78" aparece 2x: número em destaque do hero + linha de "Atacante" no
-    // breakdown por posição (mesma posição, mesmo overall).
-    await screen.findByText("Prata");
-    expect(screen.getAllByText("78")).toHaveLength(2);
-    expect(screen.getByText("Prata")).toBeOnTheScreen();
-
-    // Overall por posição — as duas posições da carreira mockada. Escopado ao
-    // card de carreira: o editor de afinidade (AffinityPicker) também exibe
-    // labels de posição como chips, então "Atacante"/"Meia" aparecem 2x na tela.
-    expect(screen.getByText("Overall por posição")).toBeOnTheScreen();
-    const career = within(screen.getByTestId("my-career-summary"));
-    expect(career.getByText("Atacante")).toBeOnTheScreen();
-    expect(career.getByText("Meio de campo")).toBeOnTheScreen();
-    expect(screen.getByText("Melhor posição")).toBeOnTheScreen();
-    expect(screen.getByText("65")).toBeOnTheScreen();
-
-    // Bloco de estatísticas completo.
-    expect(screen.getByText("Estatísticas")).toBeOnTheScreen();
-    expect(screen.getByText("Partidas")).toBeOnTheScreen();
-    expect(screen.getByText(String(FAKE_CAREER.matchesPlayed))).toBeOnTheScreen();
-    expect(screen.getByText("Aproveitamento")).toBeOnTheScreen();
-    // wins(7)/matchesPlayed(12) arredondado = 58%.
-    expect(screen.getByText("58%")).toBeOnTheScreen();
-    expect(screen.getByText("Gols")).toBeOnTheScreen();
-    expect(screen.getByText("Sequência invicta")).toBeOnTheScreen();
-    expect(screen.getByText("Recorde de sequência")).toBeOnTheScreen();
-  });
-
-  it("shows an inviting zeroed state when the player has no career yet", async () => {
-    setCareerMock(FAKE_MY_PLAYER.id, undefined);
-    renderWithProviders(<PerfilScreen />);
-
-    expect(await screen.findByText("Jogue seu primeiro futebol para começar sua carreira.")).toBeOnTheScreen();
-    // Hero zerado — tier "bronze" (o piso do bootstrap default) e nenhuma
-    // seção "Overall por posição" (mapa `overall` vazio).
-    expect(screen.getByText("Bronze")).toBeOnTheScreen();
-    expect(screen.queryByText("Overall por posição")).not.toBeOnTheScreen();
+    // Overall geral (84) — número em destaque da carta.
+    expect(await screen.findByText("84")).toBeOnTheScreen();
+    // Melhor posição (campo_atacante -> ATA) aparece na carta e no campinho.
+    expect(screen.getAllByText("ATA").length).toBeGreaterThan(0);
+    // Overall de categoria (finalização = 86).
+    expect(screen.getByText("86")).toBeOnTheScreen();
+    // Nacionalidade/time exibidos na carta.
+    expect(screen.getByText(/Brasil/)).toBeOnTheScreen();
   });
 
   it("shares the public profile link with a proud pt-BR message", async () => {
