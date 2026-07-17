@@ -5,6 +5,7 @@ import { Share, View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
 import { AttributeBudget } from "@/components/players/attribute-budget";
 import { CareerSummary } from "@/components/players/career-summary";
+import { FifaCard } from "@/components/players/fifa-card";
 import { PitchAffinity } from "@/components/players/pitch-affinity";
 import { SkillPicker } from "@/components/players/skill-picker";
 import { Avatar } from "@/components/ui/avatar";
@@ -139,6 +140,10 @@ export default function PerfilScreen() {
               {t("common:actions.retry")}
             </Button>
           </View>
+        ) : null}
+
+        {!isLoading && myPlayerQuery.data ? (
+          <FifaCard player={myPlayerQuery.data} />
         ) : null}
 
         {!isLoading && !isError && careerQuery.data ? (
