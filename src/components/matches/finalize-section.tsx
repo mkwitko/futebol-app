@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Text } from "@/components/ui/text";
 import type { GetMatch200StatusEnumKey } from "@/api/generated/types/GetMatch";
 
@@ -21,6 +23,7 @@ export type FinalizeSectionProps = {
  */
 export function FinalizeSection({ status, hasResult, onFinalize, finalizing, error }: FinalizeSectionProps) {
   const { t } = useTranslation(["matches", "common"]);
+  const [confirmVisible, setConfirmVisible] = useState(false);
 
   if (status === "closed") {
     return (
@@ -33,12 +36,6 @@ export function FinalizeSection({ status, hasResult, onFinalize, finalizing, err
 
   const canFinalize = hasResult;
 
-  const confirmFinalize = () =>
-    Alert.alert(t("detail.finalize.confirmTitle"), t("detail.finalize.confirmMessage"), [
-      { text: t("common:actions.cancel"), style: "cancel" },
-      { text: t("common:actions.confirm"), style: "destructive", onPress: onFinalize },
-    ]);
-
   return (
     <View className="gap-3 rounded-2xl border border-line bg-surface p-4">
       <Text className="font-body-semibold text-base text-ink">{t("detail.finalize.title")}</Text>
@@ -46,7 +43,7 @@ export function FinalizeSection({ status, hasResult, onFinalize, finalizing, err
       <Button
         testID="finalize-match-cta"
         variant="secondary"
-        onPress={confirmFinalize}
+        onPress={() => setConfirmVisible(true)}
         loading={finalizing}
         disabled={!canFinalize}
       >
@@ -62,6 +59,20 @@ export function FinalizeSection({ status, hasResult, onFinalize, finalizing, err
           {error}
         </Text>
       ) : null}
+
+      <ConfirmDialog
+        visible={confirmVisible}
+        title={t("detail.finalize.confirmTitle")}
+        message={t("detail.finalize.confirmMessage")}
+        confirmLabel={t("common:actions.confirm")}
+        cancelLabel={t("common:actions.cancel")}
+        destructive
+        onConfirm={() => {
+          setConfirmVisible(false);
+          onFinalize();
+        }}
+        onCancel={() => setConfirmVisible(false)}
+      />
     </View>
   );
 }

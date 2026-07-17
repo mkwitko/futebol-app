@@ -25,6 +25,16 @@ export default function DrawerLayout() {
       <Drawer.Screen
         name="index"
         options={{
+          title: t("nav.home"),
+          drawerLabel: t("nav.home"),
+          drawerIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "home" : "home-outline"} size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="grupos"
+        options={{
           title: t("nav.myGroups"),
           drawerLabel: t("nav.myGroups"),
           drawerIcon: ({ color, focused }) => (

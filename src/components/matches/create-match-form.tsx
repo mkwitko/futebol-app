@@ -4,8 +4,10 @@ import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Stepper } from "@/components/ui/stepper";
 import { Text } from "@/components/ui/text";
+import { MODALITIES, modalityLabel } from "@/lib/player/position";
 import { combineDateAndTime } from "@/lib/datetime/format";
 import { asZodMessageKey } from "@/lib/i18n/zod-message";
 import {
@@ -83,6 +85,23 @@ export function CreateMatchForm({ onSubmit, submitting = false, formError }: Cre
             onBlur={onBlur}
             error={errors.location ? t(asZodMessageKey(errors.location.message)) : undefined}
           />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="modality"
+        render={({ field: { onChange, value } }) => (
+          <View className="gap-2">
+            <Text className="font-body-medium text-sm text-muted">
+              {t("matches:create.modalityLabel")}
+            </Text>
+            <SegmentedControl
+              options={MODALITIES.map((m) => ({ label: modalityLabel(m), value: m }))}
+              value={value}
+              onChange={onChange}
+            />
+          </View>
         )}
       />
 

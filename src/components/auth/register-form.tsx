@@ -22,7 +22,7 @@ export function RegisterForm({ onSubmit, submitting = false, formError }: Regist
     formState: { errors },
   } = useForm<RegisterFormValues>({
     resolver: standardSchemaResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "" },
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
   });
 
   return (
@@ -73,6 +73,25 @@ export function RegisterForm({ onSubmit, submitting = false, formError }: Regist
             onChangeText={onChange}
             onBlur={onBlur}
             error={errors.password ? t(asZodMessageKey(errors.password.message)) : undefined}
+          />
+        )}
+      />
+      <Controller
+        control={control}
+        name="confirmPassword"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input
+            label={t("auth:register.confirmPasswordLabel")}
+            placeholder={t("auth:register.confirmPasswordPlaceholder")}
+            secureToggle
+            autoCapitalize="none"
+            autoComplete="password-new"
+            value={value}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            error={
+              errors.confirmPassword ? t(asZodMessageKey(errors.confirmPassword.message)) : undefined
+            }
           />
         )}
       />

@@ -10,6 +10,9 @@ import { StatusBar } from "expo-status-bar";
 import { Stack } from "expo-router";
 import { I18nextProvider } from "react-i18next";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
+import { BrandedLoading } from "@/components/ui/branded-loading";
+import { useGetMyPlayer } from "@/api/generated/hooks/playersHooks";
 import { queryClient } from "@/api/query-client";
 import { AuthProvider, useAuth } from "@/hooks/auth/use-auth";
 import { useAppFonts } from "@/lib/fonts/use-app-fonts";
@@ -20,18 +23,35 @@ void SplashScreen.preventAutoHideAsync();
 function RootNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Segura a UI enquanto a sessão (tokens no secure store + GET /auth/me)
-  // ainda está sendo resolvida — não decide o guard com estado indefinido.
-  if (isLoading) return null;
+  // Resolve o próprio jogador pra decidir o gate de onboarding. Só busca
+  // autenticado; `findOrCreateForUser` no backend garante que a linha existe.
+  const playerQuery = useGetMyPlayer({ query: { enabled: isAuthenticated } });
+
+  // Segura a UI (splash estendida, não tela cinza) enquanto a sessão (tokens no
+  // secure store + GET /auth/me) ainda está sendo resolvida.
+  if (isLoading) return <BrandedLoading />;
+  // Já autenticado mas o jogador ainda carregando: segura pra não piscar o app
+  // antes de decidir se manda pro onboarding. `isLoading` (não `isPending`) só
+  // é true durante o primeiro fetch em andamento — em erro/timeout resolve e
+  // cai pro app (nunca fica em loading infinito se a API não responder).
+  if (isAuthenticated && playerQuery.isLoading) return <BrandedLoading />;
+
+  // Perfil "definido" = tem ao menos uma posição declarada (afinidade não-vazia).
+  // Em erro de carga (`data` undefined), não força onboarding — o app cuida do retry.
+  const affinity = playerQuery.data?.affinity ?? {};
+  const needsOnboarding = isAuthenticated && playerQuery.data !== undefined && Object.keys(affinity).length === 0;
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={isAuthenticated}>
+      <Stack.Protected guard={isAuthenticated && !needsOnboarding}>
         <Stack.Screen name="(drawer)" />
         <Stack.Screen name="group/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="group/[id]/create-match" options={{ headerShown: false }} />
         <Stack.Screen name="match/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="player/[playerId]" options={{ headerShown: false }} />
+      </Stack.Protected>
+      <Stack.Protected guard={needsOnboarding}>
+        <Stack.Screen name="onboarding" />
       </Stack.Protected>
       <Stack.Protected guard={!isAuthenticated}>
         <Stack.Screen name="(auth)" />
@@ -54,18 +74,20 @@ export default function RootLayout() {
     if (ready) void SplashScreen.hideAsync();
   }, [ready]);
 
-  if (!ready) return null;
+  if (!ready) return <BrandedLoading />;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <I18nextProvider i18n={i18n}>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <StatusBar style="light" />
-            <RootNavigator />
-          </AuthProvider>
-        </QueryClientProvider>
-      </I18nextProvider>
+      <KeyboardProvider>
+        <I18nextProvider i18n={i18n}>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <StatusBar style="light" />
+              <RootNavigator />
+            </AuthProvider>
+          </QueryClientProvider>
+        </I18nextProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

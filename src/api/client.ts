@@ -80,6 +80,15 @@ async function parseResponseBody(res: Response): Promise<unknown> {
   return text.length > 0 ? text : undefined;
 }
 
+/**
+ * Timeout duro por requisição. `fetch` não tem timeout nativo — sem isto, um
+ * backend inalcançável/lento (ex.: túnel ngrok dormindo) deixa a request
+ * pendente pra sempre, o que trava telas que bloqueiam em `isPending`
+ * (ex.: o gate de onboarding no root). Abortar vira erro → o React Query
+ * resolve o estado.
+ */
+const REQUEST_TIMEOUT_MS = 15_000;
+
 async function performFetch<TVariables>(
   config: RequestConfig<TVariables>,
   token: string | undefined,
@@ -92,12 +101,23 @@ async function performFetch<TVariables>(
 
   const body = await buildBody(config.data, headers);
 
-  return fetch(url, {
-    method: config.method ?? "GET",
-    headers,
-    body,
-    signal: config.signal,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  // Encadeia o cancelamento externo (React Query cancela via `config.signal`).
+  const onExternalAbort = () => controller.abort();
+  config.signal?.addEventListener("abort", onExternalAbort);
+
+  try {
+    return await fetch(url, {
+      method: config.method ?? "GET",
+      headers,
+      body,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+    config.signal?.removeEventListener("abort", onExternalAbort);
+  }
 }
 
 /**

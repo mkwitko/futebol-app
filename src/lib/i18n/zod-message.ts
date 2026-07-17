@@ -10,6 +10,7 @@ const ZOD_MESSAGE_KEYS = [
   "zod:email",
   "zod:minLength",
   "zod:maxLength",
+  "zod:passwordMismatch",
 ] as const;
 
 export type ZodMessageKey = (typeof ZOD_MESSAGE_KEYS)[number];

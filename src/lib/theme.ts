@@ -23,7 +23,19 @@ export const colors = {
     prata: "#C7CDD1",
     ouro: "#F0B429",
   },
+  /** Graus de afinidade (campinho estilo FM) — ver `AFFINITY_GRADES`. */
+  grade: {
+    natural: "#21C776",
+    bom: "#F0B429",
+    ok: "#C7CDD1",
+    fraco: "#E8833A",
+  },
 } as const;
+
+/** Resolve a cor (hex) de um grau de afinidade a partir do seu token. */
+export function gradeColor(token: "natural" | "bom" | "ok" | "fraco"): string {
+  return colors.grade[token];
+}
 
 export const fonts = {
   display: "SairaCondensed_600SemiBold",

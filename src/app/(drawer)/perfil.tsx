@@ -3,8 +3,10 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Share, View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
-import { AffinityPicker } from "@/components/players/affinity-picker";
+import { AttributeBudget } from "@/components/players/attribute-budget";
 import { CareerSummary } from "@/components/players/career-summary";
+import { PitchAffinity } from "@/components/players/pitch-affinity";
+import { SkillPicker } from "@/components/players/skill-picker";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Divider } from "@/components/ui/divider";
@@ -18,11 +20,16 @@ import {
   toAffinityMap,
   toApiAffinity,
 } from "@/lib/player/affinity";
-import { buildPlayerProfileUrl } from "@/lib/player/url";
 import {
-  useGetMyPlayer,
-  useGetPlayerCareer,
-} from "@/api/generated/hooks/playersHooks";
+  ATTRIBUTE_KEYS,
+  type AttributeMap,
+  remainingPoints,
+  toAttributeMap,
+} from "@/lib/player/attributes";
+import { type SkillKey, skillsEqual, toSkillList } from "@/lib/player/skills";
+import { buildPlayerProfileUrl } from "@/lib/player/url";
+import type { GetMyPlayer200 } from "@/api/generated/types/GetMyPlayer";
+import { useGetMyPlayer, useGetPlayerCareer } from "@/api/generated/hooks/playersHooks";
 
 /** Placeholder de carregamento do hero — imita o formato do `PlayerCard` `full`. */
 function CareerHeroSkeleton() {
@@ -33,7 +40,7 @@ function CareerHeroSkeleton() {
   );
 }
 
-/** Perfil — dados do usuário logado, a carreira real do jogador ("Minha carreira") e sair da conta. */
+/** Perfil — usuário logado, carreira real, editor de posições/atributos/skills e sair. */
 export default function PerfilScreen() {
   const { t } = useTranslation(["player", "common"]);
   const { user, signOut } = useAuth();
@@ -42,22 +49,34 @@ export default function PerfilScreen() {
   const myPlayerQuery = useGetMyPlayer();
   const playerId = myPlayerQuery.data?.id;
   const careerQuery = useGetPlayerCareer(playerId);
-
   const updateMyPlayer = useUpdateMyPlayer();
-  const savedAffinity = toAffinityMap(myPlayerQuery.data?.affinity);
+
+  // Rascunhos editáveis, re-semeados do valor persistido via o padrão
+  // adjust-state-during-render (sem effect): quando a identidade do `data`
+  // muda (carga inicial, ou refetch após salvar), reseta os três rascunhos.
   const [affinityDraft, setAffinityDraft] = useState<AffinityMap>({});
-  // Re-seed the editable draft from the persisted value using React's
-  // adjust-state-during-render pattern (no effect): when the server value's
-  // identity changes (initial load, or refetch after a save), reset the draft.
-  const [seededFrom, setSeededFrom] = useState<Record<string, number> | undefined>(undefined);
-  if (myPlayerQuery.data?.affinity !== seededFrom) {
-    setSeededFrom(myPlayerQuery.data?.affinity);
+  const [attributesDraft, setAttributesDraft] = useState<AttributeMap>(toAttributeMap(null));
+  const [skillsDraft, setSkillsDraft] = useState<SkillKey[]>([]);
+  const [seededFrom, setSeededFrom] = useState<GetMyPlayer200 | undefined>(undefined);
+  if (myPlayerQuery.data !== seededFrom) {
+    setSeededFrom(myPlayerQuery.data);
     setAffinityDraft(toAffinityMap(myPlayerQuery.data?.affinity));
+    setAttributesDraft(toAttributeMap(myPlayerQuery.data?.attributes));
+    setSkillsDraft(toSkillList(myPlayerQuery.data?.skills));
   }
+
+  const savedAffinity = toAffinityMap(myPlayerQuery.data?.affinity);
+  const savedAttributes = toAttributeMap(myPlayerQuery.data?.attributes);
+  const savedSkills = toSkillList(myPlayerQuery.data?.skills);
+
   const affinityDirty = !affinityMapsEqual(affinityDraft, savedAffinity);
-  const saveAffinity = async () => {
-    await updateMyPlayer.mutateAsync(toApiAffinity(affinityDraft));
-  };
+  const attributesDirty = ATTRIBUTE_KEYS.some((k) => attributesDraft[k] !== savedAttributes[k]);
+  const skillsDirty = !skillsEqual(skillsDraft, savedSkills);
+  const attributesBalanced = remainingPoints(attributesDraft) === 0;
+
+  const saveAffinity = () => updateMyPlayer.mutateAsync({ affinity: toApiAffinity(affinityDraft) });
+  const saveAttributes = () => updateMyPlayer.mutateAsync({ attributes: attributesDraft });
+  const saveSkills = () => updateMyPlayer.mutateAsync({ skills: skillsDraft });
 
   const appVersion = Constants.expoConfig?.version ?? "—";
 
@@ -65,8 +84,6 @@ export default function PerfilScreen() {
     setSigningOut(true);
     try {
       await signOut();
-      // Sucesso: `isAuthenticated` vira `false` e o guard no root layout
-      // navega automaticamente para `(auth)`.
     } finally {
       setSigningOut(false);
     }
@@ -78,8 +95,7 @@ export default function PerfilScreen() {
     await Share.share({ message: t("player:career.shareMessage", { link }) });
   };
 
-  const isLoading =
-    myPlayerQuery.isPending || (!!playerId && careerQuery.isPending);
+  const isLoading = myPlayerQuery.isPending || (!!playerId && careerQuery.isPending);
   const isError = myPlayerQuery.isError || careerQuery.isError;
   const retry = () => {
     if (myPlayerQuery.isError) void myPlayerQuery.refetch();
@@ -140,6 +156,7 @@ export default function PerfilScreen() {
 
       <Divider />
 
+      {/* Posições — campinho estilo FM */}
       <View className="gap-3">
         <Text variant="display" className="text-lg">
           {t("player:positions.title")}
@@ -147,13 +164,7 @@ export default function PerfilScreen() {
         <Text variant="muted" className="text-sm">
           {t("player:positions.hint")}
         </Text>
-        <AffinityPicker
-          value={affinityDraft}
-          onChange={setAffinityDraft}
-          overallByPosition={careerQuery.data?.overall}
-          affinityLabel={t("player:positions.affinityLabel")}
-          overallLabel={t("player:positions.overallLabel")}
-        />
+        <PitchAffinity value={affinityDraft} onChange={setAffinityDraft} />
         <Button
           testID="profile-save-positions"
           onPress={() => void saveAffinity()}
@@ -161,6 +172,48 @@ export default function PerfilScreen() {
           disabled={!affinityDirty}
         >
           {t("player:positions.save")}
+        </Button>
+      </View>
+
+      <Divider />
+
+      {/* Atributos — orçamento de pontos */}
+      <View className="gap-3">
+        <Text variant="display" className="text-lg">
+          {t("player:attributes.title")}
+        </Text>
+        <Text variant="muted" className="text-sm">
+          {t("player:attributes.hint")}
+        </Text>
+        <AttributeBudget value={attributesDraft} onChange={setAttributesDraft} />
+        <Button
+          testID="profile-save-attributes"
+          onPress={() => void saveAttributes()}
+          loading={updateMyPlayer.isPending}
+          disabled={!attributesDirty || !attributesBalanced}
+        >
+          {t("player:attributes.save")}
+        </Button>
+      </View>
+
+      <Divider />
+
+      {/* Skills */}
+      <View className="gap-3">
+        <Text variant="display" className="text-lg">
+          {t("player:skills.title")}
+        </Text>
+        <Text variant="muted" className="text-sm">
+          {t("player:skills.hint", { max: 3 })}
+        </Text>
+        <SkillPicker value={skillsDraft} onChange={setSkillsDraft} />
+        <Button
+          testID="profile-save-skills"
+          onPress={() => void saveSkills()}
+          loading={updateMyPlayer.isPending}
+          disabled={!skillsDirty}
+        >
+          {t("player:skills.save")}
         </Button>
       </View>
 

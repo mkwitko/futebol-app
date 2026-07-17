@@ -12,9 +12,10 @@ const {
  *
  * Android 8+ exige um ícone de notificação branco/transparente dedicado —
  * sem ele o SO mostra um quadrado branco pra notificação exibida a partir do
- * bloco `notification` do FCM (background/quit). Reusamos o asset
- * monocromático do adaptive icon (já é silhueta branca com alpha) como
- * `@drawable/notification_icon`, e apontamos os meta-data padrão do FCM
+ * bloco `notification` do FCM (background/quit). Usamos `assets/notification-icon.png`
+ * (silhueta branca sólida do "7", desenhada só com alpha — o SO tinge o ícone,
+ * então precisa ser silhueta simples e cheia, não o adaptive icon detalhado)
+ * como `@drawable/notification_icon`, e apontamos os meta-data padrão do FCM
  * (`default_notification_icon` / `default_notification_color`) pra ele.
  *
  * O `smallIcon` do notifee (foreground, em notifications.ts) usa o mesmo
@@ -25,7 +26,7 @@ const {
 
 const ICON_RES_NAME = "notification_icon";
 const COLOR_RES_NAME = "notification_icon_color";
-const SOURCE_ICON = "assets/android-icon-monochrome.png";
+const SOURCE_ICON = "assets/notification-icon.png";
 
 function withNotificationIconAsset(config) {
   return withDangerousMod(config, [
@@ -58,6 +59,18 @@ function withNotificationManifestMeta(config) {
       `@color/${COLOR_RES_NAME}`,
       "resource",
     );
+    // @react-native-firebase/messaging declares its own defaults for these same
+    // meta-data (color=@color/white). Without tools:replace the manifest merger
+    // fails on the conflicting android:resource. Mark ours as the override.
+    for (const item of app["meta-data"] ?? []) {
+      const name = item.$?.["android:name"];
+      if (
+        name === "com.google.firebase.messaging.default_notification_icon" ||
+        name === "com.google.firebase.messaging.default_notification_color"
+      ) {
+        item.$["tools:replace"] = "android:resource";
+      }
+    }
     return cfg;
   });
 }

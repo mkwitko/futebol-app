@@ -57,3 +57,19 @@ export async function signInWithGoogleNative(): Promise<string> {
     throw error;
   }
 }
+
+/**
+ * Encerra a sessão nativa do Google — sem isto o SDK guarda a última conta e
+ * pula o seletor no próximo login (reentra direto na conta anterior). Chamado
+ * no `signOut` do app pra que o próximo "Entrar com Google" sempre mostre o
+ * seletor de contas. Idempotente; ignora erro se não havia sessão.
+ */
+export async function signOutGoogleNative(): Promise<void> {
+  if (!isGoogleSignInConfigured) return;
+  ensureConfigured();
+  try {
+    await GoogleSignin.signOut();
+  } catch {
+    // sem sessão ativa / SDK não inicializado — nada a fazer
+  }
+}

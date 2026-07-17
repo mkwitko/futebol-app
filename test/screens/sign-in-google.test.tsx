@@ -1,5 +1,4 @@
 import { screen, userEvent, waitFor } from "@testing-library/react-native";
-import { Alert } from "react-native";
 import SignInScreen from "@/app/(auth)/sign-in";
 import { getMeQueryKey } from "@/api/generated/hooks/authHooks/useGetMe";
 import { renderWithProviders } from "../utils/render";
@@ -19,7 +18,6 @@ jest.mock("@/env", () => {
 
 describe("SignInScreen — Google configurado", () => {
   it("runs the native flow and logs in via loginGoogleUser when Google is configured", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
     const user = userEvent.setup();
     const { queryClient } = renderWithProviders(<SignInScreen />);
 
@@ -31,8 +29,9 @@ describe("SignInScreen — Google configurado", () => {
     await waitFor(() => {
       expect(queryClient.getQueryData(getMeQueryKey())).toMatchObject({ email: "alice@futebol.app" });
     });
-    expect(alertSpy).not.toHaveBeenCalled();
-
-    alertSpy.mockRestore();
+    // Sem erro → o diálogo de aviso (ConfirmDialog) não aparece.
+    expect(
+      screen.queryByText("Não foi possível entrar com o Google. Tente novamente."),
+    ).not.toBeOnTheScreen();
   });
 });

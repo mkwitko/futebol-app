@@ -43,6 +43,7 @@ export default function CreateMatchScreen() {
           slots: values.slots,
           priceCents: reaisInputToCents(values.priceInput),
           pixKey: values.pixKey?.trim() ? values.pixKey.trim() : undefined,
+          modality: values.modality,
         });
         router.replace({ pathname: "/match/[id]", params: { id: match.id, created: "1" } });
         return;

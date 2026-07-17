@@ -42,8 +42,8 @@ const IOS_GOOGLE_SERVICES =
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: "futebol-app",
-  slug: "futebol-app",
+  name: "Camisa7",
+  slug: "Camisa7",
   scheme: "futebolapp",
   version: "1.0.0",
   orientation: "portrait",
@@ -86,12 +86,22 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-localization",
     "expo-image",
     "@react-native-community/datetimepicker",
+    // Notifee é autolinkado sempre que instalado (independe de push); seu AAR
+    // core vem de um maven repo local. Registra esse repo no root build.gradle.
+    // Ver plugins/with-notifee-repo.js.
+    "./plugins/with-notifee-repo",
     [
       "expo-splash-screen",
       {
+        // Arte de splash full-bleed (retrato 2:3). `cover` escala a imagem pra
+        // preencher a tela inteira (iOS + Android < 12). No Android 12+ o SO
+        // força um ícone centralizado (limitação da Splash Screen API); o
+        // `imageWidth` maior deixa esse ícone o maior possível, e a
+        // `BrandedLoading` (JS) cobre a tela inteira logo em seguida.
         backgroundColor: "#0B140F",
         image: "./assets/splash-icon.png",
-        imageWidth: 200,
+        imageWidth: 300,
+        resizeMode: "cover",
       },
     ],
     ...(googleIosUrlScheme

@@ -10,6 +10,12 @@ import { server } from "./mocks/server";
 
 // Mock manual (raiz `__mocks__/react-native-reanimated.js`) aplicado automaticamente pelo Jest.
 
+// `react-native-keyboard-controller` é módulo nativo (usado pelo
+// `ScreenContainer`) — sem link nativo no ambiente Jest. Usa o mock oficial.
+jest.mock("react-native-keyboard-controller", () =>
+  require("react-native-keyboard-controller/jest"),
+);
+
 // i18n REAL e síncrono com os recursos pt-BR embutidos — asserts veem o texto
 // traduzido de verdade, sem HTTP backend.
 if (!i18n.isInitialized) {

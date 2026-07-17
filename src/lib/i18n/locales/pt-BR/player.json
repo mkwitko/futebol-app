@@ -2,7 +2,7 @@
   "career": {
     "title": "Minha carreira",
     "loadError": "Não foi possível carregar sua carreira.",
-    "emptyDescription": "Jogue sua primeira pelada para começar sua carreira.",
+    "emptyDescription": "Jogue seu primeiro futebol para começar sua carreira.",
     "positionsTitle": "Overall por posição",
     "bestPositionBadge": "Melhor posição",
     "statsTitle": "Estatísticas",
@@ -28,9 +28,42 @@
   },
   "positions": {
     "title": "Minhas posições",
-    "hint": "Escolha as posições que você joga e o quão bom você é em cada (0-100). Seu overall real vem dos seus jogos.",
+    "hint": "Toque no campinho pra marcar onde você joga e o quão à vontade se sente em cada posição. Seu overall real vem dos seus jogos.",
     "affinityLabel": "Afinidade",
     "overallLabel": "Overall",
     "save": "Salvar posições"
+  },
+  "grades": {
+    "natural": "Natural",
+    "bom": "Bom",
+    "ok": "Ok",
+    "fraco": "Fraco",
+    "none": "Não joga"
+  },
+  "attributes": {
+    "title": "Atributos",
+    "hint": "Todos começam em 50. Redistribua os pontos: baixe um atributo pra reforçar outro.",
+    "pointsLabel": "Pontos",
+    "pointsRemaining": "restam {{count}}",
+    "save": "Salvar atributos"
+  },
+  "skills": {
+    "title": "Skills",
+    "hint": "Escolha até {{max}} características que te definem em campo.",
+    "counter": "{{count}}/{{max}} selecionadas",
+    "save": "Salvar skills"
+  },
+  "onboarding": {
+    "title": "Monte seu jogador",
+    "step1Title": "Onde você joga?",
+    "step2Title": "Seus atributos",
+    "step3Title": "Suas skills",
+    "stepOf": "Passo {{current}} de {{total}}",
+    "back": "Voltar",
+    "skip": "Pular",
+    "continue": "Continuar",
+    "finish": "Concluir",
+    "needPosition": "Marque ao menos uma posição no campinho.",
+    "saveError": "Não foi possível salvar seu perfil. Tente novamente."
   }
 }

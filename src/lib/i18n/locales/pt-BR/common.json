@@ -1,12 +1,13 @@
 {
   "app": {
-    "name": "Futebol",
-    "tagline": "Sua pelada, organizada."
+    "name": "Camisa7",
+    "tagline": "Seu futebol, organizado."
   },
   "actions": {
     "save": "Salvar",
     "cancel": "Cancelar",
     "confirm": "Confirmar",
+    "ok": "OK",
     "retry": "Tentar novamente",
     "signOut": "Sair"
   },
@@ -16,9 +17,28 @@
     "networkError": "Não foi possível conectar ao servidor."
   },
   "nav": {
+    "home": "Início",
     "myGroups": "Meus Grupos",
     "profile": "Perfil",
     "config": "Configurações"
+  },
+  "home": {
+    "title": "Início",
+    "subtitle": "Suas próximas partidas e progresso",
+    "progressTitle": "Seu progresso",
+    "levelLabel": "Nível",
+    "overallLabel": "Overall",
+    "noCareer": "Jogue sua primeira partida pra começar sua carreira.",
+    "statMatches": "Partidas",
+    "statMvp": "MVPs",
+    "statStreak": "Sequência",
+    "upcomingTitle": "Próximas partidas",
+    "upcomingEmptyTitle": "Nenhuma partida marcada",
+    "upcomingEmptyDescription": "Quando seus grupos marcarem partidas, elas aparecem aqui.",
+    "upcomingLoadError": "Não foi possível carregar suas partidas.",
+    "viewGroupsCta": "Ver meus grupos",
+    "attendanceConfirmed": "Confirmado",
+    "attendanceWaitlisted": "Fila de espera"
   },
   "emptyState": {
     "comingSoonTitle": "Em construção",

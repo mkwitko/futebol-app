@@ -27,6 +27,7 @@ export const createMatchSchema = z.object({
   slots: z.number().int().min(MIN_SLOTS).max(MAX_SLOTS),
   priceInput: z.string().max(20).optional(),
   pixKey: z.string().max(140, { message: "zod:maxLength" }).optional(),
+  modality: z.enum(["futsal", "society", "campo"]),
   recurrence: z.custom<RecurrenceValue | null>(),
 });
 
@@ -49,6 +50,7 @@ export function defaultCreateMatchFormValues(): CreateMatchFormValues {
     slots: DEFAULT_SLOTS,
     priceInput: "",
     pixKey: "",
+    modality: "campo",
     recurrence: null,
   };
 }

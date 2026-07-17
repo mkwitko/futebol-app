@@ -27,7 +27,7 @@ describe("Minha carreira (Perfil)", () => {
     expect(screen.getByText("Overall por posição")).toBeOnTheScreen();
     const career = within(screen.getByTestId("my-career-summary"));
     expect(career.getByText("Atacante")).toBeOnTheScreen();
-    expect(career.getByText("Meia")).toBeOnTheScreen();
+    expect(career.getByText("Meio de campo")).toBeOnTheScreen();
     expect(screen.getByText("Melhor posição")).toBeOnTheScreen();
     expect(screen.getByText("65")).toBeOnTheScreen();
 
@@ -47,7 +47,7 @@ describe("Minha carreira (Perfil)", () => {
     setCareerMock(FAKE_MY_PLAYER.id, undefined);
     renderWithProviders(<PerfilScreen />);
 
-    expect(await screen.findByText("Jogue sua primeira pelada para começar sua carreira.")).toBeOnTheScreen();
+    expect(await screen.findByText("Jogue seu primeiro futebol para começar sua carreira.")).toBeOnTheScreen();
     // Hero zerado — tier "bronze" (o piso do bootstrap default) e nenhuma
     // seção "Overall por posição" (mapa `overall` vazio).
     expect(screen.getByText("Bronze")).toBeOnTheScreen();

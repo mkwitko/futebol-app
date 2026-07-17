@@ -1,6 +1,5 @@
 import { screen, userEvent, waitFor } from "@testing-library/react-native";
 import { useLocalSearchParams } from "expo-router";
-import { Alert } from "react-native";
 import MatchDetailScreen from "@/app/match/[id]";
 import { saveTokens } from "@/lib/auth/tokens";
 import {
@@ -145,11 +144,6 @@ describe("Pós-jogo da pelada (Fase 1)", () => {
   });
 
   it("keeps Finalizar disabled until a result exists, then finalizes on confirm", async () => {
-    const alertSpy = jest
-      .spyOn(Alert, "alert")
-      .mockImplementation((_title, _message, buttons) => {
-        buttons?.find((button) => button.style === "destructive")?.onPress?.();
-      });
     const user = userEvent.setup();
     renderWithProviders(<MatchDetailScreen />);
 
@@ -166,9 +160,10 @@ describe("Pós-jogo da pelada (Fase 1)", () => {
 
     await user.press(screen.getByTestId("finalize-match-cta"));
 
-    expect(await screen.findByText("Pelada encerrada")).toBeOnTheScreen();
-    expect(screen.getByText("A votação foi fechada e os níveis dos jogadores já foram atualizados.")).toBeOnTheScreen();
+    // Confirma no diálogo customizado (ConfirmDialog) que substituiu o Alert nativo.
+    await user.press(await screen.findByText("Confirmar"));
 
-    alertSpy.mockRestore();
+    expect(await screen.findByText("Futebol encerrado")).toBeOnTheScreen();
+    expect(screen.getByText("A votação foi fechada e os níveis dos jogadores já foram atualizados.")).toBeOnTheScreen();
   });
 });

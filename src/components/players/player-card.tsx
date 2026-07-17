@@ -13,7 +13,7 @@ import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Divider } from "@/components/ui/divider";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
-import { positionAbbreviation, type Position } from "@/lib/player/position";
+import { fieldPositionAbbreviation, type FieldPosition } from "@/lib/player/position";
 import { getTierFromOverall, tierColor, tierLabel, tierProgress, type Tier } from "@/lib/player/tier";
 
 export type PlayerCardVariant = "full" | "compact";
@@ -26,7 +26,7 @@ export type PlayerCardStats = {
 
 export type PlayerCardProps = {
   name: string;
-  position: Position;
+  position: FieldPosition;
   /** 0-99 — o número em destaque do card. */
   overall: number;
   /**
@@ -103,7 +103,7 @@ export function PlayerCard({
   testID,
 }: PlayerCardProps) {
   const tier = tierProp ?? getTierFromOverall(overall);
-  const abbreviation = positionAbbreviation(position);
+  const abbreviation = fieldPositionAbbreviation(position);
   const reducedMotion = useReducedMotion();
 
   const scale = useSharedValue(1);

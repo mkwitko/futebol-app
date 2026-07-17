@@ -6,7 +6,7 @@ describe("SignInScreen", () => {
   it("renders the sign-in form", async () => {
     renderWithProviders(<SignInScreen />);
 
-    expect(await screen.findByText("Entre para organizar suas peladas.")).toBeOnTheScreen();
+    expect(await screen.findByText("Entre para organizar suas partidas.")).toBeOnTheScreen();
     expect(screen.getByLabelText("E-mail")).toBeOnTheScreen();
     expect(screen.getByLabelText("Senha")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Entrar" })).toBeOnTheScreen();

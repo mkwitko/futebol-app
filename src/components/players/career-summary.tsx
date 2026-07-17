@@ -5,7 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Text } from "@/components/ui/text";
 import { bestPositionFromOverall, computeWinRate, positionOverallEntries } from "@/lib/player/career";
-import { positionAbbreviation, positionLabel, type Position } from "@/lib/player/position";
+import {
+  type FieldPosition,
+  fieldPositionAbbreviation,
+  fieldPositionLabel,
+} from "@/lib/player/position";
 import type { GetPlayerCareer200 } from "@/api/generated/types/GetPlayerCareer";
 import { PlayerCard } from "./player-card";
 
@@ -19,16 +23,16 @@ export type CareerSummaryProps = {
 };
 
 /** Uma linha do bloco "Overall por posição" — barra proporcional ao overall (0-99), destaque na melhor posição. */
-function PositionRow({ position, overall, isBest }: { position: Position; overall: number; isBest: boolean }) {
+function PositionRow({ position, overall, isBest }: { position: FieldPosition; overall: number; isBest: boolean }) {
   const { t } = useTranslation("player");
 
   return (
     <View className="gap-1.5">
       <View className="flex-row items-center justify-between gap-2">
         <View className="flex-1 flex-row items-center gap-2">
-          <Badge variant="line">{positionAbbreviation(position)}</Badge>
+          <Badge variant="line">{fieldPositionAbbreviation(position)}</Badge>
           <Text className="flex-1 font-body-medium text-sm text-ink" numberOfLines={1}>
-            {positionLabel(position)}
+            {fieldPositionLabel(position)}
           </Text>
           {isBest ? <Badge variant="primary">{t("career.bestPositionBadge")}</Badge> : null}
         </View>
@@ -93,7 +97,7 @@ export function CareerSummary({ name, avatarUri, career, action, testID }: Caree
         */}
         <PlayerCard
           name={name}
-          position={best?.position ?? "atacante"}
+          position={best?.position ?? "campo_atacante"}
           overall={best?.overall ?? 0}
           tier={career.level}
           avatarUri={avatarUri}

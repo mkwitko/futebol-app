@@ -3,7 +3,7 @@ import { PlayerCard } from "@/components/players/player-card";
 
 describe("PlayerCard", () => {
   it("renders overall, position and tier for a fresh (all-zero stats) member — full variant", () => {
-    render(<PlayerCard name="Ana Souza" position="atacante" overall={62} variant="full" />);
+    render(<PlayerCard name="Ana Souza" position="campo_atacante" overall={62} variant="full" />);
 
     expect(screen.getByText("62")).toBeOnTheScreen();
     expect(screen.getByText("ATA")).toBeOnTheScreen();
@@ -18,7 +18,7 @@ describe("PlayerCard", () => {
     render(
       <PlayerCard
         name="Bruno Lima"
-        position="goleiro"
+        position="campo_goleiro"
         overall={88}
         variant="full"
         stats={{ matches: 12, wins: 7, goals: 0 }}
@@ -34,10 +34,10 @@ describe("PlayerCard", () => {
   });
 
   it("renders a compact roster row with overall, abbreviation and name", () => {
-    render(<PlayerCard name="Carla Dias" position="zagueiro" overall={76} variant="compact" />);
+    render(<PlayerCard name="Carla Dias" position="campo_lateral" overall={76} variant="compact" />);
 
     expect(screen.getByText("76")).toBeOnTheScreen();
-    expect(screen.getByText("ZAG")).toBeOnTheScreen();
+    expect(screen.getByText("LAT")).toBeOnTheScreen();
     expect(screen.getByText("Carla Dias")).toBeOnTheScreen();
   });
 
@@ -47,7 +47,7 @@ describe("PlayerCard", () => {
     render(
       <PlayerCard
         name="Dani Rocha"
-        position="volante"
+        position="campo_ala_volante"
         overall={70}
         variant="compact"
         onPress={onPress}

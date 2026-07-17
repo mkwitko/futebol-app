@@ -1,86 +1,73 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
-import { FlatList, Pressable, View } from "react-native";
+import { View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
-import { CreateGroupSheet } from "@/components/groups/create-group-sheet";
-import { GroupCard } from "@/components/groups/group-card";
-import { QueryState } from "@/components/shared/query-state";
+import { ProgressCard } from "@/components/home/progress-card";
+import { UpcomingMatchCard } from "@/components/home/upcoming-match-card";
+import { Button } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
-import { Toast } from "@/components/ui/toast";
-import { useToast } from "@/hooks/common/use-toast";
-import { useListMyGroups } from "@/api/generated/hooks/groupsHooks";
-import { colors } from "@/lib/theme";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Text } from "@/components/ui/text";
+import { QueryState } from "@/components/shared/query-state";
+import {
+  useGetMyPlayer,
+  useGetMyUpcomingMatches,
+  useGetPlayerCareer,
+} from "@/api/generated/hooks/playersHooks";
 
-/** Peladas — tela inicial do organizador: grupos que ele administra. */
-export default function PeladasScreen() {
-  const { t } = useTranslation(["groups", "common"]);
+/** Início — progresso do jogador + próximas partidas de todos os seus grupos. */
+export default function HomeScreen() {
+  const { t } = useTranslation("common");
   const router = useRouter();
-  const toast = useToast();
-  const [sheetVisible, setSheetVisible] = useState(false);
 
-  const { data: groups, isPending, isError, refetch } = useListMyGroups();
+  const myPlayer = useGetMyPlayer();
+  const playerId = myPlayer.data?.id;
+  const career = useGetPlayerCareer(playerId);
+  const upcoming = useGetMyUpcomingMatches();
 
   return (
-    <ScreenContainer scroll={false} className="gap-4">
-      <ScreenHeader
-        title={t("groups:list.title")}
-        subtitle={t("groups:list.subtitle")}
-        trailing={
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("groups:list.createCta")}
-            testID="peladas-open-create-sheet"
-            onPress={() => setSheetVisible(true)}
-            className="h-11 w-11 items-center justify-center rounded-full bg-primary active:bg-primary-press"
-          >
-            <Ionicons name="add" size={24} color={colors.bg} />
-          </Pressable>
-        }
-      />
+    <ScreenContainer className="gap-6">
+      <ScreenHeader title={t("home.title")} subtitle={t("home.subtitle")} />
 
-      {toast.message ? (
-        <Toast variant="success" onDismiss={toast.dismiss}>
-          {toast.message}
-        </Toast>
+      {/* Progresso */}
+      {career.isPending && playerId ? (
+        <Skeleton className="h-36 w-full rounded-2xl" />
+      ) : career.data ? (
+        <ProgressCard career={career.data} />
       ) : null}
 
-      <QueryState
-        isPending={isPending}
-        isError={isError}
-        isEmpty={(groups?.length ?? 0) === 0}
-        errorMessage={t("groups:list.loadError")}
-        retryLabel={t("common:actions.retry")}
-        onRetry={() => void refetch()}
-        emptyTitle={t("groups:list.emptyTitle")}
-        emptyDescription={t("groups:list.emptyDescription")}
-        emptyActionLabel={t("groups:list.emptyCta")}
-        onEmptyAction={() => setSheetVisible(true)}
-      >
-        <FlatList
-          data={groups ?? []}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <GroupCard
-              group={item}
-              onPress={() => router.push({ pathname: "/group/[id]", params: { id: item.id } })}
-            />
-          )}
-          ItemSeparatorComponent={() => <View className="h-3" />}
-          contentContainerClassName="pb-6"
-          className="flex-1"
-        />
-      </QueryState>
+      {/* Próximas partidas */}
+      <View className="gap-3">
+        <Text variant="display" className="text-lg">
+          {t("home.upcomingTitle")}
+        </Text>
+        <QueryState
+          isPending={upcoming.isPending}
+          isError={upcoming.isError}
+          isEmpty={(upcoming.data?.length ?? 0) === 0}
+          errorMessage={t("home.upcomingLoadError")}
+          retryLabel={t("actions.retry")}
+          onRetry={() => void upcoming.refetch()}
+          emptyTitle={t("home.upcomingEmptyTitle")}
+          emptyDescription={t("home.upcomingEmptyDescription")}
+        >
+          <View className="gap-3">
+            {(upcoming.data ?? []).map((match) => (
+              <UpcomingMatchCard
+                key={match.id}
+                match={match}
+                onPress={() =>
+                  router.push({ pathname: "/match/[id]", params: { id: match.id } })
+                }
+              />
+            ))}
+          </View>
+        </QueryState>
+      </View>
 
-      <CreateGroupSheet
-        visible={sheetVisible}
-        onClose={() => setSheetVisible(false)}
-        onCreated={() => {
-          setSheetVisible(false);
-          toast.show(t("groups:create.success"));
-        }}
-      />
+      <Button variant="secondary" onPress={() => router.navigate("/grupos")}>
+        {t("home.viewGroupsCta")}
+      </Button>
     </ScreenContainer>
   );
 }

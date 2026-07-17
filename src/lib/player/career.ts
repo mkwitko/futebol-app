@@ -1,4 +1,4 @@
-import { POSITIONS, type Position } from "./position";
+import { FIELD_POSITIONS, type FieldPosition } from "./position";
 
 /**
  * Utilitários puros sobre o mapa `overall` (por posição) da carreira
@@ -9,20 +9,20 @@ import { POSITIONS, type Position } from "./position";
  */
 
 export type PositionOverallEntry = {
-  position: Position;
+  position: FieldPosition;
   overall: number;
   isBest: boolean;
 };
 
-function isKnownPosition(key: string): key is Position {
-  return (POSITIONS as readonly string[]).includes(key);
+function isKnownPosition(key: string): key is FieldPosition {
+  return (FIELD_POSITIONS as readonly string[]).includes(key);
 }
 
 /** Melhor posição (maior `overall`) — `null` quando o mapa está vazio (carreira ainda não existe). */
 export function bestPositionFromOverall(
   overall: Record<string, number>,
-): { position: Position; overall: number } | null {
-  const entries = Object.entries(overall).filter((entry): entry is [Position, number] =>
+): { position: FieldPosition; overall: number } | null {
+  const entries = Object.entries(overall).filter((entry): entry is [FieldPosition, number] =>
     isKnownPosition(entry[0]),
   );
   if (entries.length === 0) return null;
@@ -37,7 +37,7 @@ export function bestPositionFromOverall(
 export function positionOverallEntries(overall: Record<string, number>): PositionOverallEntry[] {
   const best = bestPositionFromOverall(overall);
   return Object.entries(overall)
-    .filter((entry): entry is [Position, number] => isKnownPosition(entry[0]))
+    .filter((entry): entry is [FieldPosition, number] => isKnownPosition(entry[0]))
     .map(([position, value]) => ({ position, overall: value, isBest: position === best?.position }))
     .sort((a, b) => b.overall - a.overall);
 }

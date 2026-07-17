@@ -155,7 +155,7 @@ describe("Detalhe da pelada", () => {
     });
 
     await user.press(screen.getByTestId("match-invite-cta"));
-    expect(await screen.findByText("Convidar para a pelada")).toBeOnTheScreen();
+    expect(await screen.findByText("Convidar para o futebol")).toBeOnTheScreen();
 
     await user.press(screen.getByTestId("invite-share-cta"));
 

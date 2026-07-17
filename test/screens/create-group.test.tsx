@@ -1,5 +1,5 @@
 import { screen, userEvent, waitFor } from "@testing-library/react-native";
-import PeladasScreen from "@/app/(drawer)/index";
+import PeladasScreen from "@/app/(drawer)/grupos";
 import { resetGroupsMocks } from "../mocks/handlers";
 import { renderWithProviders } from "../utils/render";
 
@@ -13,7 +13,7 @@ describe("Criar pelada (grupo)", () => {
     renderWithProviders(<PeladasScreen />);
 
     await user.press(screen.getByTestId("peladas-open-create-sheet"));
-    expect(await screen.findByText("Nova pelada")).toBeOnTheScreen();
+    expect(await screen.findByText("Novo futebol")).toBeOnTheScreen();
 
     await user.press(screen.getByTestId("create-group-submit"));
 
@@ -27,7 +27,7 @@ describe("Criar pelada (grupo)", () => {
     expect(await screen.findByText("Pelada dos Amigos")).toBeOnTheScreen();
 
     await user.press(screen.getByTestId("peladas-open-create-sheet"));
-    expect(await screen.findByText("Nova pelada")).toBeOnTheScreen();
+    expect(await screen.findByText("Novo futebol")).toBeOnTheScreen();
 
     await user.type(screen.getByLabelText("Nome do grupo"), "Pelada de sábado");
     await user.press(screen.getByTestId("create-group-submit"));
@@ -36,7 +36,7 @@ describe("Criar pelada (grupo)", () => {
     await waitFor(() => {
       expect(screen.queryByText("Nova pelada")).not.toBeOnTheScreen();
     });
-    expect(await screen.findByText("Pelada criada!")).toBeOnTheScreen();
+    expect(await screen.findByText("Futebol criado!")).toBeOnTheScreen();
     expect(await screen.findByText("Pelada de sábado")).toBeOnTheScreen();
   });
 });

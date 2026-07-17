@@ -16,7 +16,11 @@ import { useLoginGoogleUser } from "@/api/generated/hooks/authHooks/useLoginGoog
 import { useLoginUser } from "@/api/generated/hooks/authHooks/useLoginUser";
 import { useRegisterUser } from "@/api/generated/hooks/authHooks/useRegisterUser";
 import type { GetMeQueryResponse } from "@/api/generated/types/GetMe";
-import { isGoogleSignInConfigured, signInWithGoogleNative } from "@/lib/auth/google";
+import {
+  isGoogleSignInConfigured,
+  signInWithGoogleNative,
+  signOutGoogleNative,
+} from "@/lib/auth/google";
 import { forceLogout } from "@/lib/auth/session";
 import { getAccessToken, saveTokens } from "@/lib/auth/tokens";
 import { usePushHandlers } from "@/lib/push/use-push-handlers";
@@ -107,6 +111,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     queryClient.removeQueries({ queryKey: getMeQueryKey() });
     setHasToken(false);
+    // Encerra a sessão nativa do Google também — senão o próximo login pula o
+    // seletor e reentra na conta anterior.
+    await signOutGoogleNative();
     await forceLogout();
   }, [queryClient]);
 

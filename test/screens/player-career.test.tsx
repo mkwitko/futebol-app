@@ -23,8 +23,8 @@ describe("Carreira de outro jogador", () => {
     setCareerMock("player-2", {
       id: "career-2",
       playerId: "player-2",
-      overall: { goleiro: 88 },
-      affinity: { goleiro: 0.9 },
+      overall: { campo_goleiro: 88 },
+      affinity: { campo_goleiro: 0.9 },
       level: "ouro",
       matchesPlayed: 20,
       wins: 15,
@@ -58,6 +58,6 @@ describe("Carreira de outro jogador", () => {
 
     expect(screen.getByText("Convidado")).toBeOnTheScreen();
     expect(await screen.findByText("Bronze")).toBeOnTheScreen();
-    expect(screen.getByText("Jogue sua primeira pelada para começar sua carreira.")).toBeOnTheScreen();
+    expect(screen.getByText("Jogue seu primeiro futebol para começar sua carreira.")).toBeOnTheScreen();
   });
 });

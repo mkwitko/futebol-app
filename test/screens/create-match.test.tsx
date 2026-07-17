@@ -29,7 +29,7 @@ describe("Criar pelada", () => {
     const user = userEvent.setup();
     renderWithProviders(<CreateMatchScreen />);
 
-    expect(await screen.findByText("Nova pelada")).toBeOnTheScreen();
+    expect(await screen.findByText("Novo futebol")).toBeOnTheScreen();
 
     await user.press(screen.getByTestId("create-match-submit"));
 
