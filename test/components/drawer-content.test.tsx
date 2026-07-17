@@ -35,6 +35,17 @@ jest.mock("expo-router/drawer", () => {
   };
 });
 
+// `useSafeAreaInsets` exige um `SafeAreaProvider` em runtime; sem ele o hook
+// lança. Mocka só neste teste (o mock oficial da lib é global demais e quebra
+// as telas que usam `SafeAreaView` com fallback) retornando insets zerados.
+jest.mock("react-native-safe-area-context", () => {
+  const actual = jest.requireActual("react-native-safe-area-context");
+  return {
+    ...actual,
+    useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  };
+});
+
 describe("DrawerAppContent banner", () => {
   const closeDrawer = jest.fn();
   const fakeProps = { navigation: { closeDrawer } } as unknown as DrawerContentComponentProps;

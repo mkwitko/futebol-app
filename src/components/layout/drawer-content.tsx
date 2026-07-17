@@ -3,9 +3,9 @@ import {
   DrawerItemList,
   type DrawerContentComponentProps,
 } from "expo-router/drawer";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
@@ -16,6 +16,7 @@ import { colors, fonts } from "@/lib/theme";
 
 export function DrawerAppContent(props: DrawerContentComponentProps) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { data: player, isPending } = useGetMyPlayer();
 
@@ -35,11 +36,17 @@ export function DrawerAppContent(props: DrawerContentComponentProps) {
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 0 }}>
       <Pressable onPress={goToProfile} accessibilityRole="button" testID="drawer-banner">
-        <LinearGradient
-          colors={[colors.primary, colors.primaryPress]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ paddingVertical: 24, paddingHorizontal: 16, alignItems: "center", gap: 8 }}
+        <View
+          style={{
+            backgroundColor: colors.surfaceUp,
+            paddingTop: insets.top + 20,
+            paddingBottom: 20,
+            paddingHorizontal: 16,
+            alignItems: "center",
+            gap: 8,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.line,
+          }}
         >
           {isPending ? (
             <View testID="drawer-banner-skeleton" style={{ alignItems: "center", gap: 8 }}>
@@ -51,8 +58,8 @@ export function DrawerAppContent(props: DrawerContentComponentProps) {
             <>
               <Avatar name={name} uri={player?.avatarUrl} size="xl" />
               <Text
-                className="text-center text-lg"
-                style={{ color: "#FFFFFF", fontFamily: fonts.display }}
+                className="text-center text-lg text-ink"
+                style={{ fontFamily: fonts.display }}
               >
                 {name}
               </Text>
@@ -61,17 +68,17 @@ export function DrawerAppContent(props: DrawerContentComponentProps) {
                   {overall != null && (
                     <View
                       className="flex-row items-center rounded-full px-2 py-0.5"
-                      style={{ backgroundColor: "rgba(11,20,15,0.35)", gap: 4 }}
+                      style={{ backgroundColor: colors.primary, gap: 4 }}
                     >
-                      <Text style={{ color: "#FFFFFF" }} className="text-sm font-display">
+                      <Text style={{ color: colors.bg }} className="text-sm font-display">
                         {overall}
                       </Text>
                       {positionAbbr && (
                         <>
-                          <Text style={{ color: "#FFFFFF" }} className="text-sm font-display">
+                          <Text style={{ color: colors.bg }} className="text-sm font-display">
                             ·
                           </Text>
-                          <Text style={{ color: "#FFFFFF" }} className="text-sm font-display">
+                          <Text style={{ color: colors.bg }} className="text-sm font-display">
                             {positionAbbr}
                           </Text>
                         </>
@@ -79,20 +86,14 @@ export function DrawerAppContent(props: DrawerContentComponentProps) {
                     </View>
                   )}
                   {overall == null && positionAbbr && (
-                    <Text style={{ color: "#FFFFFF" }} className="text-sm">
-                      {positionAbbr}
-                    </Text>
+                    <Text className="text-sm text-muted">{positionAbbr}</Text>
                   )}
-                  {city && (
-                    <Text style={{ color: "#FFFFFF" }} className="text-sm">
-                      {city}
-                    </Text>
-                  )}
+                  {city && <Text className="text-sm text-muted">{city}</Text>}
                 </View>
               )}
             </>
           )}
-        </LinearGradient>
+        </View>
       </Pressable>
       <DrawerItemList {...props} />
     </DrawerContentScrollView>
