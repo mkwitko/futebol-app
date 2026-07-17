@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { useUpdateMyPlayer } from "@/hooks/players/use-update-my-player";
 import { type AffinityMap, toApiAffinity } from "@/lib/player/affinity";
-import { type AttributeMap, baselineAttributeMap } from "@/lib/player/attributes";
-import type { SkillKey } from "@/lib/player/skills";
+import { type AttributeMap, baselineAttributeMap, remainingPoints } from "@/lib/player/attributes";
+import { isGoalkeeper } from "@/lib/player/position";
+import { MAX_SKILLS, type SkillKey } from "@/lib/player/skills";
 
 const TOTAL_STEPS = 3;
 
@@ -31,13 +32,16 @@ export default function OnboardingScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const hasPosition = Object.keys(affinity).length > 0;
+  const showGoalkeeper = Object.keys(affinity).some(isGoalkeeper);
 
   const finish = async () => {
     setError(null);
     try {
       await updateMyPlayer.mutateAsync({
         affinity: toApiAffinity(affinity),
-        attributes,
+        // Só envia atributos se o orçamento estiver fechado (soma = budget);
+        // senão o backend rejeita. Atributos são opcionais no onboarding.
+        ...(remainingPoints(attributes) === 0 ? { attributes } : {}),
         skills,
       });
       // Sucesso: o gate no root layout detecta afinidade não-vazia e navega.
@@ -92,14 +96,18 @@ export default function OnboardingScreen() {
           <Text variant="muted" className="text-sm">
             {t("attributes.hint")}
           </Text>
-          <AttributeBudget value={attributes} onChange={setAttributes} />
+          <AttributeBudget
+            value={attributes}
+            onChange={setAttributes}
+            showGoalkeeper={showGoalkeeper}
+          />
         </View>
       ) : null}
 
       {step === 3 ? (
         <View className="gap-2">
           <Text variant="muted" className="text-sm">
-            {t("skills.hint", { max: 3 })}
+            {t("skills.hint", { max: MAX_SKILLS })}
           </Text>
           <SkillPicker value={skills} onChange={setSkills} />
         </View>

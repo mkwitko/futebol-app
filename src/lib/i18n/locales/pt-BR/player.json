@@ -65,5 +65,9 @@
     "finish": "Concluir",
     "needPosition": "Marque ao menos uma posição no campinho.",
     "saveError": "Não foi possível salvar seu perfil. Tente novamente."
+  },
+  "card": {
+    "title": "Dados da carta",
+    "save": "Salvar dados"
   }
 }

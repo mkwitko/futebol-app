@@ -26,8 +26,10 @@ import {
   remainingPoints,
   toAttributeMap,
 } from "@/lib/player/attributes";
+import { isGoalkeeper } from "@/lib/player/position";
 import { type SkillKey, skillsEqual, toSkillList } from "@/lib/player/skills";
 import { buildPlayerProfileUrl } from "@/lib/player/url";
+import { CardFieldsEditor, type CardFieldsValue } from "@/components/players/card-fields-editor";
 import type { GetMyPlayer200 } from "@/api/generated/types/GetMyPlayer";
 import { useGetMyPlayer, useGetPlayerCareer } from "@/api/generated/hooks/playersHooks";
 
@@ -74,9 +76,12 @@ export default function PerfilScreen() {
   const skillsDirty = !skillsEqual(skillsDraft, savedSkills);
   const attributesBalanced = remainingPoints(attributesDraft) === 0;
 
+  const showGoalkeeper = Object.keys(affinityDraft).some(isGoalkeeper);
+
   const saveAffinity = () => updateMyPlayer.mutateAsync({ affinity: toApiAffinity(affinityDraft) });
   const saveAttributes = () => updateMyPlayer.mutateAsync({ attributes: attributesDraft });
   const saveSkills = () => updateMyPlayer.mutateAsync({ skills: skillsDraft });
+  const saveCardFields = (fields: CardFieldsValue) => updateMyPlayer.mutateAsync(fields);
 
   const appVersion = Constants.expoConfig?.version ?? "—";
 
@@ -185,7 +190,11 @@ export default function PerfilScreen() {
         <Text variant="muted" className="text-sm">
           {t("player:attributes.hint")}
         </Text>
-        <AttributeBudget value={attributesDraft} onChange={setAttributesDraft} />
+        <AttributeBudget
+          value={attributesDraft}
+          onChange={setAttributesDraft}
+          showGoalkeeper={showGoalkeeper}
+        />
         <Button
           testID="profile-save-attributes"
           onPress={() => void saveAttributes()}
@@ -204,7 +213,7 @@ export default function PerfilScreen() {
           {t("player:skills.title")}
         </Text>
         <Text variant="muted" className="text-sm">
-          {t("player:skills.hint", { max: 3 })}
+          {t("player:skills.hint", { max: 5 })}
         </Text>
         <SkillPicker value={skillsDraft} onChange={setSkillsDraft} />
         <Button
@@ -215,6 +224,31 @@ export default function PerfilScreen() {
         >
           {t("player:skills.save")}
         </Button>
+      </View>
+
+      <Divider />
+
+      {/* Dados da carta */}
+      <View className="gap-3">
+        <Text variant="display" className="text-lg">
+          {t("player:card.title")}
+        </Text>
+        <CardFieldsEditor
+          key={seededFrom?.id ?? "none"}
+          initial={{
+            dominantFoot: myPlayerQuery.data?.dominantFoot ?? null,
+            weakFoot: myPlayerQuery.data?.weakFoot ?? null,
+            skillMoves: myPlayerQuery.data?.skillMoves ?? null,
+            heightCm: myPlayerQuery.data?.heightCm ?? null,
+            weightKg: myPlayerQuery.data?.weightKg ?? null,
+            birthYear: myPlayerQuery.data?.birthYear ?? null,
+            preferredTeam: myPlayerQuery.data?.preferredTeam ?? null,
+            nationality: myPlayerQuery.data?.nationality ?? null,
+          }}
+          onSave={saveCardFields}
+          saving={updateMyPlayer.isPending}
+          saveLabel={t("player:card.save")}
+        />
       </View>
 
       <Divider />
