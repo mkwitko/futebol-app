@@ -119,42 +119,44 @@ export default function OnboardingScreen() {
         </Text>
       ) : null}
 
-      {/* Navegação */}
-      <View className="flex-row items-center gap-3">
-        {step > 1 ? (
-          <Button variant="secondary" className="flex-1" onPress={() => setStep(step - 1)}>
-            {t("onboarding.back")}
-          </Button>
-        ) : null}
+      {/* Navegação — Voltar + Avançar na mesma linha; Pular embaixo (evita 3
+          botões apertados quebrando o texto). */}
+      <View className="gap-2">
+        <View className="flex-row items-center gap-3">
+          {step > 1 ? (
+            <Button variant="secondary" className="flex-1" onPress={() => setStep(step - 1)}>
+              {t("onboarding.back")}
+            </Button>
+          ) : null}
 
-        {step > 1 ? (
+          {step < TOTAL_STEPS ? (
+            <Button
+              className="flex-1"
+              disabled={step === 1 && !hasPosition}
+              onPress={() => setStep(step + 1)}
+            >
+              {t("onboarding.continue")}
+            </Button>
+          ) : (
+            <Button
+              className="flex-1"
+              onPress={() => void finish()}
+              loading={updateMyPlayer.isPending}
+            >
+              {t("onboarding.finish")}
+            </Button>
+          )}
+        </View>
+
+        {step > 1 && step < TOTAL_STEPS ? (
           <Button
             variant="ghost"
-            className="flex-1"
             onPress={() => void finish()}
             loading={updateMyPlayer.isPending}
           >
             {t("onboarding.skip")}
           </Button>
         ) : null}
-
-        {step < TOTAL_STEPS ? (
-          <Button
-            className="flex-1"
-            disabled={step === 1 && !hasPosition}
-            onPress={() => setStep(step + 1)}
-          >
-            {t("onboarding.continue")}
-          </Button>
-        ) : (
-          <Button
-            className="flex-1"
-            onPress={() => void finish()}
-            loading={updateMyPlayer.isPending}
-          >
-            {t("onboarding.finish")}
-          </Button>
-        )}
       </View>
     </ScreenContainer>
   );
