@@ -69,3 +69,27 @@ export function formatDateOnly(dateOnly: string): string {
   return format(parse(dateOnly, "yyyy-MM-dd", new Date()), "dd/MM/yyyy");
 }
 
+/**
+ * Rótulo relativo para a próxima partida — SEM texto pt-BR (regra do módulo):
+ * retorna um discriminated union que o componente mapeia via i18n. `now` é
+ * injetado (determinístico/testável). Compara por dia de calendário local.
+ */
+export type MatchCountdown =
+  | { kind: "today"; time: string }
+  | { kind: "tomorrow"; time: string }
+  | { kind: "days"; days: number }
+  | { kind: "absolute"; label: string };
+
+export function matchCountdown(iso: string, now: Date): MatchCountdown {
+  const target = new Date(iso);
+  if (target.getTime() <= now.getTime()) {
+    return { kind: "absolute", label: formatMatchDateTime(iso) };
+  }
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const dayDiff = Math.round((startOfDay(target) - startOfDay(now)) / 86_400_000);
+  if (dayDiff === 0) return { kind: "today", time: format(target, "HH:mm", { locale: ptBR }) };
+  if (dayDiff === 1) return { kind: "tomorrow", time: format(target, "HH:mm", { locale: ptBR }) };
+  if (dayDiff >= 2 && dayDiff <= 6) return { kind: "days", days: dayDiff };
+  return { kind: "absolute", label: formatMatchDateTime(iso) };
+}
+
