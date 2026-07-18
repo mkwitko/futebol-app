@@ -46,7 +46,18 @@
     "upcomingLoadError": "Não foi possível carregar suas partidas.",
     "viewGroupsCta": "Ver meus grupos",
     "attendanceConfirmed": "Confirmado",
-    "attendanceWaitlisted": "Fila de espera"
+    "attendanceWaitlisted": "Fila de espera",
+    "greeting": "Olá, {{name}} 👋",
+    "heroTitle": "Próxima partida",
+    "countdownToday": "Hoje {{time}}",
+    "countdownTomorrow": "Amanhã {{time}}",
+    "countdownDays": "em {{count}} dias",
+    "confirmPresenceCta": "Confirmar presença",
+    "confirmPresenceSuccess": "Presença confirmada!",
+    "confirmPresenceError": "Não foi possível confirmar. Tente de novo.",
+    "achievementsTitle": "Conquistas",
+    "activityTitle": "Atividade recente",
+    "viewAll": "Ver todas"
   },
   "emptyState": {
     "comingSoonTitle": "Em construção",
