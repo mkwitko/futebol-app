@@ -17,6 +17,8 @@ export function ProgressCard({ career }: ProgressCardProps) {
   const { t } = useTranslation("common");
   const best = bestPositionFromOverall(career.overall);
   const level = career.level as Tier;
+  const winRate =
+    career.matchesPlayed > 0 ? Math.round((career.wins / career.matchesPlayed) * 100) : 0;
 
   return (
     <Card className="gap-4">
@@ -44,6 +46,7 @@ export function ProgressCard({ career }: ProgressCardProps) {
 
         <View className="flex-1 flex-row justify-end gap-5">
           <Stat label={t("home.statMatches")} value={career.matchesPlayed} />
+          <Stat label={t("home.statWins")} value={career.wins} sub={`${winRate}%`} />
           <Stat label={t("home.statMvp")} value={career.mvpCount} />
           <Stat label={t("home.statStreak")} value={career.currentStreak} />
         </View>
@@ -52,12 +55,17 @@ export function ProgressCard({ career }: ProgressCardProps) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({ label, value, sub }: { label: string; value: number; sub?: string }) {
   return (
     <View className="items-center">
       <Text variant="display" className="text-2xl text-ink">
         {value}
       </Text>
+      {sub ? (
+        <Text variant="muted" className="text-[10px]">
+          {sub}
+        </Text>
+      ) : null}
       <Text variant="muted" className="text-xs uppercase tracking-wide">
         {label}
       </Text>
