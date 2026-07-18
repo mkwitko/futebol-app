@@ -55,5 +55,30 @@
       "generic": "Não foi possível criar sua reserva. Tente novamente.",
       "paymentUnavailable": "Não foi possível gerar o PIX dessa reserva. Tente novamente."
     }
+  },
+  "mine": {
+    "title": "Minhas reservas",
+    "loadError": "Não foi possível carregar suas reservas.",
+    "empty": "Nenhuma reserva ainda.",
+    "item": {
+      "courtFallback": "Quadra reservada"
+    },
+    "status": {
+      "requested": "Solicitada",
+      "pending_payment": "Aguardando pagamento",
+      "confirmed": "Confirmada",
+      "completed": "Concluída",
+      "cancelled": "Cancelada",
+      "rejected": "Recusada",
+      "expired": "Expirada"
+    },
+    "cancel": {
+      "cta": "Cancelar reserva",
+      "confirmTitle": "Cancelar essa reserva?",
+      "confirmMessage": "Essa ação não pode ser desfeita.",
+      "success": "Reserva cancelada.",
+      "staleState": "Essa reserva já mudou de status — atualizamos a lista.",
+      "genericError": "Não foi possível cancelar a reserva. Tente novamente."
+    }
   }
 }

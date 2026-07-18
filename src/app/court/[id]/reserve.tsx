@@ -2,11 +2,13 @@ import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { ApiError } from "@/api/client";
 import { useCreateBooking } from "@/api/generated/hooks/bookingsHooks/useCreateBooking";
 import { useListMyBookings } from "@/api/generated/hooks/bookingsHooks/useListMyBookings";
 import type { ListMyBookings200StatusEnumKey } from "@/api/generated/types/ListMyBookings";
+import { BOOKINGS } from "@/api/modules/bookings";
 import { PixVoucher } from "@/components/booking/pix-voucher";
 import { ScreenContainer } from "@/components/layout/screen-container";
 import { Button } from "@/components/ui/button";
@@ -85,6 +87,7 @@ export default function CourtReserveScreen() {
   const router = useRouter();
   const { t } = useTranslation(["booking", "common"]);
   const toast = useToast();
+  const queryClient = useQueryClient();
 
   const courtId = params.id;
   const date = params.date;
@@ -92,7 +95,17 @@ export default function CourtReserveScreen() {
   const endMinute = Number(params.endMinute);
   const timeRangeLabel = `${minutesToTime(startMinute)}–${minutesToTime(endMinute)}`;
 
-  const createBooking = useCreateBooking();
+  // Reservar com sucesso ocupa um slot que a tela de disponibilidade
+  // (`court/[id]/availability.tsx`) ainda tem em cache como livre — invalida
+  // a query desse par quadra+data pra o slot recém-reservado parar de
+  // aparecer disponível ao voltar (débito deixado pela Task A2).
+  const createBooking = useCreateBooking({
+    mutation: {
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: BOOKINGS.availabilityQueryKey(courtId, date) });
+      },
+    },
+  });
   const attemptedRef = useRef(false);
 
   function requestBooking() {

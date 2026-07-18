@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 /**
@@ -57,5 +57,15 @@ export function formatDateParam(date: Date): string {
 /** Rótulo de dia pro cabeçalho da tela de disponibilidade — "sábado, 18 de julho". */
 export function formatDayLabel(date: Date): string {
   return format(date, "EEEE, d 'de' MMMM", { locale: ptBR });
+}
+
+/**
+ * `"yyyy-MM-dd"` (sem hora, ex.: `booking.date` de `GET /bookings/mine`) →
+ * `"dd/MM/yyyy"`. Usa `date-fns/parse` (não `new Date(string)`): a string
+ * teria sido interpretada como meia-noite UTC, o que em fusos negativos (ex.:
+ * Brasil, UTC-3) mostraria o dia anterior — mesmo cuidado de `formatDateParam`.
+ */
+export function formatDateOnly(dateOnly: string): string {
+  return format(parse(dateOnly, "yyyy-MM-dd", new Date()), "dd/MM/yyyy");
 }
 

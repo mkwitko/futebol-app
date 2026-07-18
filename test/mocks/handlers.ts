@@ -391,6 +391,11 @@ let createBookingModeMock: BookingModeValue = "instant";
 let createBookingPixNullMock = false;
 let createBookingErrorMock: CreateBookingErrorFixture = null;
 let bookingIdSeq = 0;
+// `POST /bookings/:id/cancel` (Task A3) — força a resposta em erro
+// independente do `status` atual da reserva, simulando a corrida em que o
+// status já mudou (webhook/expire job) antes do cancelamento chegar (409
+// `BKG-T0005`).
+let cancelBookingErrorMock: CreateBookingErrorFixture = null;
 
 const FAKE_PIX_VOUCHER: PixVoucherFixture = {
   qrCodeImageUrl: "https://pix.test/qr-code.png",
@@ -476,6 +481,7 @@ export function resetGroupsMocks() {
   createBookingModeMock = "instant";
   createBookingPixNullMock = false;
   createBookingErrorMock = null;
+  cancelBookingErrorMock = null;
   bookingIdSeq = 0;
 }
 
@@ -510,6 +516,16 @@ export function setBookingStatusMock(bookingId: string, status: BookingStatusVal
   bookings = bookings.map((booking) =>
     booking.id === bookingId ? { ...booking, status, updatedAt: new Date().toISOString() } : booking,
   );
+}
+
+/** Semeia `bookings` direto (sem passar por `POST /bookings`) — usado pelos testes de "Minhas reservas". */
+export function seedBookingsMock(next: Booking[]) {
+  bookings = next;
+}
+
+/** Força `POST /bookings/:id/cancel` a falhar com um erro do catálogo (ex.: 409 `BKG-T0005`), independente do status atual. */
+export function setCancelBookingErrorMock(error: CreateBookingErrorFixture) {
+  cancelBookingErrorMock = error;
 }
 
 /** Pré-semeia uma quadra (`GET /venues/:id`) — usado pra exibir a quadra na partida. */
@@ -751,6 +767,38 @@ export const handlers = [
 
   http.get(api("/bookings/mine"), () => {
     return HttpResponse.json(bookings);
+  }),
+
+  // `POST /bookings/:id/cancel` (Task A3) — espelha `CANCELLABLE_STATUSES` de
+  // `cancel-booking.service.ts`: só sai de `requested`/`pending_payment`/
+  // `confirmed`; qualquer outro status vira 409 `BKG-T0005` (`BAD_STATE`),
+  // sem mutar nada — mesmo caminho que o backend usa pra corrida perdida.
+  http.post(api("/bookings/:id/cancel"), ({ params }) => {
+    if (cancelBookingErrorMock) {
+      const { status, code } = cancelBookingErrorMock;
+      return HttpResponse.json({ status, code, message: code, trace_id: "test-trace" }, { status });
+    }
+
+    const id = params.id as string;
+    const booking = bookings.find((b) => b.id === id);
+    if (!booking) {
+      return HttpResponse.json(
+        { status: 404, code: "BKG-T0001", message: "BKG-T0001", trace_id: "test-trace" },
+        { status: 404 },
+      );
+    }
+
+    const cancellable: BookingStatusValue[] = ["requested", "pending_payment", "confirmed"];
+    if (!cancellable.includes(booking.status)) {
+      return HttpResponse.json(
+        { status: 409, code: "BKG-T0005", message: "BKG-T0005", trace_id: "test-trace" },
+        { status: 409 },
+      );
+    }
+
+    const updated: Booking = { ...booking, status: "cancelled", updatedAt: new Date().toISOString() };
+    bookings = bookings.map((b) => (b.id === id ? updated : b));
+    return HttpResponse.json(updated);
   }),
 
   http.get(api("/groups"), () => {

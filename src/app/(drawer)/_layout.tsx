@@ -79,6 +79,16 @@ export default function DrawerLayout() {
         }}
       />
       <Drawer.Screen
+        name="reservas"
+        options={{
+          title: t("nav.myBookings"),
+          drawerLabel: t("nav.myBookings"),
+          drawerIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "calendar" : "calendar-outline"} size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
         name="planos"
         options={{
           title: t("nav.plans"),
