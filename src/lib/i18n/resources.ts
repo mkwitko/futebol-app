@@ -1,6 +1,8 @@
 import authPt from "./locales/pt-BR/auth.json";
 import billingPt from "./locales/pt-BR/billing.json";
+import bookingPt from "./locales/pt-BR/booking.json";
 import commonPt from "./locales/pt-BR/common.json";
+import courtPt from "./locales/pt-BR/court.json";
 import discoverPt from "./locales/pt-BR/discover.json";
 import groupsPt from "./locales/pt-BR/groups.json";
 import matchesPt from "./locales/pt-BR/matches.json";
@@ -13,6 +15,8 @@ export const resources = {
     common: commonPt,
     auth: authPt,
     billing: billingPt,
+    booking: bookingPt,
+    court: courtPt,
     discover: discoverPt,
     groups: groupsPt,
     matches: matchesPt,

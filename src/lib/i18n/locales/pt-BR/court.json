@@ -1,0 +1,17 @@
+{
+  "list": {
+    "title": "Quadras",
+    "empty": "Essa quadra ainda não tem horários pra reservar.",
+    "loadError": "Não foi possível carregar as quadras."
+  },
+  "modality": {
+    "futsal": "Futsal",
+    "society": "Society",
+    "campo": "Campo (grama)"
+  },
+  "bookingMode": {
+    "instant": "Reserva instantânea",
+    "request": "Sob aprovação",
+    "deposit": "Sinal (depósito)"
+  }
+}

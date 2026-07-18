@@ -2,7 +2,9 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import auth from "../src/lib/i18n/locales/pt-BR/auth.json";
 import billing from "../src/lib/i18n/locales/pt-BR/billing.json";
+import booking from "../src/lib/i18n/locales/pt-BR/booking.json";
 import common from "../src/lib/i18n/locales/pt-BR/common.json";
+import court from "../src/lib/i18n/locales/pt-BR/court.json";
 import discover from "../src/lib/i18n/locales/pt-BR/discover.json";
 import groups from "../src/lib/i18n/locales/pt-BR/groups.json";
 import matches from "../src/lib/i18n/locales/pt-BR/matches.json";
@@ -53,9 +55,11 @@ if (!i18n.isInitialized) {
   void i18n.use(initReactI18next).init({
     lng: "pt-BR",
     fallbackLng: "pt-BR",
-    ns: ["common", "auth", "billing", "discover", "groups", "matches", "player", "venue", "zod"],
+    ns: ["common", "auth", "billing", "booking", "court", "discover", "groups", "matches", "player", "venue", "zod"],
     defaultNS: "common",
-    resources: { "pt-BR": { common, auth, billing, discover, groups, matches, player, venue, zod } },
+    resources: {
+      "pt-BR": { common, auth, billing, booking, court, discover, groups, matches, player, venue, zod },
+    },
     interpolation: { escapeValue: false },
     returnNull: false,
   });

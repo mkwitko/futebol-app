@@ -31,3 +31,31 @@ export function combineDateAndTime(date: Date, time: Date): Date {
   return combined;
 }
 
+/**
+ * Minutos desde a meia-noite (ex.: `startMinute`/`endMinute` da disponibilidade
+ * de quadra) → "HH:MM". Mesma fórmula do `minutesToTime` do futebol-web
+ * (`price-rules-editor.tsx`) — mantém os dois clientes consistentes.
+ */
+export function minutesToTime(minutes: number): string {
+  const hh = Math.floor(minutes / 60)
+    .toString()
+    .padStart(2, "0");
+  const mm = (minutes % 60).toString().padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
+/**
+ * `Date` (calendário local, sem hora) → `"yyyy-MM-dd"` — formato exigido pelo
+ * query param `date` de `GET /courts/:id/availability` (`z.iso.date()` no
+ * backend). Não usar `.toISOString()` aqui: converteria pro UTC e poderia
+ * mudar o dia em fusos negativos (ex.: 23h de São Paulo vira o dia seguinte em UTC).
+ */
+export function formatDateParam(date: Date): string {
+  return format(date, "yyyy-MM-dd");
+}
+
+/** Rótulo de dia pro cabeçalho da tela de disponibilidade — "sábado, 18 de julho". */
+export function formatDayLabel(date: Date): string {
+  return format(date, "EEEE, d 'de' MMMM", { locale: ptBR });
+}
+

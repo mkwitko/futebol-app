@@ -21,7 +21,12 @@ export default defineConfig({
     // Types TypeScript puros de schemas
     pluginTs({
       output: { path: "./types" },
-      dateType: "date",
+      // "string": campos `format: date`/`date-time` viram `string` no TS, casando
+      // com o valor real na rede (o client, em src/api/client.ts, serializa
+      // query params com `String(value)` — um `Date` nativo aqui viraria algo
+      // como "Fri Jul 18 2026 00:00:00 GMT-0300", não "2026-07-18"). Mesma
+      // config do futebol-web (mesmo backend) — ver kubb.config.ts de lá.
+      dateType: "string",
       enumType: "asConst",
     }),
 

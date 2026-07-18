@@ -30,6 +30,28 @@ export const FAKE_VENUE = {
   updatedAt: "2026-01-01T00:00:00.000Z",
 };
 
+export const FAKE_COURT = {
+  id: "court-1",
+  venueId: FAKE_VENUE.id,
+  name: "Quadra 1",
+  modality: "society" as "futsal" | "society" | "campo",
+  surface: "grama sintética" as string | null,
+  slotMinutes: 60,
+  bookingMode: "instant" as "instant" | "request" | "deposit",
+  depositPercent: null as number | null,
+  active: true,
+  priceRules: [] as { weekday: number; startMinute: number; endMinute: number; priceCents: number }[],
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z",
+};
+
+export const FAKE_AVAILABILITY_SLOT = {
+  startMinute: 19 * 60,
+  endMinute: 20 * 60,
+  priceCents: 8000,
+  available: true,
+};
+
 export const FAKE_GROUP = {
   id: "group-1",
   name: "Pelada dos Amigos",
@@ -277,6 +299,9 @@ type JoinRequest = {
   createdAt: string;
 };
 
+type Court = typeof FAKE_COURT;
+type AvailabilitySlot = typeof FAKE_AVAILABILITY_SLOT;
+
 type DiscoverMatch = {
   matchId: string;
   groupId: string;
@@ -320,6 +345,10 @@ let joinRequestsByMatch: Record<string, JoinRequest[]> = {};
 let discoverResults: DiscoverMatch[] = [];
 let me = { ...FAKE_USER };
 let venuesById: Record<string, typeof FAKE_VENUE> = { [FAKE_VENUE.id]: { ...FAKE_VENUE } };
+let courtsByVenue: Record<string, Court[]> = { [FAKE_VENUE.id]: [{ ...FAKE_COURT }] };
+// Ignora o `date` da query — os testes de disponibilidade não precisam variar por dia,
+// só semear/ler os slots retornados por `GET /courts/:id/availability`.
+let availabilityByCourt: Record<string, AvailabilitySlot[]> = { [FAKE_COURT.id]: [{ ...FAKE_AVAILABILITY_SLOT }] };
 
 // Entitlements (`GET /billing/me`). Default: pagamentos habilitados, sem
 // features. Testes de bypass revisor usam `setBillingMock({ paymentsEnabled: false })`.
@@ -393,11 +422,23 @@ export function resetGroupsMocks() {
   discoverResults = [];
   me = { ...FAKE_USER };
   venuesById = { [FAKE_VENUE.id]: { ...FAKE_VENUE } };
+  courtsByVenue = { [FAKE_VENUE.id]: [{ ...FAKE_COURT }] };
+  availabilityByCourt = { [FAKE_COURT.id]: [{ ...FAKE_AVAILABILITY_SLOT }] };
 }
 
 /** Pré-semeia uma quadra (`GET /venues/:id`) — usado pra exibir a quadra na partida. */
 export function setVenueMock(venue: typeof FAKE_VENUE) {
   venuesById[venue.id] = venue;
+}
+
+/** Pré-semeia as quadras (`Court`) de uma venue (`GET /venues/:venueId/courts`). */
+export function setCourtsMock(venueId: string, next: Court[]) {
+  courtsByVenue[venueId] = next;
+}
+
+/** Pré-semeia os slots de disponibilidade de uma quadra (`GET /courts/:id/availability`). */
+export function setAvailabilityMock(courtId: string, next: AvailabilitySlot[]) {
+  availabilityByCourt[courtId] = next;
 }
 
 /** Pré-semeia os pedidos de entrada pendentes de uma pelada (inbox do organizador). */
@@ -560,6 +601,14 @@ export const handlers = [
     const venue = venuesById[params.id as string];
     if (!venue) return HttpResponse.json({ message: "not_found" }, { status: 404 });
     return HttpResponse.json(venue);
+  }),
+
+  http.get(api("/venues/:venueId/courts"), ({ params }) => {
+    return HttpResponse.json(courtsByVenue[params.venueId as string] ?? []);
+  }),
+
+  http.get(api("/courts/:id/availability"), ({ params }) => {
+    return HttpResponse.json(availabilityByCourt[params.id as string] ?? []);
   }),
 
   http.get(api("/groups"), () => {

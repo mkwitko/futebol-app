@@ -1,0 +1,21 @@
+{
+  "availability": {
+    "title": "Disponibilidade",
+    "subtitle": "Escolha um horário livre pra reservar.",
+    "loadError": "Não foi possível carregar os horários dessa data.",
+    "empty": "Nenhum horário configurado pra esse dia.",
+    "nav": {
+      "prev": "Dia anterior",
+      "next": "Próximo dia"
+    },
+    "slot": {
+      "free": "Livre",
+      "occupied": "Ocupado"
+    },
+    "selected": {
+      "summary": "{{time}} · {{price}}",
+      "reserve": "Reservar este horário",
+      "comingSoonToast": "Reserva de {{time}} ({{price}}) selecionada — o pagamento chega em breve."
+    }
+  }
+}
