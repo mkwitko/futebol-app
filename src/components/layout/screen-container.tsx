@@ -19,6 +19,7 @@ export function ScreenContainer({
   className,
   scroll = true,
   background,
+  footer,
 }: {
   children: ReactNode;
   className?: string;
@@ -29,6 +30,11 @@ export function ScreenContainer({
    * (intensidade cheia) explicitamente.
    */
   background?: ReactNode;
+  /**
+   * Slot fixo abaixo do conteúdo rolável, dentro da SafeAreaView. Fica sempre
+   * visível (não rola com o resto da tela).
+   */
+  footer?: ReactNode;
 }) {
   const backdrop = background ?? <StadiumBackground intensity="subtle" />;
 
@@ -56,6 +62,7 @@ export function ScreenContainer({
         {backdrop}
       </View>
       {content}
+      {footer ? <View className="px-6 py-4">{footer}</View> : null}
     </SafeAreaView>
   );
 }
