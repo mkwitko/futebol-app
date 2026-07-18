@@ -92,7 +92,7 @@ export function DrawerAppContent(props: DrawerContentComponentProps) {
           )}
         </View>
       </Pressable>
-      <View style={{ marginTop: 12 }}>
+      <View>
         <DrawerItemList {...props} />
       </View>
     </DrawerContentScrollView>
