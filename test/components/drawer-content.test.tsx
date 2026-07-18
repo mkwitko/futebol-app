@@ -46,10 +46,10 @@ jest.mock("react-native-safe-area-context", () => {
   };
 });
 
-describe("DrawerAppContent banner", () => {
-  const closeDrawer = jest.fn();
-  const fakeProps = { navigation: { closeDrawer } } as unknown as DrawerContentComponentProps;
+const closeDrawer = jest.fn();
+const fakeProps = { navigation: { closeDrawer } } as unknown as DrawerContentComponentProps;
 
+describe("DrawerAppContent banner", () => {
   beforeEach(async () => {
     resetGroupsMocks();
     mockPush.mockClear();
@@ -98,5 +98,14 @@ describe("DrawerAppContent banner", () => {
 
     expect(await screen.findByText("Alice")).toBeOnTheScreen();
     expect(screen.queryByText("84")).toBeNull();
+  });
+});
+
+describe("DrawerAppContent without auth", () => {
+  it("does not show the overall pill when there is no authenticated user", async () => {
+    // no saveTokens here → useAuth().user is null → query disabled
+    renderWithProviders(<DrawerAppContent {...fakeProps} />);
+    // Give any (disabled) query a tick; the pill must never appear.
+    await waitFor(() => expect(screen.queryByText("84")).toBeNull());
   });
 });

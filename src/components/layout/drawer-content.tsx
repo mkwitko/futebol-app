@@ -18,7 +18,10 @@ export function DrawerAppContent(props: DrawerContentComponentProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { data: player, isPending } = useGetMyPlayer();
+  const { data: player, isPending } = useGetMyPlayer({
+    query: { enabled: Boolean(user), refetchOnMount: true },
+  });
+  const loadingPlayer = Boolean(user) && isPending;
 
   const name = player?.name ?? user?.name ?? "";
   const city = user?.lastCity ?? null;
@@ -45,7 +48,7 @@ export function DrawerAppContent(props: DrawerContentComponentProps) {
             gap: 8,
           }}
         >
-          {isPending ? (
+          {loadingPlayer ? (
             <View testID="drawer-banner-skeleton" style={{ alignItems: "center", gap: 8 }}>
               <Skeleton className="h-24 w-24 rounded-full" />
               <Skeleton className="h-5 w-32" />
