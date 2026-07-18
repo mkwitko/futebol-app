@@ -15,8 +15,45 @@
     },
     "selected": {
       "summary": "{{time}} · {{price}}",
-      "reserve": "Reservar este horário",
-      "comingSoonToast": "Reserva de {{time}} ({{price}}) selecionada — o pagamento chega em breve."
+      "reserve": "Reservar este horário"
+    }
+  },
+  "reserve": {
+    "title": "Reservar",
+    "summary": "{{time}} · {{price}}",
+    "creating": "Confirmando sua reserva…",
+    "pix": {
+      "title": "Pague com PIX pra confirmar",
+      "qrLabel": "QR Code do PIX",
+      "copyPasteLabel": "PIX copia e cola",
+      "copyCta": "Copiar código PIX",
+      "copiedToast": "Código PIX copiado.",
+      "expiresAt": "Expira às {{time}}",
+      "waiting": "Aguardando pagamento…"
+    },
+    "confirmed": {
+      "title": "Reserva confirmada!",
+      "description": "Seu pagamento foi aprovado — a quadra é sua.",
+      "cta": "OK"
+    },
+    "requested": {
+      "title": "Reserva solicitada",
+      "description": "Aguardando aprovação do dono da quadra. Você será avisado quando ela for aceita."
+    },
+    "expired": {
+      "title": "PIX expirado",
+      "description": "O tempo pra pagar esse PIX acabou. Tente reservar de novo."
+    },
+    "cancelled": {
+      "title": "Reserva cancelada",
+      "description": "Essa reserva foi cancelada. Tente reservar de novo."
+    },
+    "errors": {
+      "slotUnavailable": "Esse horário acabou de ficar indisponível. Escolha outro.",
+      "notReady": "Essa quadra ainda não aceita pagamentos no momento.",
+      "billingDisabled": "Pagamentos estão indisponíveis no momento. Tente mais tarde.",
+      "generic": "Não foi possível criar sua reserva. Tente novamente.",
+      "paymentUnavailable": "Não foi possível gerar o PIX dessa reserva. Tente novamente."
     }
   }
 }

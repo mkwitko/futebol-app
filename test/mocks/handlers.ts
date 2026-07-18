@@ -302,6 +302,37 @@ type JoinRequest = {
 type Court = typeof FAKE_COURT;
 type AvailabilitySlot = typeof FAKE_AVAILABILITY_SLOT;
 
+type BookingModeValue = "instant" | "request" | "deposit";
+type BookingStatusValue =
+  | "requested"
+  | "pending_payment"
+  | "confirmed"
+  | "completed"
+  | "cancelled"
+  | "rejected"
+  | "expired";
+
+type Booking = {
+  id: string;
+  courtId: string;
+  bookedById: string;
+  date: string;
+  startMinute: number;
+  endMinute: number;
+  priceCents: number;
+  mode: BookingModeValue;
+  status: BookingStatusValue;
+  depositCents: number | null;
+  stripePaymentIntentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type PixVoucherFixture = { qrCodeImageUrl: string; copyPaste: string; expiresAt: string };
+
+/** Erro simulado de `POST /bookings` — usado pra testar os 409/503 mapeados em `reserve.tsx`. */
+type CreateBookingErrorFixture = { status: number; code: string } | null;
+
 type DiscoverMatch = {
   matchId: string;
   groupId: string;
@@ -349,6 +380,23 @@ let courtsByVenue: Record<string, Court[]> = { [FAKE_VENUE.id]: [{ ...FAKE_COURT
 // Ignora o `date` da query — os testes de disponibilidade não precisam variar por dia,
 // só semear/ler os slots retornados por `GET /courts/:id/availability`.
 let availabilityByCourt: Record<string, AvailabilitySlot[]> = { [FAKE_COURT.id]: [{ ...FAKE_AVAILABILITY_SLOT }] };
+
+// `POST /bookings` / `GET /bookings/mine` (Task A2 — reservar + pagar PIX).
+// `createBookingModeMock` decide o `mode` (e portanto o shape da resposta:
+// `request` não tem `payment`); `createBookingPixNullMock` simula o caso
+// defensivo em que o backend não conseguiu montar o voucher PIX mesmo em modo
+// pago; `createBookingErrorMock` simula os 409/503 do catálogo de erros.
+let bookings: Booking[] = [];
+let createBookingModeMock: BookingModeValue = "instant";
+let createBookingPixNullMock = false;
+let createBookingErrorMock: CreateBookingErrorFixture = null;
+let bookingIdSeq = 0;
+
+const FAKE_PIX_VOUCHER: PixVoucherFixture = {
+  qrCodeImageUrl: "https://pix.test/qr-code.png",
+  copyPaste: "00020126580014BR.GOV.BCB.PIX0136fake-pix-copy-paste-code5204000053039865802BR5913Camisa7 Test6008Sao Paulo62070503***6304ABCD",
+  expiresAt: "2026-07-18T13:00:00.000Z",
+};
 
 // Entitlements (`GET /billing/me`). Default: pagamentos habilitados, sem
 // features. Testes de bypass revisor usam `setBillingMock({ paymentsEnabled: false })`.
@@ -424,6 +472,44 @@ export function resetGroupsMocks() {
   venuesById = { [FAKE_VENUE.id]: { ...FAKE_VENUE } };
   courtsByVenue = { [FAKE_VENUE.id]: [{ ...FAKE_COURT }] };
   availabilityByCourt = { [FAKE_COURT.id]: [{ ...FAKE_AVAILABILITY_SLOT }] };
+  bookings = [];
+  createBookingModeMock = "instant";
+  createBookingPixNullMock = false;
+  createBookingErrorMock = null;
+  bookingIdSeq = 0;
+}
+
+/** Troca o `mode` que `POST /bookings` simula (`instant`/`request`/`deposit`) — decide se a resposta traz `payment`. */
+export function setCreateBookingModeMock(mode: BookingModeValue) {
+  createBookingModeMock = mode;
+}
+
+/** Simula o backend não conseguir montar o voucher PIX (`payment.pix: null`) mesmo em modo pago. */
+export function setCreateBookingPixNullMock(flag: boolean) {
+  createBookingPixNullMock = flag;
+}
+
+/** Simula `POST /bookings` falhando com um erro do catálogo (`BKG-T0002`, `CON-T0004`, `BIL-T0001`...). */
+export function setCreateBookingErrorMock(error: CreateBookingErrorFixture) {
+  createBookingErrorMock = error;
+}
+
+/** Lê as reservas persistidas no mock — usado pra asserções de payload (`courtId`/`date`/minutos) nos testes. */
+export function getBookingsMock() {
+  return bookings;
+}
+
+/**
+ * Sobrescreve o `status` de uma reserva já criada — simula o webhook do
+ * Stripe confirmando o pagamento (ou o job de expiração/cancelamento) do
+ * lado do backend, sem passar pelo handler de `POST /bookings` de novo. É
+ * assim que os testes de polling avançam `pending_payment` → `confirmed`/
+ * `expired`/`cancelled` entre um tick do `refetchInterval` e o outro.
+ */
+export function setBookingStatusMock(bookingId: string, status: BookingStatusValue) {
+  bookings = bookings.map((booking) =>
+    booking.id === bookingId ? { ...booking, status, updatedAt: new Date().toISOString() } : booking,
+  );
 }
 
 /** Pré-semeia uma quadra (`GET /venues/:id`) — usado pra exibir a quadra na partida. */
@@ -609,6 +695,62 @@ export const handlers = [
 
   http.get(api("/courts/:id/availability"), ({ params }) => {
     return HttpResponse.json(availabilityByCourt[params.id as string] ?? []);
+  }),
+
+  http.post(api("/bookings"), async ({ request }) => {
+    if (createBookingErrorMock) {
+      const { status, code } = createBookingErrorMock;
+      return HttpResponse.json({ status, code, message: code, trace_id: "test-trace" }, { status });
+    }
+
+    const body = (await request.json()) as {
+      courtId: string;
+      date: string;
+      startMinute: number;
+      endMinute: number;
+    };
+    const mode = createBookingModeMock;
+    bookingIdSeq += 1;
+    const id = `booking-${bookingIdSeq}`;
+    const now = new Date().toISOString();
+    const priceCents = FAKE_AVAILABILITY_SLOT.priceCents;
+
+    const booking: Booking = {
+      id,
+      courtId: body.courtId,
+      bookedById: FAKE_USER.id,
+      date: body.date,
+      startMinute: body.startMinute,
+      endMinute: body.endMinute,
+      priceCents,
+      mode,
+      status: mode === "request" ? "requested" : "pending_payment",
+      depositCents: mode === "deposit" ? Math.round(priceCents * 0.3) : null,
+      stripePaymentIntentId: mode === "request" ? null : `pi_${id}`,
+      createdAt: now,
+      updatedAt: now,
+    };
+    bookings = [...bookings, booking];
+
+    if (mode === "request") {
+      return HttpResponse.json({ booking }, { status: 201 });
+    }
+
+    return HttpResponse.json(
+      {
+        booking,
+        payment: {
+          paymentIntentId: `pi_${id}`,
+          clientSecret: `secret_${id}`,
+          pix: createBookingPixNullMock ? null : { ...FAKE_PIX_VOUCHER },
+        },
+      },
+      { status: 201 },
+    );
+  }),
+
+  http.get(api("/bookings/mine"), () => {
+    return HttpResponse.json(bookings);
   }),
 
   http.get(api("/groups"), () => {

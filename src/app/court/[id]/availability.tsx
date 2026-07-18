@@ -10,8 +10,6 @@ import { QueryState } from "@/components/shared/query-state";
 import { Button } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { Text } from "@/components/ui/text";
-import { Toast } from "@/components/ui/toast";
-import { useToast } from "@/hooks/common/use-toast";
 import { formatDateParam, formatDayLabel, minutesToTime } from "@/lib/datetime/format";
 import { formatCentsToBRL } from "@/lib/money";
 import { useGetCourtAvailability } from "@/api/generated/hooks/bookingsHooks/useGetCourtAvailability";
@@ -21,16 +19,14 @@ import { useGetCourtAvailability } from "@/api/generated/hooks/bookingsHooks/use
  * navegação dia a dia ou pulo direto via picker nativo) + grid de horários
  * livres/ocupados com preço (`GET /courts/:id/availability?date=`).
  *
- * Selecionar um horário livre é o ponto de handoff pra Task A2 (reservar +
- * pagar PIX): esta tela só sinaliza a seleção (resumo + toast), sem criar a
- * reserva — `handleReserve` abaixo é onde A2 troca isso por `POST /bookings`
- * e navegação pro checkout.
+ * Selecionar um horário livre + tocar "Reservar" navega pro checkout
+ * (`court/[id]/reserve`, Task A2), que é quem chama `POST /bookings` e
+ * conduz o fluxo de pagamento PIX.
  */
 export default function CourtAvailabilityScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
   const router = useRouter();
   const { t } = useTranslation(["booking", "common"]);
-  const toast = useToast();
 
   const [date, setDate] = useState(() => new Date());
   const [selected, setSelected] = useState<AvailabilitySlot | null>(null);
@@ -69,14 +65,16 @@ export default function CourtAvailabilityScreen() {
 
   function handleReserve() {
     if (!selected) return;
-    // TODO(A2): substituir por `POST /bookings` ({ courtId: id, date, startMinute, endMinute })
-    // seguido da navegação pro checkout PIX. Ver task-A1-brief.md § Task A2.
-    toast.show(
-      t("booking:availability.selected.comingSoonToast", {
-        time: `${minutesToTime(selected.startMinute)}–${minutesToTime(selected.endMinute)}`,
-        price: formatCentsToBRL(selected.priceCents),
-      }),
-    );
+    router.push({
+      pathname: "/court/[id]/reserve",
+      params: {
+        id,
+        name: name || undefined,
+        date: formatDateParam(date),
+        startMinute: String(selected.startMinute),
+        endMinute: String(selected.endMinute),
+      },
+    });
   }
 
   return (
@@ -86,12 +84,6 @@ export default function CourtAvailabilityScreen() {
         subtitle={name || undefined}
         onBack={() => router.back()}
       />
-
-      {toast.message ? (
-        <Toast variant={toast.variant} onDismiss={toast.dismiss}>
-          {toast.message}
-        </Toast>
-      ) : null}
 
       <Text variant="muted">{t("booking:availability.subtitle")}</Text>
 

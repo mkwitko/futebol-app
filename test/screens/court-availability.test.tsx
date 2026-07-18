@@ -17,9 +17,13 @@ const FREE_SLOT = { startMinute: 19 * 60, endMinute: 20 * 60, priceCents: 8000, 
 const OCCUPIED_SLOT = { startMinute: 20 * 60, endMinute: 21 * 60, priceCents: 10000, available: false };
 
 describe("Disponibilidade da quadra", () => {
+  const push = jest.fn();
+
   beforeEach(() => {
     resetGroupsMocks();
+    push.mockClear();
     (useLocalSearchParams as jest.Mock).mockReturnValue({ id: FAKE_COURT.id, name: FAKE_COURT.name });
+    (useRouter as jest.Mock).mockReturnValue({ back: jest.fn(), push, replace: jest.fn() });
     // Data determinística — a tela usa `new Date()` como dia padrão (hoje).
     jest.useFakeTimers().setSystemTime(new Date("2026-07-18T12:00:00.000Z"));
   });
@@ -73,7 +77,7 @@ describe("Disponibilidade da quadra", () => {
     expect(screen.queryByTestId("availability-selection-summary")).not.toBeOnTheScreen();
   });
 
-  it("tapping reserve shows a coming-soon toast — payment/checkout is Task A2, not built here", async () => {
+  it("tapping reserve navigates to the checkout screen with the selected slot", async () => {
     setAvailabilityMock(FAKE_COURT.id, [FREE_SLOT]);
     const user = userEvent.setup();
     renderWithProviders(<CourtAvailabilityScreen />);
@@ -81,9 +85,16 @@ describe("Disponibilidade da quadra", () => {
     await user.press(await screen.findByTestId(`availability-slot-${FREE_SLOT.startMinute}`));
     await user.press(screen.getByText("Reservar este horário"));
 
-    expect(
-      await screen.findByText("Reserva de 19:00–20:00 (R$ 80,00) selecionada — o pagamento chega em breve."),
-    ).toBeOnTheScreen();
+    expect(push).toHaveBeenCalledWith({
+      pathname: "/court/[id]/reserve",
+      params: {
+        id: FAKE_COURT.id,
+        name: FAKE_COURT.name,
+        date: "2026-07-18",
+        startMinute: String(FREE_SLOT.startMinute),
+        endMinute: String(FREE_SLOT.endMinute),
+      },
+    });
   });
 
   it("navigating to the next day clears the current selection", async () => {
