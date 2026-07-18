@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react-native";
 import HomeScreen from "@/app/(drawer)/index";
 import { saveTokens } from "@/lib/auth/tokens";
-import { resetGroupsMocks } from "../mocks/handlers";
+import { FAKE_UPCOMING_MATCHES, resetGroupsMocks, setUpcomingMatchesMock } from "../mocks/handlers";
 import { renderWithProviders } from "../utils/render";
 
 jest.mock("react-native-safe-area-context", () => {
@@ -25,5 +25,18 @@ describe("HomeScreen", () => {
   it("pins the 'Ver meus grupos' footer CTA", async () => {
     renderWithProviders(<HomeScreen />);
     expect(await screen.findByText("Ver meus grupos")).toBeOnTheScreen();
+  });
+
+  it("renders the hero for the first upcoming match", async () => {
+    renderWithProviders(<HomeScreen />);
+    // FAKE_UPCOMING_MATCHES[0].groupName (see test/mocks/handlers.ts) — the hero.
+    expect(await screen.findByText(FAKE_UPCOMING_MATCHES[0]!.groupName)).toBeOnTheScreen();
+  });
+
+  it("shows the empty state and no hero when there are no upcoming matches", async () => {
+    setUpcomingMatchesMock([]);
+    renderWithProviders(<HomeScreen />);
+    expect(await screen.findByText("Nenhuma partida marcada")).toBeOnTheScreen();
+    expect(screen.queryByText(FAKE_UPCOMING_MATCHES[0]!.groupName)).toBeNull();
   });
 });

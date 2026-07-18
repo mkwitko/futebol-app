@@ -38,6 +38,14 @@ describe("MatchHeroCard", () => {
   it("hides the CTA and shows a confirmed badge when already confirmed", () => {
     renderWithProviders(<MatchHeroCard match={makeMatch({ attendanceStatus: "confirmed" })} />);
     expect(screen.queryByText("Confirmar presença")).toBeNull();
+    expect(screen.getByText("Confirmado")).toBeOnTheScreen();
+  });
+
+  it("confirms presence and shows the success toast when the CTA is pressed", async () => {
+    renderWithProviders(<MatchHeroCard match={makeMatch()} />);
+    fireEvent.press(screen.getByTestId("hero-confirm-cta"));
+    // POST /matches/:id/attendance (mocked in test/mocks/handlers.ts) succeeds -> onSuccess shows the toast.
+    expect(await screen.findByText("Presença confirmada!")).toBeOnTheScreen();
   });
 
   it("navigates to the match on card press", () => {

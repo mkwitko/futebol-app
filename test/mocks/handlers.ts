@@ -182,6 +182,53 @@ function emptyCareer(playerId: string): Career {
   };
 }
 
+/** `GET /players/me/upcoming-matches` — item de `GetMyUpcomingMatches200` (ver `src/api/generated/types/GetMyUpcomingMatches.ts`). */
+export type UpcomingMatch = {
+  id: string;
+  groupId: string;
+  groupName: string;
+  datetime: string;
+  location: string;
+  priceCents: number;
+  slots: number;
+  status: "open" | "full" | "closed" | "finished" | "cancelled";
+  seriesId: string | null;
+  attendanceStatus: "confirmed" | "waitlisted" | null;
+};
+
+/**
+ * Duas partidas: a primeira (`match-hero-1`) sem presença confirmada
+ * (`attendanceStatus: null`) — é ela que vira o hero de "Início" com o CTA
+ * "Confirmar presença"; a segunda já confirmada, pra exercitar o badge/list
+ * das "Demais partidas".
+ */
+export const FAKE_UPCOMING_MATCHES: UpcomingMatch[] = [
+  {
+    id: "match-hero-1",
+    groupId: FAKE_GROUP.id,
+    groupName: "Racha de Quinta",
+    datetime: "2026-07-18T21:00:00.000Z",
+    location: "Quadra do Zico",
+    priceCents: 2000,
+    slots: 18,
+    status: "open",
+    seriesId: null,
+    attendanceStatus: null,
+  },
+  {
+    id: "match-hero-2",
+    groupId: FAKE_GROUP.id,
+    groupName: "Pelada dos Amigos",
+    datetime: "2026-07-25T21:00:00.000Z",
+    location: "Ginásio Central",
+    priceCents: 1500,
+    slots: 14,
+    status: "open",
+    seriesId: null,
+    attendanceStatus: "confirmed",
+  },
+];
+
 export const FAKE_CAREER: Career = {
   id: "career-1",
   playerId: FAKE_MY_PLAYER.id,
@@ -371,6 +418,7 @@ let statsByMatch: Record<string, MatchStat[]> = {};
 let votesByMatch: Record<string, Vote[]> = {};
 let voteWindowClosedMatches = new Set<string>();
 let myPlayer = { ...FAKE_MY_PLAYER };
+let upcomingMatches: UpcomingMatch[] = [...FAKE_UPCOMING_MATCHES];
 let careerByPlayer: Record<string, Career> = { [FAKE_MY_PLAYER.id]: { ...FAKE_CAREER } };
 let joinRequestsByMatch: Record<string, JoinRequest[]> = {};
 let discoverResults: DiscoverMatch[] = [];
@@ -470,6 +518,7 @@ export function resetGroupsMocks() {
   votesByMatch = {};
   voteWindowClosedMatches = new Set();
   myPlayer = { ...FAKE_MY_PLAYER };
+  upcomingMatches = [...FAKE_UPCOMING_MATCHES];
   careerByPlayer = { [FAKE_MY_PLAYER.id]: { ...FAKE_CAREER } };
   joinRequestsByMatch = {};
   discoverResults = [];
@@ -561,6 +610,11 @@ export function setDiscoverMock(next: DiscoverMatch[]) {
 /** Troca o jogador retornado por `GET /players/me` — usado pra testar outro nome/id logado. */
 export function setMyPlayerMock(next: typeof FAKE_MY_PLAYER) {
   myPlayer = next;
+}
+
+/** Sobrescreve `GET /players/me/upcoming-matches` — ex.: `[]` pro estado vazio do hero/lista de "Início". */
+export function setUpcomingMatchesMock(next: UpcomingMatch[]) {
+  upcomingMatches = next;
 }
 
 /** Pré-semeia a carreira de um `playerId` — sem entrada, `GET .../career` volta o corpo zerado (bootstrap default). */
@@ -1170,6 +1224,10 @@ export const handlers = [
 
   http.get(api("/players/me"), () => {
     return HttpResponse.json(myPlayer);
+  }),
+
+  http.get(api("/players/me/upcoming-matches"), () => {
+    return HttpResponse.json(upcomingMatches);
   }),
 
   http.get(api("/players/:playerId/career"), ({ params }) => {
