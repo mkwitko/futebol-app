@@ -107,4 +107,21 @@ describe("Checkout de reserva (PIX)", () => {
     },
     10000,
   );
+
+  it(
+    "polling GET /bookings/mine detects a non-confirmed terminal status (rejected) and lands on the retry screen instead of staying stuck pending",
+    async () => {
+      setCreateBookingModeMock("instant");
+      renderWithProviders(<CourtReserveScreen />);
+
+      await screen.findByTestId("pix-voucher");
+      const [booking] = getBookingsMock();
+      setBookingStatusMock(booking!.id, "rejected");
+
+      expect(await screen.findByTestId("reserve-failed", {}, { timeout: 8000 })).toBeOnTheScreen();
+      expect(screen.queryByTestId("pix-voucher")).not.toBeOnTheScreen();
+      expect(screen.queryByTestId("reserve-pix-waiting")).not.toBeOnTheScreen();
+    },
+    10000,
+  );
 });

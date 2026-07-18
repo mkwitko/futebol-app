@@ -71,7 +71,8 @@ function resolveCreateBookingError(error: unknown, t: TFunction<"booking">): str
  * - `payment.pix` presente (`instant`/`deposit`): mostra o voucher PIX e faz
  *   *poll* de `GET /bookings/mine` até o status sair de `pending_payment`
  *   (confirmado pelo webhook do Stripe do lado do backend) — `confirmed` vira
- *   sucesso; `expired`/`cancelled` vira falha com opção de tentar de novo.
+ *   sucesso; qualquer outro status terminal (`expired`/`cancelled`/`rejected`/
+ *   `completed`) vira falha com opção de tentar de novo.
  *
  * As fases são mutuamente exclusivas (`Phase`) — evita, por exemplo, o card
  * de erro antigo continuar visível junto com o spinner de uma nova tentativa.
@@ -152,7 +153,7 @@ export default function CourtReserveScreen() {
           ? "payment-unavailable"
           : liveStatus === "confirmed"
             ? "pix-confirmed"
-            : liveStatus === "expired" || liveStatus === "cancelled"
+            : liveStatus && TERMINAL_STATUSES.has(liveStatus)
               ? "pix-failed"
               : "pix-pending";
 
