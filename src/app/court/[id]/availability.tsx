@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, View } from "react-native";
-import { addDays } from "date-fns";
+import { Platform, Pressable, View } from "react-native";
+import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import { addDays, startOfDay } from "date-fns";
 import { AvailabilitySlotList, type AvailabilitySlot } from "@/components/court/availability-slot-list";
 import { ScreenContainer } from "@/components/layout/screen-container";
 import { QueryState } from "@/components/shared/query-state";
@@ -17,8 +18,8 @@ import { useGetCourtAvailability } from "@/api/generated/hooks/bookingsHooks/use
 
 /**
  * Disponibilidade de horários de uma quadra (`Court`) — data (padrão hoje,
- * navegação dia a dia) + grid de horários livres/ocupados com preço
- * (`GET /courts/:id/availability?date=`).
+ * navegação dia a dia ou pulo direto via picker nativo) + grid de horários
+ * livres/ocupados com preço (`GET /courts/:id/availability?date=`).
  *
  * Selecionar um horário livre é o ponto de handoff pra Task A2 (reservar +
  * pagar PIX): esta tela só sinaliza a seleção (resumo + toast), sem criar a
@@ -33,6 +34,7 @@ export default function CourtAvailabilityScreen() {
 
   const [date, setDate] = useState(() => new Date());
   const [selected, setSelected] = useState<AvailabilitySlot | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const availabilityQuery = useGetCourtAvailability(id, { date: formatDateParam(date) });
   const slots = availabilityQuery.data ?? [];
@@ -40,6 +42,24 @@ export default function CourtAvailabilityScreen() {
   function changeDay(deltaDays: number) {
     setSelected(null);
     setDate((current) => addDays(current, deltaDays));
+  }
+
+  function selectDate(next: Date) {
+    setSelected(null);
+    setDate(next);
+  }
+
+  function handleDatePickerChange(event: DateTimePickerEvent, next?: Date) {
+    if (event.type === "dismissed") {
+      setShowDatePicker(false);
+      return;
+    }
+    if (next) selectDate(next);
+    // Android: o diálogo se fecha sozinho após a escolha. iOS: o spinner
+    // (`display="spinner"`) é inline e dispara `set` a cada tick do scroll —
+    // fechar aqui abortaria a rolagem; o usuário fecha tocando no rótulo de
+    // novo (o Pressable faz toggle), mesmo padrão de `DateTimeField`.
+    if (Platform.OS !== "ios") setShowDatePicker(false);
   }
 
   function handleSelectSlot(slot: AvailabilitySlot) {
@@ -85,9 +105,16 @@ export default function CourtAvailabilityScreen() {
         >
           <Text className="font-display text-2xl text-ink">‹</Text>
         </Pressable>
-        <Text variant="display" className="text-lg capitalize" numberOfLines={1}>
-          {formatDayLabel(date)}
-        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("booking:availability.nav.pickDate")}
+          onPress={() => setShowDatePicker((prev) => !prev)}
+          className="flex-1 items-center rounded-xl px-2 py-1 active:bg-surface-up"
+        >
+          <Text variant="display" className="text-lg capitalize" numberOfLines={1}>
+            {formatDayLabel(date)}
+          </Text>
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t("booking:availability.nav.next")}
@@ -98,6 +125,17 @@ export default function CourtAvailabilityScreen() {
           <Text className="font-display text-2xl text-ink">›</Text>
         </Pressable>
       </View>
+
+      {showDatePicker ? (
+        <DateTimePicker
+          testID="availability-date-picker"
+          value={date}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          minimumDate={startOfDay(new Date())}
+          onChange={handleDatePickerChange}
+        />
+      ) : null}
 
       <QueryState
         isPending={availabilityQuery.isPending}

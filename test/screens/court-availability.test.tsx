@@ -98,4 +98,35 @@ describe("Disponibilidade da quadra", () => {
 
     expect(screen.queryByTestId("availability-selection-summary")).not.toBeOnTheScreen();
   });
+
+  it("jumping to an arbitrary date via the native date picker updates the header and refetches", async () => {
+    setAvailabilityMock(FAKE_COURT.id, [FREE_SLOT]);
+    const user = userEvent.setup();
+    renderWithProviders(<CourtAvailabilityScreen />);
+
+    await screen.findByText("19:00–20:00 · R$ 80,00");
+    expect(screen.getByText("sábado, 18 de julho")).toBeOnTheScreen();
+
+    // Abre o picker nativo (mock stub — ver __mocks__/@react-native-community/datetimepicker.js)
+    // e simula a escolha de uma data 14 dias à frente, um salto que o
+    // stepper prev/next não cobriria em um toque só.
+    await user.press(screen.getByLabelText("Escolher data"));
+    await user.press(screen.getByTestId("availability-date-picker"));
+
+    expect(await screen.findByText("sábado, 1 de agosto")).toBeOnTheScreen();
+  });
+
+  it("selecting a date via the picker clears the current selection", async () => {
+    setAvailabilityMock(FAKE_COURT.id, [FREE_SLOT]);
+    const user = userEvent.setup();
+    renderWithProviders(<CourtAvailabilityScreen />);
+
+    await user.press(await screen.findByTestId(`availability-slot-${FREE_SLOT.startMinute}`));
+    expect(screen.getByTestId("availability-selection-summary")).toBeOnTheScreen();
+
+    await user.press(screen.getByLabelText("Escolher data"));
+    await user.press(screen.getByTestId("availability-date-picker"));
+
+    expect(screen.queryByTestId("availability-selection-summary")).not.toBeOnTheScreen();
+  });
 });

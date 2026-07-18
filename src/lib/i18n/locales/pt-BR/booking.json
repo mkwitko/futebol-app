@@ -6,7 +6,8 @@
     "empty": "Nenhum horário configurado pra esse dia.",
     "nav": {
       "prev": "Dia anterior",
-      "next": "Próximo dia"
+      "next": "Próximo dia",
+      "pickDate": "Escolher data"
     },
     "slot": {
       "free": "Livre",
