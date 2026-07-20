@@ -22,8 +22,8 @@ export function useGenerateTeams(matchId: string) {
   });
 
   return {
-    mutateAsync: (teamCount: number = DEFAULT_TEAM_COUNT) =>
-      mutation.mutateAsync({ id: matchId, params: { teamCount } }),
+    mutateAsync: (mode: "balanced" | "random" = "balanced", teamCount: number = DEFAULT_TEAM_COUNT) =>
+      mutation.mutateAsync({ id: matchId, params: { teamCount, mode } }),
     isPending: mutation.isPending,
   };
 }

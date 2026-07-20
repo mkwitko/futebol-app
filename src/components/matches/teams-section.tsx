@@ -1,17 +1,21 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import type { GetTeams200 } from "@/api/generated/types/GetTeams";
+
+export type TeamsGenerationMode = "balanced" | "random";
 
 export type TeamsSectionProps = {
   /** Times persistidos (`getTeams`) — `null` = ainda não montados (404) ou carregando. */
   teams: GetTeams200 | null;
   /** Carregando os times persistidos (checagem inicial, antes de decidir vazio/dados). */
   isLoading: boolean;
-  onGenerate: () => void;
+  onGenerate: (mode: TeamsGenerationMode) => void;
   generating: boolean;
   error?: string | null;
 };
@@ -25,6 +29,12 @@ export type TeamsSectionProps = {
  */
 export function TeamsSection({ teams, isLoading, onGenerate, generating, error }: TeamsSectionProps) {
   const { t } = useTranslation("matches");
+  const [mode, setMode] = useState<TeamsGenerationMode>("balanced");
+
+  const modeOptions = [
+    { value: "balanced" as const, label: t("detail.teams.modeBalanced") },
+    { value: "random" as const, label: t("detail.teams.modeRandom") },
+  ];
 
   if (isLoading) {
     return (
@@ -39,7 +49,8 @@ export function TeamsSection({ teams, isLoading, onGenerate, generating, error }
     return (
       <View className="gap-3">
         <EmptyState title={t("detail.teams.emptyTitle")} description={t("detail.teams.emptyDescription")} />
-        <Button testID="generate-teams-cta" onPress={onGenerate} loading={generating}>
+        <SegmentedControl options={modeOptions} value={mode} onChange={setMode} />
+        <Button testID="generate-teams-cta" onPress={() => onGenerate(mode)} loading={generating}>
           {generating ? t("detail.teams.generating") : t("detail.teams.generateCta")}
         </Button>
         {error ? (
@@ -80,7 +91,8 @@ export function TeamsSection({ teams, isLoading, onGenerate, generating, error }
         ))}
       </View>
 
-      <Button testID="regenerate-teams-cta" variant="secondary" onPress={onGenerate} loading={generating}>
+      <SegmentedControl options={modeOptions} value={mode} onChange={setMode} />
+      <Button testID="regenerate-teams-cta" variant="secondary" onPress={() => onGenerate(mode)} loading={generating}>
         {generating ? t("detail.teams.generating") : t("detail.teams.regenerateCta")}
       </Button>
       {error ? (

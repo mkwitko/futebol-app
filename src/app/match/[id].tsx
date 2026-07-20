@@ -154,10 +154,10 @@ export default function MatchDetailScreen() {
     }
   };
 
-  const handleGenerateTeams = async () => {
+  const handleGenerateTeams = async (mode: "balanced" | "random") => {
     setTeamsError(null);
     try {
-      await generateTeams.mutateAsync();
+      await generateTeams.mutateAsync(mode);
     } catch {
       setTeamsError(t("matches:detail.teams.generateError"));
     }
@@ -322,7 +322,7 @@ export default function MatchDetailScreen() {
                 <TeamsSection
                   teams={teamsQuery.data}
                   isLoading={teamsQuery.isPending}
-                  onGenerate={() => void handleGenerateTeams()}
+                  onGenerate={(mode) => void handleGenerateTeams(mode)}
                   generating={generateTeams.isPending}
                   error={teamsError}
                 />
