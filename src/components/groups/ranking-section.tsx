@@ -19,11 +19,13 @@ function RankList({
   rows,
   myPlayerId,
   onShareOwnRow,
+  shareA11yLabel,
 }: {
   title: string;
   rows: readonly RankRow[];
   myPlayerId?: string;
   onShareOwnRow?: () => void;
+  shareA11yLabel?: string;
 }) {
   const router = useRouter();
   const { t } = useTranslation("groups");
@@ -56,7 +58,7 @@ function RankList({
             {onShareOwnRow && r.playerId === myPlayerId ? (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Compartilhar minha posição"
+                accessibilityLabel={shareA11yLabel}
                 hitSlop={8}
                 onPress={(e) => {
                   e.stopPropagation();
@@ -95,7 +97,11 @@ export function RankingSection({
   const shareTarget = groupId && slug && myPlayerId ? { groupId, slug, playerId: myPlayerId } : null;
 
   const rowShareProps = shareTarget
-    ? { myPlayerId: shareTarget.playerId, onShareOwnRow: () => setShareOpen(true) }
+    ? {
+        myPlayerId: shareTarget.playerId,
+        onShareOwnRow: () => setShareOpen(true),
+        shareA11yLabel: t("common:share.shareRankingA11y"),
+      }
     : {};
 
   return (
