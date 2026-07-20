@@ -183,6 +183,28 @@ function emptyCareer(playerId: string): Career {
   };
 }
 
+/** `GET /players/:playerId/public-profile` (`GetPublicProfile200`) — rota PÚBLICA (sem auth) que resolve id-ou-slug; back a tela `/j/:slug`. */
+export type PublicProfile = {
+  playerId: string;
+  name: string;
+  level: PlayerLevel;
+  overallByPosition: Record<string, number>;
+  bestOverall: number;
+  bestPosition: string | null;
+  matchesPlayed: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  winRate: number;
+  goals: number;
+  assists: number;
+  cleanSheets: number;
+  mvpCount: number;
+  currentStreak: number;
+  bestStreak: number;
+  achievements: { key: string; label: string; description: string; icon: string; unlocked: boolean }[];
+};
+
 /** `GET /players/me/upcoming-matches` — item de `GetMyUpcomingMatches200` (ver `src/api/generated/types/GetMyUpcomingMatches.ts`). */
 export type UpcomingMatch = {
   id: string;
@@ -421,6 +443,9 @@ let voteWindowClosedMatches = new Set<string>();
 let myPlayer = { ...FAKE_MY_PLAYER };
 let upcomingMatches: UpcomingMatch[] = [...FAKE_UPCOMING_MATCHES];
 let careerByPlayer: Record<string, Career> = { [FAKE_MY_PLAYER.id]: { ...FAKE_CAREER } };
+// Chave por id-OU-slug (a mesma flexibilidade da rota real) — os testes de
+// `/j/:slug` semeiam direto pela chave que a tela vai pedir (o slug).
+let publicProfileByKey: Record<string, PublicProfile> = {};
 let joinRequestsByMatch: Record<string, JoinRequest[]> = {};
 let discoverResults: DiscoverMatch[] = [];
 let me = { ...FAKE_USER };
@@ -521,6 +546,7 @@ export function resetGroupsMocks() {
   myPlayer = { ...FAKE_MY_PLAYER };
   upcomingMatches = [...FAKE_UPCOMING_MATCHES];
   careerByPlayer = { [FAKE_MY_PLAYER.id]: { ...FAKE_CAREER } };
+  publicProfileByKey = {};
   joinRequestsByMatch = {};
   discoverResults = [];
   me = { ...FAKE_USER };
@@ -622,6 +648,12 @@ export function setUpcomingMatchesMock(next: UpcomingMatch[]) {
 export function setCareerMock(playerId: string, career: Career | undefined) {
   if (career) careerByPlayer[playerId] = career;
   else delete careerByPlayer[playerId];
+}
+
+/** Pré-semeia o perfil público servido em `/players/:key/public-profile` — `key` é o id ou o slug (`/j/:slug`). */
+export function setPublicProfileMock(key: string, profile: PublicProfile | undefined) {
+  if (profile) publicProfileByKey[key] = profile;
+  else delete publicProfileByKey[key];
 }
 
 /** Pré-semeia os times persistidos de uma pelada (simula `generateTeams` já ter rodado antes do teste). */
@@ -1234,6 +1266,12 @@ export const handlers = [
   http.get(api("/players/:playerId/career"), ({ params }) => {
     const playerId = params.playerId as string;
     return HttpResponse.json(careerByPlayer[playerId] ?? emptyCareer(playerId));
+  }),
+  http.get(api("/players/:playerId/public-profile"), ({ params }) => {
+    const key = params.playerId as string;
+    const profile = publicProfileByKey[key];
+    if (!profile) return HttpResponse.json({ message: "not_found" }, { status: 404 });
+    return HttpResponse.json(profile);
   }),
   http.get(api("/players/:playerId/timeline"), () => HttpResponse.json({ events: [] })),
 

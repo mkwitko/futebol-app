@@ -43,6 +43,13 @@ function RootNavigator() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      {/*
+        Landing de `/j/:slug` (universal/app link — Fase 3 share-carta):
+        fora de qualquer `Stack.Protected` de propósito, pra abrir com o
+        visitante deslogado (`getPublicProfile` não exige sessão) e sem
+        depender do gate de onboarding.
+      */}
+      <Stack.Screen name="j/[slug]" options={{ headerShown: false }} />
       <Stack.Protected guard={isAuthenticated && !needsOnboarding}>
         <Stack.Screen name="(drawer)" />
         <Stack.Screen name="group/[id]" options={{ headerShown: false }} />

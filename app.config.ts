@@ -53,6 +53,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true,
     userInterfaceStyle: "dark",
     bundleIdentifier: "com.mauriciooliveira.futebolapp",
+    // Universal link do card compartilhável (`/j/:slug`, Fase 3) — o iOS só
+    // abre o app direto (em vez do Safari) se o AASA em
+    // `https://camisa7.app/.well-known/apple-app-site-association` (Fase 1,
+    // `well-known.controller.ts`) validar o `appID`. Requer `expo prebuild` +
+    // build nativo pra entrar em vigor (não é hot-reloadable via JS).
+    associatedDomains: ["applinks:camisa7.app"],
     ...(PUSH_ENABLED ? { googleServicesFile: IOS_GOOGLE_SERVICES } : {}),
   },
   android: {
@@ -65,6 +71,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     userInterfaceStyle: "dark",
     predictiveBackGestureEnabled: false,
+    // App link equivalente ao `associatedDomains` do iOS acima — `autoVerify`
+    // faz o Android checar `https://camisa7.app/.well-known/assetlinks.json`
+    // (mesma rota Fase 1) antes de abrir o app direto em vez do navegador.
+    // Mesma ressalva: só em vigor após rebuild nativo.
+    intentFilters: [
+      {
+        action: "VIEW",
+        autoVerify: true,
+        data: [{ scheme: "https", host: "camisa7.app", pathPrefix: "/j" }],
+        category: ["BROWSABLE", "DEFAULT"],
+      },
+    ],
     // "resize" já é o default do Expo (`android:windowSoftInputMode="adjustResize"`),
     // mas deixamos explícito: com o edge-to-edge obrigatório (status bar
     // translúcida) do Android 15+/SDK 57, o próprio `@expo/config-plugins`
