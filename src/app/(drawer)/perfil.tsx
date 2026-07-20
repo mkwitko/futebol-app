@@ -1,13 +1,14 @@
 import Constants from "expo-constants";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Share, View } from "react-native";
+import { View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
 import { AttributeBudget } from "@/components/players/attribute-budget";
 import { FifaCard } from "@/components/players/fifa-card";
 import { PitchAffinity } from "@/components/players/pitch-affinity";
 import { SkillPicker } from "@/components/players/skill-picker";
 import { RoleSelector } from "@/components/auth/role-selector";
+import { ShareSheet } from "@/components/share/share-sheet";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Divider } from "@/components/ui/divider";
@@ -34,7 +35,7 @@ import {
 } from "@/lib/player/attributes";
 import { isGoalkeeper } from "@/lib/player/position";
 import { type SkillKey, skillsEqual, toSkillList } from "@/lib/player/skills";
-import { buildPlayerProfileUrl } from "@/lib/player/url";
+import type { ShareSubject } from "@/lib/player/url";
 import { CardFieldsEditor, type CardFieldsValue } from "@/components/players/card-fields-editor";
 import type { GetMyPlayer200 } from "@/api/generated/types/GetMyPlayer";
 import {
@@ -60,6 +61,12 @@ export default function PerfilScreen() {
   const { user, signOut } = useAuth();
   const toast = useToast();
   const [signingOut, setSigningOut] = useState(false);
+  // Um único `<ShareSheet>` cobre os dois pontos de entrada do perfil (carta
+  // + conquista) — nunca os dois montados ao mesmo tempo, senão o `Sheet`
+  // (que renderiza os filhos independente de `visible`) duplicaria os botões.
+  const [shareTarget, setShareTarget] = useState<{ subject: ShareSubject; message: string } | null>(
+    null,
+  );
 
   // Rascunho editável dos tipos de conta, re-semeado do valor persistido via o
   // padrão adjust-state-during-render (sem effect): quando a identidade do
@@ -131,12 +138,6 @@ export default function PerfilScreen() {
     }
   };
 
-  const handleShare = async () => {
-    if (!playerId) return;
-    const link = buildPlayerProfileUrl(playerId);
-    await Share.share({ message: t("player:career.shareMessage", { link }) });
-  };
-
   const isLoading = myPlayerQuery.isPending;
   const isError = myPlayerQuery.isError;
   const retry = () => {
@@ -200,7 +201,12 @@ export default function PerfilScreen() {
                 testID="profile-share-cta"
                 className="flex-1"
                 variant="secondary"
-                onPress={() => void handleShare()}
+                onPress={() =>
+                  setShareTarget({
+                    subject: { kind: "carta" },
+                    message: t("common:share.cartaMessage"),
+                  })
+                }
               >
                 {t("player:career.shareCta")}
               </Button>
@@ -212,6 +218,22 @@ export default function PerfilScreen() {
           <AchievementsGrid
             achievements={careerQuery.data.achievements ?? []}
             title={t("player:achievements.title")}
+            onShare={(key) =>
+              setShareTarget({
+                subject: { kind: "conquista", key },
+                message: t("common:share.conquistaMessage"),
+              })
+            }
+          />
+        ) : null}
+
+        {myPlayerQuery.data?.slug && shareTarget ? (
+          <ShareSheet
+            visible
+            onClose={() => setShareTarget(null)}
+            slug={myPlayerQuery.data.slug}
+            subject={shareTarget.subject}
+            message={shareTarget.message}
           />
         ) : null}
 

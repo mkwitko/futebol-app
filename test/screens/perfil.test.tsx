@@ -1,13 +1,19 @@
 import { screen, userEvent, waitFor } from "@testing-library/react-native";
-import { Share } from "react-native";
 import PerfilScreen from "@/app/(drawer)/perfil";
+import * as shareLib from "@/lib/share/share";
 import { saveTokens } from "@/lib/auth/tokens";
 import { FAKE_MY_PLAYER, resetGroupsMocks } from "../mocks/handlers";
 import { renderWithProviders } from "../utils/render";
 
+jest.mock("@/lib/share/share", () => ({
+  shareLink: jest.fn(async () => undefined),
+  shareImage: jest.fn(async () => undefined),
+}));
+
 describe("Minha carreira (Perfil)", () => {
   beforeEach(() => {
     resetGroupsMocks();
+    jest.clearAllMocks();
   });
 
   it("renders the player's FIFA card: general overall, best position, categories", async () => {
@@ -25,20 +31,37 @@ describe("Minha carreira (Perfil)", () => {
     expect(screen.getByText(/Brasil/)).toBeOnTheScreen();
   });
 
-  it("shares the public profile link with a proud pt-BR message", async () => {
-    const shareSpy = jest.spyOn(Share, "share").mockResolvedValue({ action: "sharedAction" });
+  it("opens the ShareSheet for the carta and shares the link with a proud pt-BR message", async () => {
     const user = userEvent.setup();
 
     renderWithProviders(<PerfilScreen />);
 
     await user.press(await screen.findByTestId("profile-share-cta"));
+    await user.press(await screen.findByText("Compartilhar link"));
 
-    await waitFor(() => expect(shareSpy).toHaveBeenCalledTimes(1));
-    const message = shareSpy.mock.calls[0]![0].message as string;
-    expect(message).toContain(`/player/${FAKE_MY_PLAYER.id}`);
-    expect(message).toContain("Confira meu perfil de jogador");
+    await waitFor(() => expect(shareLib.shareLink).toHaveBeenCalledTimes(1));
+    expect(shareLib.shareLink).toHaveBeenCalledWith(
+      FAKE_MY_PLAYER.slug,
+      { kind: "carta" },
+      "Essa é a minha carta no Camisa7! 👇",
+    );
+  });
 
-    shareSpy.mockRestore();
+  it("opens the ShareSheet for an unlocked conquista on tap", async () => {
+    const user = userEvent.setup();
+
+    renderWithProviders(<PerfilScreen />);
+
+    // "Primeiro gol" vem desbloqueada no mock de carreira (FAKE_CAREER).
+    await user.press(await screen.findByLabelText("Primeiro gol: Marque seu primeiro gol"));
+    await user.press(await screen.findByText("Compartilhar link"));
+
+    await waitFor(() => expect(shareLib.shareLink).toHaveBeenCalledTimes(1));
+    expect(shareLib.shareLink).toHaveBeenCalledWith(
+      FAKE_MY_PLAYER.slug,
+      { kind: "conquista", key: "primeiro_gol" },
+      "Desbloqueei uma conquista no Camisa7! 👇",
+    );
   });
 });
 
