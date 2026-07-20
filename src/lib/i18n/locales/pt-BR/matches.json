@@ -109,7 +109,9 @@
       "overallLabel": "Overall",
       "generateError": "Não foi possível montar os times.",
       "emptyTitle": "Times ainda não montados",
-      "emptyDescription": "Monte os times automaticamente a partir dos confirmados."
+      "emptyDescription": "Monte os times automaticamente a partir dos confirmados.",
+      "modeBalanced": "Equilibrado",
+      "modeRandom": "Sorteio"
     },
     "actions": {
       "title": "Ações do organizador",
