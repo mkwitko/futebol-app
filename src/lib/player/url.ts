@@ -1,21 +1,6 @@
 import { env } from "@/env";
 
 /**
- * Monta a URL pública do perfil do jogador (página que o site vai renderizar
- * a partir de `getPublicProfile` — tarefa futura) a partir do `playerId` e da
- * base configurável do site (`EXPO_PUBLIC_WEB_URL`, default
- * `http://localhost:5173` em desenvolvimento). Usada pelo botão "Compartilhar
- * perfil" em "Minha carreira".
- *
- * NOTA: será substituída pelo link `/j/:slug` (ver `buildShareUrl` abaixo) no
- * call site de `perfil.tsx` — Fase 3 Tarefa 2. Mantida por ora para não
- * quebrar o fluxo existente.
- */
-export function buildPlayerProfileUrl(playerId: string): string {
-  return `${env.EXPO_PUBLIC_WEB_URL}/player/${playerId}`;
-}
-
-/**
  * Assunto compartilhável. O link canônico é servido pelo BACKEND
  * (`EXPO_PUBLIC_API_URL`), que renderiza as meta OG e redireciona o
  * espectador pro app/loja/web (ver Fase 1). NÃO usar `EXPO_PUBLIC_WEB_URL`

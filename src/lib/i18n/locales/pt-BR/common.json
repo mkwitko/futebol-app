@@ -79,5 +79,15 @@
     "searchPlaceholder": "Rua, bairro ou local",
     "cityLabel": "Cidade",
     "cityPlaceholder": "Ex.: Porto Alegre"
+  },
+  "share": {
+    "title": "Compartilhar",
+    "link": "Compartilhar link",
+    "image": "Salvar imagem",
+    "cartaMessage": "Essa é a minha carta no Camisa7! 👇",
+    "conquistaMessage": "Desbloqueei uma conquista no Camisa7! 👇",
+    "rankingMessage": "Olha minha posição no ranking da pelada! 👇",
+    "error": "Não foi possível compartilhar. Tente de novo.",
+    "shareCta": "Compartilhar"
   }
 }

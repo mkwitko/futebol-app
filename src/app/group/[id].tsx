@@ -250,7 +250,7 @@ export default function GroupDetailScreen() {
           emptyTitle={t("groups:hub.rankingEmptyTitle")}
           emptyDescription={t("groups:hub.rankingEmptyDescription")}
         >
-          {rankingQuery.data ? <RankingSection ranking={rankingQuery.data} /> : null}
+          {rankingQuery.data ? <RankingSection ranking={rankingQuery.data} groupId={id} /> : null}
         </QueryState>
       ) : null}
 

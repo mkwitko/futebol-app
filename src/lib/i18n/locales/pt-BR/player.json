@@ -19,8 +19,7 @@
       "currentStreak": "Sequência invicta",
       "bestStreak": "Recorde de sequência"
     },
-    "shareCta": "Compartilhar perfil",
-    "shareMessage": "Confira meu perfil de jogador ⚽ {{link}}"
+    "shareCta": "Compartilhar perfil"
   },
   "screen": {
     "loadingTitle": "Carregando…",

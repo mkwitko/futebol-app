@@ -118,6 +118,7 @@ export const FAKE_ATTENDANCE = {
 
 export const FAKE_MY_PLAYER = {
   id: "player-me-1",
+  slug: "mauricio-9f3a",
   name: FAKE_USER.name,
   phone: null as string | null,
   userId: FAKE_USER.id as string | null,
