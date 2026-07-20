@@ -11,7 +11,7 @@ import { buildOgImageUrl, buildShareUrl, type ShareSubject } from "@/lib/player/
 export async function shareLink(slug: string, subject: ShareSubject, message: string): Promise<void> {
   const url = buildShareUrl(slug, subject);
   // iOS usa `url`; Android concatena no `message`. Passar ambos cobre os dois.
-  await Share.share({ url, message: `${message} ${url}` });
+  await Share.share({ url, message: message ? `${message} ${url}` : url });
 }
 
 /** Modo imagem: baixa o PNG do backend e entrega pro share sheet (IG/galeria). */
