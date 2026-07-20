@@ -86,6 +86,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-font",
     "expo-localization",
     "expo-image",
+    "expo-sharing",
     "@react-native-community/datetimepicker",
     // Mapa nativo do LocationPicker (criar pelada / cidade do jogador). No
     // Android o Google Maps SDK exige uma chave pra renderizar; lida de env
