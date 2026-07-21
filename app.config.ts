@@ -167,6 +167,5 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     googleIosClientId: GOOGLE_IOS_CLIENT_ID,
     pushEnabled: PUSH_ENABLED ? "true" : "false",
     placesAutocompleteEnabled: process.env.EXPO_PUBLIC_PLACES_AUTOCOMPLETE_ENABLED ?? "false",
-    googlePlacesApiKey: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY ?? "",
   },
 });

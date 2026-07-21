@@ -1,14 +1,17 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import MapView, { Marker, type MapPressEvent, type Region } from "react-native-maps";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
+import { colors } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 import { useDeviceLocation } from "@/hooks/location/use-device-location";
 import { isPlacesAutocompleteEnabled } from "@/env";
-import { placeDetails, searchPlaces, type PlaceSuggestion } from "@/lib/location/places";
+import { searchPlaces, type PlaceSuggestion } from "@/lib/location/places";
 
 /**
  * Local escolhido no picker. Coords podem ser `null` (cidade digitada à mão,
@@ -70,11 +73,44 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<"off" | "denied" | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasCoords = value?.latitude != null && value?.longitude != null;
   const markerCoord = hasCoords
     ? { latitude: value!.latitude as number, longitude: value!.longitude as number }
     : { latitude: DEFAULT_REGION.latitude, longitude: DEFAULT_REGION.longitude };
+  // Endereço escolhido (via suggestion ou reverse-geocode) — exibido como
+  // chip acima do mapa pra confirmar visualmente o que foi selecionado.
+  const selectedAddress = (value?.address ?? query) || "";
+
+  // Debounce pra evitar spammar a API do Places a cada tecla. Dispara apenas
+  // 350ms depois que o usuário para de digitar. Cancela o anterior se vir nova.
+  useEffect(() => {
+    if (!isPlacesAutocompleteEnabled) return;
+    const trimmed = query.trim();
+    if (trimmed.length < 3) {
+      setSuggestions([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    let cancelled = false;
+    debounceRef.current = setTimeout(async () => {
+      const result = await searchPlaces(query);
+      if (!cancelled) {
+        setSuggestions(result.suggestions);
+        setSearchError(result.error);
+        setSearching(false);
+      }
+    }, 350);
+    return () => {
+      cancelled = true;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query]);
 
   const centerOn = useCallback((latitude: number, longitude: number) => {
     mapRef.current?.animateToRegion({
@@ -105,36 +141,37 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     const current = await device.getCurrent();
     if (!current) return;
     centerOn(current.lat, current.lng);
-    onChange({
-      latitude: current.lat,
-      longitude: current.lng,
-      city: current.city ?? value?.city ?? null,
-      address: value?.address ?? null,
-    });
-  }, [centerOn, device, onChange, value?.address, value?.city]);
+    // Faz reverse-geocode das coords novas — antes o address da seleção
+    // anterior ficava pendurado e parecia que nada tinha atualizado. A
+    // `applyCoords` chama `resolveFromCoords` e seta address + city do novo
+    // ponto, mantendo o `city` anterior se o reverse-geocode não devolver.
+    await applyCoords(current.lat, current.lng);
+  }, [centerOn, applyCoords, device]);
 
-  const handleSearchChange = useCallback(async (text: string) => {
+  const handleSearchChange = useCallback((text: string) => {
     setQuery(text);
-    const results = await searchPlaces(text);
-    setSuggestions(results);
   }, []);
 
   const handleSelectSuggestion = useCallback(
-    async (suggestion: PlaceSuggestion) => {
+    (suggestion: PlaceSuggestion) => {
       setSuggestions([]);
       setQuery(suggestion.description);
-      const details = await placeDetails(suggestion.placeId);
-      if (!details) return;
-      centerOn(details.lat, details.lng);
+      // Photon já devolve coords na busca — aplica direto, sem 2ª chamada.
+      centerOn(suggestion.lat, suggestion.lng);
       onChange({
-        latitude: details.lat,
-        longitude: details.lng,
-        city: details.city,
-        address: details.address || suggestion.description,
+        latitude: suggestion.lat,
+        longitude: suggestion.lng,
+        city: suggestion.city,
+        address: suggestion.description,
       });
     },
     [centerOn, onChange],
   );
+
+  const clearSearch = useCallback(() => {
+    setQuery("");
+    setSuggestions([]);
+  }, []);
 
   const handleCityChange = useCallback(
     (city: string) => {
@@ -152,28 +189,74 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     <View className="gap-2">
       {isPlacesAutocompleteEnabled ? (
         <View className="gap-1">
-          <Input
-            label={t("location.searchLabel")}
-            placeholder={t("location.searchPlaceholder")}
-            value={query}
-            onChangeText={handleSearchChange}
-            autoCapitalize="none"
-            testID="location-search"
-          />
+          <View className="relative">
+            <Input
+              label={t("location.searchLabel")}
+              placeholder={t("location.searchPlaceholder")}
+              value={query}
+              onChangeText={handleSearchChange}
+              autoCapitalize="none"
+              testID="location-search"
+              className="pr-10"
+            />
+            {searching ? (
+              <ActivityIndicator
+                size="small"
+                color={colors.primary}
+                className="absolute right-3 top-[38px]"
+              />
+            ) : query.length > 0 ? (
+              <Pressable
+                onPress={clearSearch}
+                accessibilityLabel={t("location.clearSearch")}
+                hitSlop={8}
+                className="absolute right-3 top-[38px] h-5 w-5 items-center justify-center"
+              >
+                <Ionicons name="close-circle" size={18} color={colors.muted} />
+              </Pressable>
+            ) : null}
+          </View>
+
           {suggestions.length > 0 ? (
-            <View className="overflow-hidden rounded-xl border border-line bg-surface">
-              {suggestions.map((suggestion) => (
+            <ScrollView
+              className="overflow-hidden rounded-xl border border-line bg-surface shadow-md"
+              style={{ maxHeight: 220 }}
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled
+            >
+              {suggestions.map((suggestion, i) => (
                 <Pressable
                   key={suggestion.placeId}
                   onPress={() => void handleSelectSuggestion(suggestion)}
-                  className="border-b border-line px-4 py-3 active:bg-surface-up"
+                  className={cn(
+                    "flex-row items-center gap-2.5 border-b border-line px-4 py-3 active:bg-surface-up",
+                    i === suggestions.length - 1 && "border-b-0",
+                  )}
                   accessibilityRole="button"
                 >
-                  <Text className="font-body text-sm text-ink">{suggestion.description}</Text>
+                  <Ionicons name="location-outline" size={16} color={colors.muted} />
+                  <Text className="flex-1 font-body text-sm text-ink" numberOfLines={2}>
+                    {suggestion.description}
+                  </Text>
                 </Pressable>
               ))}
-            </View>
+            </ScrollView>
           ) : null}
+
+          {searchError === "denied" && query.trim().length >= 3 ? (
+            <Text className="font-body text-sm text-danger">
+              {t("location.searchDeniedError")}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+
+      {selectedAddress ? (
+        <View className="flex-row items-start gap-2 rounded-xl bg-surface-up px-3 py-2.5">
+          <Ionicons name="location" size={16} color={colors.primary} className="mt-0.5" />
+          <Text className="flex-1 font-body text-sm text-ink" numberOfLines={2}>
+            {selectedAddress}
+          </Text>
         </View>
       ) : null}
 
