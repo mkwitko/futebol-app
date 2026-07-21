@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
 import { Text } from "@/components/ui/text";
@@ -28,7 +29,11 @@ export type AttributeBudgetProps = {
  * pontos disponíveis — baixe outro antes. A categoria "goleiro" só aparece
  * quando `showGoalkeeper`.
  */
-export function AttributeBudget({ value, onChange, showGoalkeeper = false }: AttributeBudgetProps) {
+export const AttributeBudget = memo(function AttributeBudget({
+  value,
+  onChange,
+  showGoalkeeper = false,
+}: AttributeBudgetProps) {
   const { t } = useTranslation("player");
   const remaining = remainingPoints(value);
   const categories = ATTRIBUTE_CATEGORIES.filter((c) => c !== "goleiro" || showGoalkeeper);
@@ -100,4 +105,4 @@ export function AttributeBudget({ value, onChange, showGoalkeeper = false }: Att
       ))}
     </View>
   );
-}
+});

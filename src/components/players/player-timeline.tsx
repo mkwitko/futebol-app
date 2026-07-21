@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { differenceInCalendarDays, isToday, isYesterday } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
@@ -22,7 +23,7 @@ const BUCKET_ORDER: Bucket[] = ["hoje", "ontem", "semana", "antes"];
  * semana / Antes a partir do `datetime` de cada evento. Alimentada por
  * `GET /players/:id/timeline`.
  */
-export function PlayerTimeline({
+export const PlayerTimeline = memo(function PlayerTimeline({
   events,
   title,
 }: {
@@ -66,4 +67,4 @@ export function PlayerTimeline({
       ))}
     </View>
   );
-}
+});

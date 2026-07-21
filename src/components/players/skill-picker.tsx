@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Chip } from "@/components/ui/chip";
@@ -19,7 +20,7 @@ export type SkillPickerProps = {
  * Seletor de habilidades/playstyles agrupadas por categoria (até `MAX_SKILLS`).
  * Toca pra alternar; ao atingir o limite, os não-selecionados desabilitam.
  */
-export function SkillPicker({ value, onChange }: SkillPickerProps) {
+export const SkillPicker = memo(function SkillPicker({ value, onChange }: SkillPickerProps) {
   const { t } = useTranslation("player");
   const atLimit = value.length >= MAX_SKILLS;
 
@@ -56,4 +57,4 @@ export function SkillPicker({ value, onChange }: SkillPickerProps) {
       ))}
     </View>
   );
-}
+});

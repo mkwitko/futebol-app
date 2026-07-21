@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, View } from "react-native";
 import { Avatar } from "@/components/ui/avatar";
@@ -65,7 +66,7 @@ export type FifaCardProps = {
  * habilidades (playstyles) como badges. Alimentada pelo `GET /players/me`
  * (overalls derivados dos atributos). O tier (cor da carta) vem do overall.
  */
-export function FifaCard({ player, avatarUri }: FifaCardProps) {
+export const FifaCard = memo(function FifaCard({ player, avatarUri }: FifaCardProps) {
   const cat = (player.categoryOverall ?? {}) as Partial<Record<AttributeCategory, number>>;
   const overall = player.generalOverall ?? 0;
   const tier = getTierFromOverall(overall);
@@ -180,4 +181,4 @@ export function FifaCard({ player, avatarUri }: FifaCardProps) {
       </View>
     </View>
   );
-}
+});

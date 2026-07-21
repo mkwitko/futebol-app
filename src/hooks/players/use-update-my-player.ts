@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 import {
   getMyPlayerQueryKey,
   useUpdateMyPlayer as useUpdateMyPlayerMutation,
@@ -23,8 +24,14 @@ export function useUpdateMyPlayer() {
     },
   });
 
-  return {
-    mutateAsync: (patch: UpdateMyPlayerMutationRequest) => mutation.mutateAsync({ data: patch }),
-    isPending: mutation.isPending,
-  };
+  // `mutateAsync` de react-query é estável entre renders; embrulhamos com
+  // `useCallback` pra que o wrapper também seja — assim os `onSave`/handlers
+  // que dependem dele (perfil.tsx) não quebram o `memo` das seções.
+  const { mutateAsync: rawMutateAsync } = mutation;
+  const mutateAsync = useCallback(
+    (patch: UpdateMyPlayerMutationRequest) => rawMutateAsync({ data: patch }),
+    [rawMutateAsync],
+  );
+
+  return { mutateAsync, isPending: mutation.isPending };
 }

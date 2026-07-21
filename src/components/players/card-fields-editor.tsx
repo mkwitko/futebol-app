@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Pressable, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +69,12 @@ function toIntOrNull(text: string): number | null {
 }
 
 /** Editor dos campos de carta (perna dominante, estrelas, físico, time, nacionalidade). */
-export function CardFieldsEditor({ initial, onSave, saving, saveLabel }: CardFieldsEditorProps) {
+export const CardFieldsEditor = memo(function CardFieldsEditor({
+  initial,
+  onSave,
+  saving,
+  saveLabel,
+}: CardFieldsEditorProps) {
   const [value, setValue] = useState<CardFieldsValue>(initial);
   const set = <K extends keyof CardFieldsValue>(key: K, v: CardFieldsValue[K]) =>
     setValue((prev) => ({ ...prev, [key]: v }));
@@ -129,4 +134,4 @@ export function CardFieldsEditor({ initial, onSave, saving, saveLabel }: CardFie
       </Button>
     </View>
   );
-}
+});

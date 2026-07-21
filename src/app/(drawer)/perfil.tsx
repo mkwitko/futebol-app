@@ -1,5 +1,5 @@
 import Constants from "expo-constants";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
@@ -95,6 +95,7 @@ export default function PerfilScreen() {
   const careerQuery = useGetPlayerCareer(playerId);
   const timelineQuery = useGetPlayerTimeline(playerId);
   const updateMyPlayer = useUpdateMyPlayer();
+  const { mutateAsync: saveMyPlayer } = updateMyPlayer;
   const { pickAndUpload, uploading: uploadingAvatar } = useAvatarUpload();
 
   // Rascunhos editáveis, re-semeados do valor persistido via o padrão
@@ -125,7 +126,36 @@ export default function PerfilScreen() {
   const saveAffinity = () => updateMyPlayer.mutateAsync({ affinity: toApiAffinity(affinityDraft) });
   const saveAttributes = () => updateMyPlayer.mutateAsync({ attributes: attributesDraft });
   const saveSkills = () => updateMyPlayer.mutateAsync({ skills: skillsDraft });
-  const saveCardFields = (fields: CardFieldsValue) => updateMyPlayer.mutateAsync(fields);
+  // Estável: alimenta o `memo` do `CardFieldsEditor` (não re-renderiza a cada
+  // toque em atributo/posição/skill nas outras seções).
+  const saveCardFields = useCallback(
+    (fields: CardFieldsValue) => saveMyPlayer(fields),
+    [saveMyPlayer],
+  );
+  // Estável pro `memo` do `AchievementsGrid`.
+  const handleShareAchievement = useCallback(
+    (key: string) =>
+      setShareTarget({
+        subject: { kind: "conquista", key },
+        message: t("common:share.conquistaMessage"),
+      }),
+    [t],
+  );
+  // Estável pro `memo` do `CardFieldsEditor` — recomputa só quando o player muda.
+  const player = myPlayerQuery.data;
+  const cardInitial = useMemo(
+    () => ({
+      dominantFoot: player?.dominantFoot ?? null,
+      weakFoot: player?.weakFoot ?? null,
+      skillMoves: player?.skillMoves ?? null,
+      heightCm: player?.heightCm ?? null,
+      weightKg: player?.weightKg ?? null,
+      birthYear: player?.birthYear ?? null,
+      preferredTeam: player?.preferredTeam ?? null,
+      nationality: player?.nationality ?? null,
+    }),
+    [player],
+  );
 
   const appVersion = Constants.expoConfig?.version ?? "—";
 
@@ -145,7 +175,7 @@ export default function PerfilScreen() {
   };
 
   return (
-    <ScreenContainer className="gap-6">
+    <ScreenContainer className="gap-6" edges={["bottom"]}>
       <View className="flex-row items-center gap-4">
         <Avatar name={user?.name ?? "?"} size="lg" />
         <View className="flex-1 gap-0.5">
@@ -218,12 +248,7 @@ export default function PerfilScreen() {
           <AchievementsGrid
             achievements={careerQuery.data.achievements ?? []}
             title={t("player:achievements.title")}
-            onShare={(key) =>
-              setShareTarget({
-                subject: { kind: "conquista", key },
-                message: t("common:share.conquistaMessage"),
-              })
-            }
+            onShare={handleShareAchievement}
           />
         ) : null}
 
@@ -318,16 +343,7 @@ export default function PerfilScreen() {
         </Text>
         <CardFieldsEditor
           key={seededFrom?.id ?? "none"}
-          initial={{
-            dominantFoot: myPlayerQuery.data?.dominantFoot ?? null,
-            weakFoot: myPlayerQuery.data?.weakFoot ?? null,
-            skillMoves: myPlayerQuery.data?.skillMoves ?? null,
-            heightCm: myPlayerQuery.data?.heightCm ?? null,
-            weightKg: myPlayerQuery.data?.weightKg ?? null,
-            birthYear: myPlayerQuery.data?.birthYear ?? null,
-            preferredTeam: myPlayerQuery.data?.preferredTeam ?? null,
-            nationality: myPlayerQuery.data?.nationality ?? null,
-          }}
+          initial={cardInitial}
           onSave={saveCardFields}
           saving={updateMyPlayer.isPending}
           saveLabel={t("player:card.save")}

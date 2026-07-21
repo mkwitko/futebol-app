@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Pressable, View } from "react-native";
 import { Text } from "@/components/ui/text";
 
@@ -27,7 +28,11 @@ export type AchievementsGridProps = {
  * esmaecidas (mostra o que dá pra conquistar). Deriva do `achievements` do
  * `GET /players/:id/career` / `public-profile`.
  */
-export function AchievementsGrid({ achievements, title, onShare }: AchievementsGridProps) {
+export const AchievementsGrid = memo(function AchievementsGrid({
+  achievements,
+  title,
+  onShare,
+}: AchievementsGridProps) {
   if (achievements.length === 0) return null;
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
 
@@ -67,4 +72,4 @@ export function AchievementsGrid({ achievements, title, onShare }: AchievementsG
       </View>
     </View>
   );
-}
+});

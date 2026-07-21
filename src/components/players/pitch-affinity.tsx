@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type DimensionValue, Pressable, View } from "react-native";
 import { Chip } from "@/components/ui/chip";
@@ -76,7 +76,7 @@ export type PitchAffinityProps = {
  * Bom → Ok → Fraco → vazio). O mapa de afinidade é único e guarda as posições
  * de todas as modalidades declaradas.
  */
-export function PitchAffinity({ value, onChange }: PitchAffinityProps) {
+export const PitchAffinity = memo(function PitchAffinity({ value, onChange }: PitchAffinityProps) {
   const { t } = useTranslation("player");
   const [modality, setModality] = useState<Modality>("campo");
 
@@ -186,4 +186,4 @@ export function PitchAffinity({ value, onChange }: PitchAffinityProps) {
       </View>
     </View>
   );
-}
+});
