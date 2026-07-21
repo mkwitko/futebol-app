@@ -86,6 +86,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string) => {
       const result = await loginMutation.mutateAsync({ data: { email, password } });
       await saveTokens({ accessToken: result.accessToken, refreshToken: result.refreshToken });
+      // Descarta TODO o cache de queries da sessão anterior antes de semear o
+      // novo usuário — as chaves de query são estáticas (ex. `/players/me`), não
+      // escopadas por usuário, então sem isto a conta nova herdaria os dados da
+      // conta anterior (vazamento entre usuários). Ver forceLogout/signOut.
+      queryClient.clear();
       queryClient.setQueryData(getMeQueryKey(), result.user);
       setHasToken(true);
     },
@@ -98,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: { email, password, name, ...(roles && roles.length > 0 ? { roles } : {}) },
       });
       await saveTokens({ accessToken: result.accessToken, refreshToken: result.refreshToken });
+      queryClient.clear();
       queryClient.setQueryData(getMeQueryKey(), result.user);
       setHasToken(true);
     },
@@ -111,12 +117,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const idToken = await signInWithGoogleNative();
     const result = await loginGoogleMutation.mutateAsync({ data: { idToken } });
     await saveTokens({ accessToken: result.accessToken, refreshToken: result.refreshToken });
+    queryClient.clear();
     queryClient.setQueryData(getMeQueryKey(), result.user);
     setHasToken(true);
   }, [loginGoogleMutation, queryClient]);
 
   const signOut = useCallback(async () => {
-    queryClient.removeQueries({ queryKey: getMeQueryKey() });
+    // Limpa TODO o cache (não só `/auth/me`): as chaves são estáticas, então
+    // um removeQueries só do `me` deixaria `/players/me`, grupos, reservas etc.
+    // da conta anterior visíveis pra próxima conta.
+    queryClient.clear();
     setHasToken(false);
     // Encerra a sessão nativa do Google também — senão o próximo login pula o
     // seletor e reentra na conta anterior.

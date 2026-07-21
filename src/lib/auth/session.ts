@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import { queryClient } from "@/api/query-client";
 import { env } from "@/env";
 import { clearTokens, getRefreshToken, saveTokens, type Tokens } from "./tokens";
 
@@ -54,5 +55,9 @@ export async function refreshAccessToken(): Promise<Tokens | null> {
  */
 export async function forceLogout(): Promise<void> {
   await clearTokens();
+  // Descarta o cache da sessão expirada — senão, ao relogar (inclusive com
+  // outra conta), dados escopados por usuário sob chaves estáticas (ex.
+  // `/players/me`) da conta anterior seguiriam no cache. Ver auth-context.
+  queryClient.clear();
   router.replace("/(auth)/sign-in");
 }
