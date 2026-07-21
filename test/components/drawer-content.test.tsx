@@ -101,6 +101,29 @@ describe("DrawerAppContent banner", () => {
   });
 });
 
+describe("DrawerAppContent sign-out", () => {
+  beforeEach(async () => {
+    resetGroupsMocks();
+    (useRouter as jest.Mock).mockReturnValue({ push: jest.fn(), back: jest.fn() });
+    await saveTokens({ accessToken: "test-access-token", refreshToken: "test-refresh-token" });
+  });
+
+  it("mostra o botão de sair na sidebar", async () => {
+    renderWithProviders(<DrawerAppContent {...fakeProps} />);
+    expect(await screen.findByTestId("drawer-sign-out")).toBeOnTheScreen();
+  });
+
+  it("pede confirmação antes de sair (não sai direto)", async () => {
+    renderWithProviders(<DrawerAppContent {...fakeProps} />);
+
+    fireEvent.press(await screen.findByTestId("drawer-sign-out"));
+
+    // O diálogo de confirmação aparece com título + pergunta.
+    expect(await screen.findByText("Sair da conta")).toBeOnTheScreen();
+    expect(screen.getByText("Tem certeza que deseja sair da sua conta?")).toBeOnTheScreen();
+  });
+});
+
 describe("DrawerAppContent without auth", () => {
   it("does not show the overall pill when there is no authenticated user", async () => {
     // no saveTokens here → useAuth().user is null → query disabled

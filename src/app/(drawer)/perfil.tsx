@@ -58,9 +58,8 @@ function CareerHeroSkeleton() {
 /** Perfil — usuário logado, carreira real, editor de posições/atributos/skills e sair. */
 export default function PerfilScreen() {
   const { t } = useTranslation(["player", "common", "auth"]);
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const toast = useToast();
-  const [signingOut, setSigningOut] = useState(false);
   // Um único `<ShareSheet>` cobre os dois pontos de entrada do perfil (carta
   // + conquista) — nunca os dois montados ao mesmo tempo, senão o `Sheet`
   // (que renderiza os filhos independente de `visible`) duplicaria os botões.
@@ -158,15 +157,6 @@ export default function PerfilScreen() {
   );
 
   const appVersion = Constants.expoConfig?.version ?? "—";
-
-  const handleSignOut = async () => {
-    setSigningOut(true);
-    try {
-      await signOut();
-    } finally {
-      setSigningOut(false);
-    }
-  };
 
   const isLoading = myPlayerQuery.isPending;
   const isError = myPlayerQuery.isError;
@@ -374,14 +364,6 @@ export default function PerfilScreen() {
       <Divider />
 
       <View className="gap-3">
-        <Button
-          testID="profile-sign-out"
-          variant="secondary"
-          onPress={() => void handleSignOut()}
-          loading={signingOut}
-        >
-          {t("common:actions.signOut")}
-        </Button>
         <Text variant="muted" className="text-center text-xs">
           {t("common:profile.version", { version: appVersion })}
         </Text>

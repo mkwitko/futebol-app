@@ -1,37 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
-import { Button } from "@/components/ui/button";
 import { Divider } from "@/components/ui/divider";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { Text } from "@/components/ui/text";
-import { useAuth } from "@/hooks/auth/use-auth";
 import { colors } from "@/lib/theme";
 
-/** Config — idioma, sobre o app e sair da conta. */
+/** Config — idioma e sobre o app. (Sair da conta fica na sidebar.) */
 export default function ConfigScreen() {
   const { t } = useTranslation("common");
-  const { signOut } = useAuth();
-  const [signingOut, setSigningOut] = useState(false);
 
   const appVersion = Constants.expoConfig?.version ?? "—";
 
-  const handleSignOut = async () => {
-    setSigningOut(true);
-    try {
-      await signOut();
-      // Sucesso: `isAuthenticated` vira `false` e o guard no root layout
-      // navega automaticamente para `(auth)`.
-    } finally {
-      setSigningOut(false);
-    }
-  };
-
   return (
-    <ScreenContainer className="gap-6">
+    <ScreenContainer className="gap-6" edges={["bottom"]}>
       <ScreenHeader title={t("nav.config")} />
 
       <View className="gap-3">
@@ -56,17 +40,6 @@ export default function ConfigScreen() {
           {t("profile.version", { version: appVersion })}
         </Text>
       </View>
-
-      <Divider />
-
-      <Button
-        testID="config-sign-out"
-        variant="secondary"
-        onPress={() => void handleSignOut()}
-        loading={signingOut}
-      >
-        {t("actions.signOut")}
-      </Button>
     </ScreenContainer>
   );
 }

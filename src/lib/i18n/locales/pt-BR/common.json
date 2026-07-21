@@ -37,7 +37,7 @@
     "overallLabel": "Overall",
     "noCareer": "Jogue sua primeira partida pra começar sua carreira.",
     "statMatches": "Partidas",
-    "statWins": "Vitórias",
+    "statWins": "% Vitórias",
     "statMvp": "MVPs",
     "statStreak": "Sequência",
     "upcomingTitle": "Próximas partidas",
@@ -66,6 +66,10 @@
   "profile": {
     "version": "Versão {{version}}"
   },
+  "signOutConfirm": {
+    "title": "Sair da conta",
+    "message": "Tem certeza que deseja sair da sua conta?"
+  },
   "config": {
     "languageLabel": "Idioma",
     "languageValue": "Português (Brasil)",
@@ -77,6 +81,8 @@
     "permissionDenied": "Sem acesso à localização. Digite a cidade abaixo.",
     "searchLabel": "Buscar endereço",
     "searchPlaceholder": "Rua, bairro ou local",
+    "clearSearch": "Limpar busca",
+    "searchDeniedError": "A busca de endereço falhou (Places API). Verifique a chave/billing no Google Cloud — por enquanto use o mapa + cidade abaixo.",
     "cityLabel": "Cidade",
     "cityPlaceholder": "Ex.: Porto Alegre"
   },
