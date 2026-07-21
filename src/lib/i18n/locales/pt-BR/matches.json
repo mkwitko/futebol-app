@@ -177,6 +177,16 @@
       "leaderLabel": "{{name}} ({{votes}} votos)",
       "noVotesYet": "Sem votos ainda"
     },
+    "reputation": {
+      "title": "Reputação",
+      "pontualidade": "Pontual",
+      "educacao": "Amigável",
+      "compromisso": "Comprometido",
+      "respeito": "Respeitoso",
+      "saveCta": "Salvar reputação",
+      "saved": "Reputação salva!",
+      "error": "Não foi possível salvar. Tente de novo."
+    },
     "finalize": {
       "title": "Finalizar futebol",
       "description": "Encerra a votação e atualiza o nível dos jogadores com base no resultado e nas estatísticas.",
