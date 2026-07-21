@@ -12,8 +12,10 @@ import { Toast } from "@/components/ui/toast";
 import {
   useCreateBillingCheckout,
   useCreateBillingPortal,
+  useListBillingPlans,
 } from "@/api/generated/hooks/billingHooks";
-import { PLAN_FEATURES, PLAN_KEYS, type PlanKey } from "@/api/modules/billing";
+import { type FeatureKey, type PlanKey } from "@/api/modules/billing";
+import { formatPlanPrice } from "@/lib/billing/format-plan-price";
 import { useEntitlements } from "@/hooks/billing/use-entitlements";
 import { useToast } from "@/hooks/common/use-toast";
 
@@ -30,6 +32,7 @@ export default function PlanosScreen() {
   const { t } = useTranslation(["billing", "common"]);
   const router = useRouter();
   const { paymentsEnabled, isPending } = useEntitlements();
+  const plansQuery = useListBillingPlans();
   const checkout = useCreateBillingCheckout();
   const portal = useCreateBillingPortal();
   const toast = useToast();
@@ -62,8 +65,10 @@ export default function PlanosScreen() {
     }
   };
 
+  const plans = plansQuery.data?.plans ?? [];
+
   return (
-    <ScreenContainer className="gap-6">
+    <ScreenContainer className="gap-6" edges={["bottom"]}>
       <ScreenHeader title={t("billing:planos.title")} subtitle={t("billing:planos.subtitle")} />
 
       {toast.message ? (
@@ -72,31 +77,58 @@ export default function PlanosScreen() {
         </Toast>
       ) : null}
 
-      {PLAN_KEYS.map((plan) => (
-        <Card key={plan} className="gap-3" testID={`plan-card-${plan}`}>
-          <Text variant="display" className="text-xl">
-            {t(`billing:planos.${plan}.title`)}
-          </Text>
-          <Text variant="muted" className="text-sm">
-            {t(`billing:planos.${plan}.tagline`)}
-          </Text>
-          <View className="gap-1">
-            {PLAN_FEATURES[plan].map((feature) => (
-              <Text key={feature} className="font-body text-sm text-ink">
-                {`• ${t(`billing:features.${feature}`)}`}
+      {plans.map((plan) => {
+        const key = plan.key as PlanKey;
+        const recommended = key === "organizer";
+        const priceLabel = formatPlanPrice(plan.price, t as (key: string) => string);
+        return (
+          <Card key={key} className="gap-3" testID={`plan-card-${key}`}>
+            <View className="flex-row items-center justify-between">
+              <Text variant="display" className="text-xl">
+                {t(`billing:planos.${key}.title`)}
               </Text>
-            ))}
-          </View>
-          <Button
-            onPress={() => void handleSubscribe(plan)}
-            loading={checkout.isPending}
-            disabled={portal.isPending}
-            testID={`plan-subscribe-${plan}`}
-          >
-            {t("billing:planos.subscribe")}
-          </Button>
-        </Card>
-      ))}
+              {recommended ? (
+                <Text className="rounded-full bg-primary px-2 py-0.5 font-body-semibold text-xs text-white">
+                  {t("billing:planos.recommended")}
+                </Text>
+              ) : null}
+            </View>
+
+            {priceLabel ? (
+              <Text variant="display" className="text-2xl text-primary">
+                {priceLabel}
+              </Text>
+            ) : null}
+
+            <Text variant="muted" className="text-sm">
+              {t(`billing:planos.${key}.tagline`)}
+            </Text>
+
+            {plan.includes ? (
+              <Text className="font-body-semibold text-sm text-ink">
+                {t("billing:planos.includesPlayer")}
+              </Text>
+            ) : null}
+
+            <View className="gap-1">
+              {plan.features.map((feature) => (
+                <Text key={feature} className="font-body text-sm text-ink">
+                  {`• ${t(`billing:features.${feature as FeatureKey}`)}`}
+                </Text>
+              ))}
+            </View>
+
+            <Button
+              onPress={() => void handleSubscribe(key)}
+              loading={checkout.isPending}
+              disabled={portal.isPending || plan.price === null}
+              testID={`plan-subscribe-${key}`}
+            >
+              {t("billing:planos.subscribe")}
+            </Button>
+          </Card>
+        );
+      })}
 
       <Button
         variant="secondary"
