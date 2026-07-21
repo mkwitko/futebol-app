@@ -76,6 +76,9 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState<"off" | "denied" | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Escolher uma sugestão seta o `query` com o endereço escolhido — sem esse
+  // guard o efeito de busca dispararia de novo e reabriria a caixa de sugestões.
+  const skipNextSearchRef = useRef(false);
 
   const hasCoords = value?.latitude != null && value?.longitude != null;
   const markerCoord = hasCoords
@@ -89,6 +92,10 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   // 350ms depois que o usuário para de digitar. Cancela o anterior se vir nova.
   useEffect(() => {
     if (!isPlacesAutocompleteEnabled) return;
+    if (skipNextSearchRef.current) {
+      skipNextSearchRef.current = false;
+      return;
+    }
     const trimmed = query.trim();
     if (trimmed.length < 3) {
       setSuggestions([]);
@@ -154,6 +161,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
   const handleSelectSuggestion = useCallback(
     (suggestion: PlaceSuggestion) => {
+      skipNextSearchRef.current = true;
       setSuggestions([]);
       setQuery(suggestion.description);
       // Photon já devolve coords na busca — aplica direto, sem 2ª chamada.

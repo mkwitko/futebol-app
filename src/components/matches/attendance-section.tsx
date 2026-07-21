@@ -11,8 +11,11 @@ export type AttendanceSectionProps = {
   attendance: ListAttendance200;
   onConfirmMyPresence: () => void;
   confirmingPresence: boolean;
+  cancellingPresence?: boolean;
   onRemove: (attId: string) => void;
   onInvite: () => void;
+  /** Usuário logado — usado pra saber se ele já está na lista (esconde o botão de confirmar). */
+  currentUserId?: string | null;
   /** Abre a carreira do jogador (`/player/[playerId]`) — tocar em qualquer linha da lista/fila. */
   onOpenPlayer: (player: { id: string; name: string }) => void;
 };
@@ -22,8 +25,10 @@ export function AttendanceSection({
   attendance,
   onConfirmMyPresence,
   confirmingPresence,
+  cancellingPresence = false,
   onRemove,
   onInvite,
+  currentUserId,
   onOpenPlayer,
 }: AttendanceSectionProps) {
   const { t } = useTranslation("matches");
@@ -33,12 +38,39 @@ export function AttendanceSection({
     .filter((item) => item.status === "waitlisted")
     .sort((a, b) => (a.waitlistPos ?? 0) - (b.waitlistPos ?? 0));
 
+  // Presença do próprio usuário (confirmado OU na fila). Se já está na lista,
+  // troca "Confirmar" por "Cancelar minha presença" — antes o botão de
+  // confirmar aparecia de novo mesmo depois de já ter confirmado.
+  const selfItem = currentUserId
+    ? attendance.find((item) => item.player.userId === currentUserId)
+    : undefined;
+
+  const presenceCta = selfItem ? (
+    <View className="gap-1.5">
+      <Button
+        testID="cancel-my-presence-cta"
+        variant="ghost"
+        onPress={() => onRemove(selfItem.id)}
+        loading={cancellingPresence}
+      >
+        {t("detail.list.cancelMyPresenceCta")}
+      </Button>
+      {selfItem.status === "waitlisted" ? (
+        <Text variant="muted" className="text-center text-sm">
+          {t("detail.list.confirmedYouWaitlisted")}
+        </Text>
+      ) : null}
+    </View>
+  ) : (
+    <Button testID="confirm-my-presence-cta" variant="secondary" onPress={onConfirmMyPresence} loading={confirmingPresence}>
+      {t("detail.list.confirmPresenceCta")}
+    </Button>
+  );
+
   if (confirmed.length === 0 && waitlisted.length === 0) {
     return (
       <View className="gap-4">
-        <Button testID="confirm-my-presence-cta" variant="secondary" onPress={onConfirmMyPresence} loading={confirmingPresence}>
-          {t("detail.list.confirmPresenceCta")}
-        </Button>
+        {presenceCta}
         <EmptyState
           title={t("detail.list.emptyTitle")}
           description={t("detail.list.emptyDescription")}
@@ -51,9 +83,7 @@ export function AttendanceSection({
 
   return (
     <View className="gap-5">
-      <Button testID="confirm-my-presence-cta" variant="secondary" onPress={onConfirmMyPresence} loading={confirmingPresence}>
-        {t("detail.list.confirmPresenceCta")}
-      </Button>
+      {presenceCta}
 
       <View className="gap-2">
         <Text variant="display" className="text-lg">

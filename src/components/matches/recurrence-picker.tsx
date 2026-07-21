@@ -203,7 +203,18 @@ export function RecurrencePicker({ value, onChange, baseDatetime, className }: R
     <View className={className}>
       <View className="gap-1.5">
         <Text className="font-body-medium text-sm text-muted">{t("create.recurrenceLabel")}</Text>
-        <SegmentedControl options={modeOptions} value={mode} onChange={handleModeChange} />
+        {/* Chips que quebram linha em vez de SegmentedControl — 5 opções num
+            segmented (flex-1 igual) espremem/truncam os rótulos. */}
+        <View className="flex-row flex-wrap gap-2">
+          {modeOptions.map((option) => (
+            <Chip
+              key={option.value}
+              label={option.label}
+              selected={mode === option.value}
+              onPress={() => handleModeChange(option.value)}
+            />
+          ))}
+        </View>
       </View>
 
       {mode === "weekly" || mode === "biweekly" ? (

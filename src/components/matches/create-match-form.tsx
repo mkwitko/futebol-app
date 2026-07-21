@@ -10,6 +10,7 @@ import { Stepper } from "@/components/ui/stepper";
 import { Text } from "@/components/ui/text";
 import { MODALITIES, modalityLabel } from "@/lib/player/position";
 import { combineDateAndTime } from "@/lib/datetime/format";
+import { maskBRLInput } from "@/lib/money";
 import { asZodMessageKey } from "@/lib/i18n/zod-message";
 import {
   createMatchSchema,
@@ -155,9 +156,10 @@ export function CreateMatchForm({ onSubmit, submitting = false, formError }: Cre
             label={t("matches:create.priceLabel")}
             placeholder={t("matches:create.pricePlaceholder")}
             helperText={t("matches:create.priceHelper")}
-            keyboardType="decimal-pad"
-            value={value}
-            onChangeText={onChange}
+            prefix="R$"
+            keyboardType="number-pad"
+            value={value ?? ""}
+            onChangeText={(text) => onChange(maskBRLInput(text))}
             onBlur={onBlur}
           />
         )}

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { Modal, Pressable, View } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import Animated, {
   useAnimatedStyle,
   useReducedMotion,
@@ -43,7 +44,9 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <View className="flex-1 justify-end">
+      {/* Empurra o sheet pra cima do teclado — senão inputs no fim do sheet
+          (ex.: adicionar jogador) ficam atrás do teclado. */}
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }} className="justify-end">
         <Animated.View style={backdropStyle} className="absolute inset-0 bg-black">
           <Pressable
             accessibilityLabel="Fechar"
@@ -68,7 +71,7 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
             </View>
           </SafeAreaView>
         </Animated.View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

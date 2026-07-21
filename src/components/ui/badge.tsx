@@ -37,14 +37,17 @@ export function Badge({ children, variant = "neutral", className, textClassName 
   return (
     <View
       className={cn(
-        "flex-row items-center self-start rounded-full border px-2.5 py-1",
+        // `shrink-0`: pill nunca é espremida em flex-row apertado — senão o
+        // texto quebra em 2 linhas (ex.: "VOL" virava "VO"/"L").
+        "shrink-0 flex-row items-center self-start rounded-full border px-2.5 py-1",
         CONTAINER_CLASSES[variant],
         className,
       )}
     >
       <Text
+        numberOfLines={1}
         className={cn(
-          "font-body-semibold text-xs uppercase tracking-wide",
+          "font-body-semibold text-xs tracking-wide",
           TEXT_CLASSES[variant],
           textClassName,
         )}

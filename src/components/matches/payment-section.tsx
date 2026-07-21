@@ -4,7 +4,6 @@ import { Pressable, View } from "react-native";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ListRow } from "@/components/ui/list-row";
 import { Text } from "@/components/ui/text";
 import type { ListAttendance200 } from "@/api/generated/types/ListAttendance";
 
@@ -68,50 +67,60 @@ export function PaymentSection({
             const isPaid = item.paymentStatus === "paid";
 
             return (
-              <ListRow
+              // Nome + status na 1ª linha; ações na 2ª — antes tudo ficava no
+              // `trailing` do ListRow e espremia o nome (some quando aparece o
+              // "marcar como pago" do próprio jogador).
+              <View
                 key={item.id}
-                title={item.player.name}
-                trailing={
-                  <View className="flex-row items-center gap-3">
-                    <Badge variant={isPaid ? "primary" : "neutral"}>{t(`detail.payment.${item.paymentStatus}`)}</Badge>
-                    {isPaid ? (
+                className="gap-2 rounded-xl border border-line bg-surface px-4 py-3"
+              >
+                <View className="flex-row items-center gap-2">
+                  <Text className="flex-1 font-body-medium text-base text-ink" numberOfLines={1}>
+                    {item.player.name}
+                  </Text>
+                  <Badge variant={isPaid ? "primary" : "neutral"}>
+                    {t(`detail.payment.${item.paymentStatus}`)}
+                  </Badge>
+                </View>
+
+                <View className="flex-row items-center gap-4">
+                  {isPaid ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t("detail.payment.undoCta")}
+                      hitSlop={8}
+                      onPress={() => onConfirmPayment(item.id, false)}
+                    >
+                      <Text className="font-body-medium text-sm text-muted">{t("detail.payment.undoCta")}</Text>
+                    </Pressable>
+                  ) : (
+                    <>
                       <Pressable
                         accessibilityRole="button"
-                        accessibilityLabel={t("detail.payment.undoCta")}
+                        accessibilityLabel={t("detail.payment.confirmCta")}
                         hitSlop={8}
-                        onPress={() => onConfirmPayment(item.id, false)}
+                        onPress={() => onConfirmPayment(item.id, true)}
                       >
-                        <Text className="font-body-medium text-sm text-muted">{t("detail.payment.undoCta")}</Text>
+                        <Text className="font-body-medium text-sm text-primary">
+                          {t("detail.payment.confirmCta")}
+                        </Text>
                       </Pressable>
-                    ) : (
-                      <>
+                      {isSelf ? (
                         <Pressable
                           accessibilityRole="button"
-                          accessibilityLabel={t("detail.payment.confirmCta")}
+                          accessibilityLabel={t("detail.payment.markPaidCta")}
                           hitSlop={8}
-                          onPress={() => onConfirmPayment(item.id, true)}
+                          onPress={() => onMarkPaid(item.id)}
                         >
-                          <Text className="font-body-medium text-sm text-primary">
-                            {t("detail.payment.confirmCta")}
+                          <Text className="font-body-medium text-sm text-ink">
+                            {t("detail.payment.markPaidCta")}
                           </Text>
                         </Pressable>
-                        {isSelf ? (
-                          <Pressable
-                            accessibilityRole="button"
-                            accessibilityLabel={t("detail.payment.markPaidCta")}
-                            hitSlop={8}
-                            onPress={() => onMarkPaid(item.id)}
-                          >
-                            <Text className="font-body-medium text-sm text-ink">
-                              {t("detail.payment.markPaidCta")}
-                            </Text>
-                          </Pressable>
-                        ) : null}
-                      </>
-                    )}
-                  </View>
-                }
-              />
+                      ) : null}
+                    </>
+                  )}
+                </View>
+              </View>
             );
           })}
         </View>

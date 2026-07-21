@@ -48,7 +48,7 @@ describe("RecurrencePicker", () => {
     const onChangeSpy = jest.fn();
     render(<Harness onChangeSpy={onChangeSpy} />);
 
-    await user.press(screen.getByRole("tab", { name: "Não (avulsa)" }));
+    await user.press(screen.getByRole("button", { name: "Não (avulsa)" }));
 
     expect(onChangeSpy).toHaveBeenCalledWith(null);
   });
@@ -58,7 +58,7 @@ describe("RecurrencePicker", () => {
     const onChangeSpy = jest.fn();
     render(<Harness onChangeSpy={onChangeSpy} />);
 
-    await user.press(screen.getByRole("tab", { name: "Semanal" }));
+    await user.press(screen.getByRole("button", { name: "Semanal" }));
     expect(onChangeSpy).toHaveBeenLastCalledWith({
       rule: { kind: "weekly", weekdays: [BASE_WEEKDAY], interval: 1 },
       time: BASE_TIME,
@@ -84,7 +84,7 @@ describe("RecurrencePicker", () => {
     const onChangeSpy = jest.fn();
     render(<Harness onChangeSpy={onChangeSpy} />);
 
-    await user.press(screen.getByRole("tab", { name: "Quinzenal/N sem" }));
+    await user.press(screen.getByRole("button", { name: "Quinzenal/N sem" }));
 
     expect(onChangeSpy).toHaveBeenLastCalledWith({
       rule: { kind: "weekly", weekdays: [BASE_WEEKDAY], interval: 2 },
@@ -97,7 +97,7 @@ describe("RecurrencePicker", () => {
     const onChangeSpy = jest.fn();
     render(<Harness onChangeSpy={onChangeSpy} />);
 
-    await user.press(screen.getByRole("tab", { name: "Mensal" }));
+    await user.press(screen.getByRole("button", { name: "Mensal" }));
     expect(onChangeSpy).toHaveBeenLastCalledWith({
       rule: { kind: "monthly_dom", day: BASE_DATETIME.getUTCDate() },
       time: BASE_TIME,
@@ -115,7 +115,7 @@ describe("RecurrencePicker", () => {
     const onChangeSpy = jest.fn();
     render(<Harness onChangeSpy={onChangeSpy} />);
 
-    await user.press(screen.getByRole("tab", { name: "Mensal" }));
+    await user.press(screen.getByRole("button", { name: "Mensal" }));
     await user.press(screen.getByRole("tab", { name: "Nª semana" }));
     expect(onChangeSpy).toHaveBeenLastCalledWith({
       rule: { kind: "monthly_nth", week: 1, weekday: BASE_WEEKDAY },
@@ -140,7 +140,7 @@ describe("RecurrencePicker", () => {
     const onChangeSpy = jest.fn();
     render(<Harness onChangeSpy={onChangeSpy} />);
 
-    await user.press(screen.getByRole("tab", { name: "Manual" }));
+    await user.press(screen.getByRole("button", { name: "Manual" }));
     expect(onChangeSpy).toHaveBeenLastCalledWith({ rule: { kind: "manual" }, time: null, dates: [] });
 
     await user.press(screen.getByTestId("recurrence-manual-add"));

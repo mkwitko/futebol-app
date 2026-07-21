@@ -233,7 +233,34 @@ export default function MatchDetailScreen() {
   const canCancel = canFinish;
 
   return (
-    <ScreenContainer className="gap-6">
+    <ScreenContainer
+      className="gap-6"
+      // Ações do organizador ficam fixas no rodapé (sempre visíveis, não rolam
+      // com o conteúdo) — só quando a pelada já carregou.
+      footer={
+        match ? (
+          !isPostGame ? (
+            <OrganizerActions
+              onInvite={() => setInviteVisible(true)}
+              onFinish={() => void handleFinish()}
+              onCancel={() => void handleCancel()}
+              finishing={finishMatch.isPending}
+              cancelling={cancelMatch.isPending}
+              canFinish={canFinish}
+              canCancel={canCancel}
+            />
+          ) : (
+            <FinalizeSection
+              status={match.status}
+              hasResult={!!resultQuery.data}
+              onFinalize={() => void handleFinalize()}
+              finalizing={finalizeMatch.isPending}
+              error={finalizeError}
+            />
+          )
+        ) : null
+      }
+    >
       <ScreenHeader
         title={match?.location ?? t("matches:detail.loadingTitle")}
         onBack={() => router.back()}
@@ -298,6 +325,8 @@ export default function MatchDetailScreen() {
                     attendance={attendanceQuery.data ?? []}
                     onConfirmMyPresence={handleConfirmMyPresence}
                     confirmingPresence={confirmPresence.isPending}
+                    cancellingPresence={cancelPresence.isPending}
+                    currentUserId={user?.id}
                     onRemove={handleRemove}
                     onInvite={() => setInviteVisible(true)}
                     onOpenPlayer={(player) =>
@@ -377,26 +406,6 @@ export default function MatchDetailScreen() {
                 </View>
               ) : null}
             </QueryState>
-
-            {!isPostGame ? (
-              <OrganizerActions
-                onInvite={() => setInviteVisible(true)}
-                onFinish={() => void handleFinish()}
-                onCancel={() => void handleCancel()}
-                finishing={finishMatch.isPending}
-                cancelling={cancelMatch.isPending}
-                canFinish={canFinish}
-                canCancel={canCancel}
-              />
-            ) : (
-              <FinalizeSection
-                status={match.status}
-                hasResult={!!resultQuery.data}
-                onFinalize={() => void handleFinalize()}
-                finalizing={finalizeMatch.isPending}
-                error={finalizeError}
-              />
-            )}
 
             <InviteSheet
               visible={inviteVisible}

@@ -16,16 +16,23 @@ export type InputProps = TextInputProps & {
    * prop é ignorado).
    */
   secureToggle?: boolean;
+  /**
+   * Texto curto exibido DENTRO do input à esquerda (ex.: "R$"). Útil pra
+   * máscaras de moeda. Tem padding à esquerda e dispara `paddingLeft: 0` no
+   * `TextInput` (a posição do texto começa depois do prefixo).
+   */
+  prefix?: string;
 };
 
 /** Campo de texto do app — label, erro (RHF-friendly) e anel de foco visível. */
 export const Input = forwardRef<TextInput, InputProps>(function Input(
-  { label, error, helperText, className, onFocus, onBlur, secureToggle = false, secureTextEntry, ...props },
+  { label, error, helperText, className, onFocus, onBlur, secureToggle = false, secureTextEntry, prefix, ...props },
   ref,
 ) {
   const [focused, setFocused] = useState(false);
   // Só relevante quando `secureToggle` — começa oculto, como um campo de senha normal.
   const [hidden, setHidden] = useState(true);
+  const hasPrefix = Boolean(prefix);
 
   return (
     <View className="gap-1.5">
@@ -48,6 +55,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
           }}
           className={cn(
             "min-h-[44px] rounded-xl border border-line bg-surface px-4 py-3 font-body text-base text-ink",
+            hasPrefix && "pl-11",
             secureToggle && "pr-12",
             focused && "border-primary",
             error && "border-danger",
@@ -55,6 +63,18 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
           )}
           {...props}
         />
+        {hasPrefix ? (
+          // Renderizado DEPOIS do TextInput (mesmo pai relativo) pra ficar por
+          // cima do bg opaco dele — senão o input cobre o prefixo. `none` deixa
+          // o toque passar direto pro TextInput.
+          <Text
+            pointerEvents="none"
+            className="absolute left-4 top-0 h-full font-body-medium text-base text-ink"
+            style={{ lineHeight: 44 }}
+          >
+            {prefix}
+          </Text>
+        ) : null}
         {secureToggle ? (
           <Pressable
             onPress={() => setHidden((prev) => !prev)}
