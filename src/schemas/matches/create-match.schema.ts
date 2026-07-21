@@ -28,14 +28,24 @@ export const createMatchSchema = z.object({
   priceInput: z.string().max(20).optional(),
   pixKey: z.string().max(140, { message: "zod:maxLength" }).optional(),
   modality: z.enum(["futsal", "society", "campo"]),
-  // Geo do local (LocationPicker). Todos opcionais/nullable — pelada sem mapa
-  // fica `null` e o backend aceita. `location` (texto livre) continua sendo o
-  // nome/apelido do campo; estes só guardam coords/cidade/endereço pra geo.
-  latitude: z.number().nullable().optional(),
-  longitude: z.number().nullable().optional(),
+  // Geo do local (LocationPicker). `latitude`/`longitude` são OBRIGATÓRIOS —
+  // sem coords a pelada não aparece no Descobrir (o feed filtra por coords +
+  // raio). A validação de presença fica no `superRefine` abaixo (o campo
+  // guarda `null` até o usuário escolher no mapa). `location` (texto livre)
+  // segue sendo o nome/apelido do campo; estes guardam coords/cidade/endereço.
+  latitude: z.number().nullable(),
+  longitude: z.number().nullable(),
   city: z.string().max(120).nullable().optional(),
   address: z.string().max(200).nullable().optional(),
   recurrence: z.custom<RecurrenceValue | null>(),
+}).superRefine((val, ctx) => {
+  if (val.latitude === null || val.longitude === null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["latitude"],
+      message: "matches:create.geoRequired",
+    });
+  }
 });
 
 export type CreateMatchFormValues = z.infer<typeof createMatchSchema>;

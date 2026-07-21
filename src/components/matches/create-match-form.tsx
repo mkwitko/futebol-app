@@ -109,12 +109,20 @@ export function CreateMatchForm({ onSubmit, submitting = false, formError }: Cre
         <LocationPicker
           value={geoValue}
           onChange={(next) => {
+            // Valida só no ÚLTIMO coord (longitude), depois de latitude já
+            // setado — senão a validação rodaria com lat setado e lng ainda
+            // null, recriando o erro. Com ambos setados, o erro limpa.
             setValue("latitude", next.latitude);
-            setValue("longitude", next.longitude);
+            setValue("longitude", next.longitude, { shouldValidate: true });
             setValue("city", next.city);
             setValue("address", next.address);
           }}
         />
+        {errors.latitude ? (
+          <Text className="font-body text-xs text-danger" testID="create-match-geo-error">
+            {t("matches:create.geoRequired")}
+          </Text>
+        ) : null}
       </View>
 
       <Controller

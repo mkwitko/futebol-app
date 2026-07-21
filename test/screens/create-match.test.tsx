@@ -37,11 +37,28 @@ describe("Criar pelada", () => {
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
+  it("bloqueia o envio sem coords (local no mapa) e mostra o aviso", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<CreateMatchScreen />);
+
+    await user.type(screen.getByLabelText("Local"), "Quadra do Zico");
+    // Sem escolher local no mapa → coords nulas → não cria.
+    await user.press(screen.getByTestId("create-match-submit"));
+
+    expect(await screen.findByTestId("create-match-geo-error")).toBeOnTheScreen();
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
   it("submits with the default slots/date and navigates to the new match detail", async () => {
     const user = userEvent.setup();
     renderWithProviders(<CreateMatchScreen />);
 
     await user.type(screen.getByLabelText("Local"), "Quadra do Zico");
+    // Escolhe o local via "usar minha localização" (expo-location mockado),
+    // que preenche lat/lng — agora obrigatórios pra pelada ser descobrível.
+    await user.press(screen.getByTestId("location-use-mine"));
+    await waitFor(() => expect(screen.queryByTestId("create-match-geo-error")).toBeNull());
+
     await user.press(screen.getByTestId("create-match-submit"));
 
     await waitFor(() => {

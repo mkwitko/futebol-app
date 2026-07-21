@@ -7,6 +7,7 @@
     "locationPlaceholder": "Ex.: Quadra do Zico",
     "geoLabel": "Onde é a pelada?",
     "geoHint": "Arraste o pino ou use sua localização pra marcar o campo no mapa.",
+    "geoRequired": "Escolha o local no mapa para a pelada aparecer na busca.",
     "modalityLabel": "Modalidade",
     "slotsLabel": "Vagas",
     "priceLabel": "Preço por pessoa",
