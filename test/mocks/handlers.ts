@@ -203,6 +203,8 @@ export type PublicProfile = {
   currentStreak: number;
   bestStreak: number;
   achievements: { key: string; label: string; description: string; icon: string; unlocked: boolean }[];
+  reputation: Record<string, number>;
+  trophies: { year: number; groupId: string; groupName: string; category: string }[];
 };
 
 /** `GET /players/me/upcoming-matches` — item de `GetMyUpcomingMatches200` (ver `src/api/generated/types/GetMyUpcomingMatches.ts`). */
@@ -1051,6 +1053,13 @@ export const handlers = [
     const match = findMatch(params.id as string);
     if (!match) return HttpResponse.json({ message: "not_found" }, { status: 404 });
     return HttpResponse.json(match);
+  }),
+
+  http.patch(api("/matches/:id"), async ({ request, params }) => {
+    const match = findMatch(params.id as string);
+    if (!match) return HttpResponse.json({ message: "not_found" }, { status: 404 });
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({ ...match, ...body });
   }),
 
   http.post(api("/matches/:id/finish"), ({ params }) => {

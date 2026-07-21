@@ -242,10 +242,12 @@ export default function MatchDetailScreen() {
           !isPostGame ? (
             <OrganizerActions
               onInvite={() => setInviteVisible(true)}
+              onEdit={() => router.push({ pathname: "/match/[id]/edit", params: { id } })}
               onFinish={() => void handleFinish()}
               onCancel={() => void handleCancel()}
               finishing={finishMatch.isPending}
               cancelling={cancelMatch.isPending}
+              canEdit={isOwner}
               canFinish={canFinish}
               canCancel={canCancel}
             />

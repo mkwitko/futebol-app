@@ -7,21 +7,25 @@ import { Text } from "@/components/ui/text";
 
 export type OrganizerActionsProps = {
   onInvite: () => void;
+  onEdit: () => void;
   onFinish: () => void;
   onCancel: () => void;
   finishing: boolean;
   cancelling: boolean;
+  canEdit: boolean;
   canFinish: boolean;
   canCancel: boolean;
 };
 
-/** Seção "Ações do organizador" — convidar, encerrar e cancelar (com confirmação nativa). */
+/** Seção "Ações do organizador" — editar, convidar, encerrar e cancelar (com confirmação nativa). */
 export function OrganizerActions({
   onInvite,
+  onEdit,
   onFinish,
   onCancel,
   finishing,
   cancelling,
+  canEdit,
   canFinish,
   canCancel,
 }: OrganizerActionsProps) {
@@ -33,6 +37,11 @@ export function OrganizerActions({
       <Text variant="display" className="text-lg">
         {t("matches:detail.actions.title")}
       </Text>
+      {canEdit ? (
+        <Button testID="match-edit-cta" variant="secondary" onPress={onEdit}>
+          {t("matches:detail.actions.editCta")}
+        </Button>
+      ) : null}
       <Button testID="match-invite-cta" onPress={onInvite}>
         {t("matches:detail.actions.inviteCta")}
       </Button>

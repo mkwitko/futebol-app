@@ -48,6 +48,15 @@
     "error": "Não foi possível criar o futebol. Tente novamente.",
     "manualNoDates": "Adicione ao menos uma data para a série manual."
   },
+  "edit": {
+    "title": "Editar futebol",
+    "submit": "Salvar alterações",
+    "submitting": "Salvando…",
+    "error": "Não foi possível salvar as alterações. Tente novamente.",
+    "notOwner": "Só o organizador pode editar este futebol.",
+    "notEditable": "Este futebol não pode mais ser editado.",
+    "seriesDetachNote": "Este futebol faz parte de uma recorrência. Editar altera só esta pelada — ela sai da série (as futuras seguem iguais)."
+  },
   "detail": {
     "loadingTitle": "Carregando…",
     "loadError": "Não foi possível carregar este futebol.",
@@ -119,6 +128,7 @@
     "actions": {
       "title": "Ações do organizador",
       "inviteCta": "Convidar",
+      "editCta": "Editar futebol",
       "finishCta": "Encerrar futebol",
       "finishConfirmTitle": "Encerrar futebol?",
       "finishConfirmMessage": "O futebol será marcado como finalizado. Essa ação não pode ser desfeita.",

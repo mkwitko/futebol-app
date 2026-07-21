@@ -3218,6 +3218,28 @@
                   "pixKey": {
                     "nullable": true,
                     "type": "string"
+                  },
+                  "modality": {
+                    "type": "string",
+                    "enum": [
+                      "futsal",
+                      "society",
+                      "campo"
+                    ]
+                  },
+                  "latitude": {
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "type": "number"
+                  },
+                  "city": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "address": {
+                    "nullable": true,
+                    "type": "string"
                   }
                 }
               }
