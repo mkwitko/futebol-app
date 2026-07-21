@@ -9,6 +9,7 @@ import { JoinRequestsSection } from "@/components/matches/join-requests-section"
 import { MatchHeader } from "@/components/matches/match-header";
 import { OrganizerActions } from "@/components/matches/organizer-actions";
 import { PaymentSection } from "@/components/matches/payment-section";
+import { ReputationSection } from "@/components/matches/reputation-section";
 import { ResultSection } from "@/components/matches/result-section";
 import { StatsSection } from "@/components/matches/stats-section";
 import { TeamsSection } from "@/components/matches/teams-section";
@@ -352,18 +353,28 @@ export default function MatchDetailScreen() {
               ) : null}
 
               {section === "voting" ? (
-                <VotingSection
-                  confirmed={confirmedAttendance.map((item) => ({
-                    playerId: item.player.id,
-                    name: item.player.name,
-                  }))}
-                  isParticipant={!!selfPlayerId}
-                  selfPlayerId={selfPlayerId}
-                  tally={voteTallyQuery.data}
-                  isLoadingTally={voteTallyQuery.isPending}
-                  onVote={handleVote}
-                  windowClosed={votingWindowClosed}
-                />
+                <View className="gap-6">
+                  <VotingSection
+                    confirmed={confirmedAttendance.map((item) => ({
+                      playerId: item.player.id,
+                      name: item.player.name,
+                    }))}
+                    isParticipant={!!selfPlayerId}
+                    selfPlayerId={selfPlayerId}
+                    tally={voteTallyQuery.data}
+                    isLoadingTally={voteTallyQuery.isPending}
+                    onVote={handleVote}
+                    windowClosed={votingWindowClosed}
+                  />
+
+                  <ReputationSection
+                    matchId={id}
+                    teammates={confirmedAttendance
+                      .filter((item) => item.player.id !== selfPlayerId)
+                      .map((item) => ({ id: item.player.id, name: item.player.name }))}
+                    open={!votingWindowClosed}
+                  />
+                </View>
               ) : null}
             </QueryState>
 

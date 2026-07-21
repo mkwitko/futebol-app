@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { ScreenContainer } from "@/components/layout/screen-container";
 import { AchievementsGrid } from "@/components/players/achievements-grid";
 import { CareerSummary } from "@/components/players/career-summary";
+import { ReputationBadges } from "@/components/players/reputation-badges";
 import { Button } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -64,6 +65,7 @@ export default function SharedProfileScreen() {
             name={profileQuery.data.name}
             career={publicProfileToCareer(profileQuery.data)}
           />
+          <ReputationBadges reputation={profileQuery.data.reputation} />
           <AchievementsGrid
             achievements={profileQuery.data.achievements ?? []}
             title={t("player:achievements.title")}

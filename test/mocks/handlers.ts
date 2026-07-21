@@ -369,6 +369,19 @@ type JoinRequest = {
   createdAt: string;
 };
 
+type ReputationDimension = "pontualidade" | "educacao" | "compromisso" | "respeito";
+
+type ReputationTag = {
+  votedPlayerId: string;
+  dimensions: ReputationDimension[];
+};
+
+type GroupReputationMember = {
+  playerId: string;
+  name: string;
+  reputation: Record<ReputationDimension, number>;
+};
+
 type Court = typeof FAKE_COURT;
 type AvailabilitySlot = typeof FAKE_AVAILABILITY_SLOT;
 
@@ -440,6 +453,8 @@ let resultByMatch: Record<string, MatchResult> = {};
 let statsByMatch: Record<string, MatchStat[]> = {};
 let votesByMatch: Record<string, Vote[]> = {};
 let voteWindowClosedMatches = new Set<string>();
+let reputationByMatch: Record<string, ReputationTag[]> = {};
+let reputationByGroup: Record<string, GroupReputationMember[]> = {};
 let myPlayer = { ...FAKE_MY_PLAYER };
 let upcomingMatches: UpcomingMatch[] = [...FAKE_UPCOMING_MATCHES];
 let careerByPlayer: Record<string, Career> = { [FAKE_MY_PLAYER.id]: { ...FAKE_CAREER } };
@@ -543,6 +558,8 @@ export function resetGroupsMocks() {
   statsByMatch = {};
   votesByMatch = {};
   voteWindowClosedMatches = new Set();
+  reputationByMatch = {};
+  reputationByGroup = {};
   myPlayer = { ...FAKE_MY_PLAYER };
   upcomingMatches = [...FAKE_UPCOMING_MATCHES];
   careerByPlayer = { [FAKE_MY_PLAYER.id]: { ...FAKE_CAREER } };
@@ -727,6 +744,21 @@ export function getStatsMock(matchId: string) {
 /** Lê os votos persistidos no mock — usado pra asserções precisas de payload (`castVote`) nos testes. */
 export function getVotesMock(matchId: string) {
   return votesByMatch[matchId] ?? [];
+}
+
+/** Pré-semeia as tags de reputação já registradas (simula hidratação via `GET /matches/:id/reputation`). */
+export function setReputationMock(matchId: string, tags: ReputationTag[]) {
+  reputationByMatch[matchId] = tags;
+}
+
+/** Lê as tags de reputação persistidas no mock — usado pra asserções precisas de payload (`setReputation`) nos testes. */
+export function getReputationMock(matchId: string) {
+  return reputationByMatch[matchId] ?? [];
+}
+
+/** Pré-semeia `GET /groups/:id/reputation` — visão do organizador (contagens por membro). */
+export function setGroupReputationMock(groupId: string, members: GroupReputationMember[]) {
+  reputationByGroup[groupId] = members;
 }
 
 export const handlers = [
@@ -936,6 +968,10 @@ export const handlers = [
 
   http.get(api("/groups/:id/members"), ({ params }) => {
     return HttpResponse.json(membersByGroup[params.id as string] ?? []);
+  }),
+
+  http.get(api("/groups/:id/reputation"), ({ params }) => {
+    return HttpResponse.json({ members: reputationByGroup[params.id as string] ?? [] });
   }),
 
   http.post(api("/groups/:id/members"), async ({ request, params }) => {
@@ -1240,6 +1276,18 @@ export const handlers = [
       return { category, tally: tallyRows, leaderPlayerId };
     });
     return HttpResponse.json(tally);
+  }),
+
+  http.get(api("/matches/:id/reputation"), ({ params }) => {
+    const matchId = params.id as string;
+    return HttpResponse.json({ tags: reputationByMatch[matchId] ?? [] });
+  }),
+
+  http.put(api("/matches/:id/reputation"), async ({ request, params }) => {
+    const matchId = params.id as string;
+    const body = (await request.json()) as { tags: ReputationTag[] };
+    reputationByMatch[matchId] = body.tags;
+    return HttpResponse.json({ tags: body.tags });
   }),
 
   http.post(api("/matches/:id/finalize"), ({ params }) => {
