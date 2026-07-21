@@ -25,12 +25,13 @@ import type { JoinPolicy } from "@/components/groups/group-settings-sheet";
 import { isForbiddenError } from "@/lib/api/errors";
 import { colors } from "@/lib/theme";
 import { positionLabel } from "@/lib/player/position";
-import { useGetGroup, useGetGroupRanking } from "@/api/generated/hooks/groupsHooks";
+import { useGetGroup, useGetGroupRanking, useGetGroupReputation } from "@/api/generated/hooks/groupsHooks";
 import { RankingSection } from "@/components/groups/ranking-section";
 import { useListMembers } from "@/api/generated/hooks/membersHooks";
 import { useListMatches } from "@/api/generated/hooks/matchesHooks";
 import { useListAttendance } from "@/api/generated/hooks/attendanceHooks";
 import type { ListMembers200 } from "@/api/generated/types/ListMembers";
+import { ReputationBadges } from "@/components/players/reputation-badges";
 
 type HubTab = "peladas" | "jogadores" | "ranking" | "mensalidades";
 type MemberSheetState = { visible: boolean; member?: ListMembers200[number] };
@@ -78,6 +79,14 @@ export default function GroupDetailScreen() {
   );
 
   const isOwner = !!groupQuery.data && groupQuery.data.ownerId === user?.id;
+
+  // Só o organizador vê reputação por membro (mesmo gate de `isOwner` já
+  // usado pro resto da tela) — `enabled` evita o fetch pra quem só participa.
+  const groupReputationQuery = useGetGroupReputation(id, { query: { enabled: isOwner } });
+  const reputationByPlayerId = useMemo(
+    () => new Map((groupReputationQuery.data?.members ?? []).map((m) => [m.playerId, m.reputation])),
+    [groupReputationQuery.data],
+  );
 
   const handleSaveFee = async (monthlyFeeCents: number | null) => {
     await updateGroup.mutateAsync({ monthlyFeeCents });
@@ -211,25 +220,50 @@ export default function GroupDetailScreen() {
             onEmptyAction={() => setMemberSheet({ visible: true })}
           >
             <View className="gap-2">
-              {membersQuery.data?.map((member) => (
-                <ListRow
-                  key={member.id}
-                  title={member.player.name}
-                  subtitle={member.primaryPos ? positionLabel(member.primaryPos) : t("groups:hub.jogadoresNoPosition")}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/player/[playerId]",
-                      params: { playerId: member.player.id, name: member.player.name },
-                    })
-                  }
-                  onLongPress={() => setMemberSheet({ visible: true, member })}
-                  trailing={
-                    <Badge variant={member.billingMode === "mensalista" ? "primary" : "neutral"}>
-                      {t(`groups:member.billingMode.${member.billingMode}`)}
-                    </Badge>
-                  }
-                />
-              ))}
+              {membersQuery.data?.map((member) => {
+                // `reputationByPlayerId` só popula quando `isOwner` (query
+                // gated acima) — o `get` some pra quem não é organizador.
+                const memberReputation = reputationByPlayerId.get(member.player.id);
+                return (
+                  <View key={member.id} className="gap-1">
+                    <ListRow
+                      title={member.player.name}
+                      subtitle={member.primaryPos ? positionLabel(member.primaryPos) : t("groups:hub.jogadoresNoPosition")}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/player/[playerId]",
+                          params: { playerId: member.player.id, name: member.player.name },
+                        })
+                      }
+                      onLongPress={() => setMemberSheet({ visible: true, member })}
+                      trailing={
+                        <Badge variant={member.billingMode === "mensalista" ? "primary" : "neutral"}>
+                          {t(`groups:member.billingMode.${member.billingMode}`)}
+                        </Badge>
+                      }
+                    />
+                    {memberReputation ? (
+                      <View className="px-4">
+                        {/*
+                          Foco pontualidade/compromisso (as duas dimensões
+                          mais acionáveis pro organizador) — zera as outras
+                          duas em vez de criar uma variante "compacta": o
+                          filtro de contagem > 0 do `<ReputationBadges>` já
+                          esconde o que não é o foco.
+                        */}
+                        <ReputationBadges
+                          reputation={{
+                            pontualidade: memberReputation.pontualidade,
+                            compromisso: memberReputation.compromisso,
+                            educacao: 0,
+                            respeito: 0,
+                          }}
+                        />
+                      </View>
+                    ) : null}
+                  </View>
+                );
+              })}
             </View>
           </QueryState>
         </View>
