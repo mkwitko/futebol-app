@@ -1366,6 +1366,24 @@ export const handlers = [
   }),
 
   http.get(api("/billing/me"), () => HttpResponse.json(billingMe)),
+  http.get(api("/billing/plans"), () =>
+    HttpResponse.json({
+      plans: [
+        {
+          key: "organizer",
+          features: ["public_groups", "organizer_ai", "seasons", "advanced_stats", "cosmetics"],
+          includes: "player",
+          price: { amountCents: 1990, currency: "brl", interval: "month" },
+        },
+        {
+          key: "player",
+          features: ["advanced_stats", "cosmetics"],
+          includes: null,
+          price: { amountCents: 990, currency: "brl", interval: "month" },
+        },
+      ],
+    }),
+  ),
   http.post(api("/billing/checkout"), () =>
     HttpResponse.json({ url: "https://checkout.stripe.test/session" }),
   ),

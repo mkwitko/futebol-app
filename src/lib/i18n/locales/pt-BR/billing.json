@@ -4,6 +4,12 @@
     "subtitle": "Desbloqueie recursos premium da sua conta.",
     "subscribe": "Assinar",
     "manage": "Gerenciar assinatura",
+    "recommended": "Recomendado",
+    "includesPlayer": "Inclui tudo do Plano Jogador",
+    "interval": {
+      "month": "/mês",
+      "year": "/ano"
+    },
     "organizer": {
       "title": "Plano Organizador",
       "tagline": "Para quem toca a pelada."
