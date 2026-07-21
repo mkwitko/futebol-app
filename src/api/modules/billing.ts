@@ -24,8 +24,14 @@ export const PLAN_KEYS = ["organizer", "player"] as const;
 
 export type PlanKey = (typeof PLAN_KEYS)[number];
 
-/** Features anexadas a cada plano (para listagem na tela de planos). */
+/** Features anexadas a cada plano (organizador engloba o jogador). */
 export const PLAN_FEATURES: Record<PlanKey, readonly FeatureKey[]> = {
-  organizer: ["public_groups", "organizer_ai", "seasons"],
+  organizer: ["public_groups", "organizer_ai", "seasons", "advanced_stats", "cosmetics"],
   player: ["advanced_stats", "cosmetics"],
+} as const;
+
+/** Plano que cada plano engloba (organizador inclui o jogador). */
+export const PLAN_INCLUDES: Record<PlanKey, PlanKey | null> = {
+  organizer: "player",
+  player: null,
 } as const;

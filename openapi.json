@@ -12448,6 +12448,91 @@
           }
         }
       }
+    },
+    "/billing/plans": {
+      "get": {
+        "operationId": "listBillingPlans",
+        "tags": [
+          "billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "plans": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string",
+                            "enum": [
+                              "organizer",
+                              "player"
+                            ]
+                          },
+                          "features": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "includes": {
+                            "nullable": true,
+                            "type": "string",
+                            "enum": [
+                              "organizer",
+                              "player"
+                            ]
+                          },
+                          "price": {
+                            "nullable": true,
+                            "type": "object",
+                            "properties": {
+                              "amountCents": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "currency": {
+                                "type": "string"
+                              },
+                              "interval": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "amountCents",
+                              "currency",
+                              "interval"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "key",
+                          "features",
+                          "includes",
+                          "price"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "plans"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
