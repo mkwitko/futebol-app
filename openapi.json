@@ -9965,11 +9965,31 @@
                     },
                     "paymentsEnabled": {
                       "type": "boolean"
+                    },
+                    "plan": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "organizer",
+                        "player"
+                      ]
+                    },
+                    "status": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "active",
+                        "expired",
+                        "canceled"
+                      ]
                     }
                   },
                   "required": [
                     "features",
-                    "paymentsEnabled"
+                    "paymentsEnabled",
+                    "plan",
+                    "status"
                   ],
                   "additionalProperties": false
                 }
@@ -10020,7 +10040,6 @@
                             ]
                           },
                           "price": {
-                            "nullable": true,
                             "type": "object",
                             "properties": {
                               "amountCents": {
@@ -10064,9 +10083,9 @@
         }
       }
     },
-    "/billing/checkout": {
+    "/billing/subscribe": {
       "post": {
-        "operationId": "createBillingCheckout",
+        "operationId": "subscribeBilling",
         "tags": [
           "billing"
         ],
@@ -10083,10 +10102,18 @@
                       "organizer",
                       "player"
                     ]
+                  },
+                  "taxId": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
                   }
                 },
                 "required": [
-                  "plan"
+                  "plan",
+                  "taxId",
+                  "phone"
                 ]
               }
             }
@@ -10100,12 +10127,26 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "url": {
+                    "subscriptionId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "active",
+                        "expired",
+                        "canceled"
+                      ]
+                    },
+                    "emv": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "url"
+                    "subscriptionId",
+                    "status",
+                    "emv"
                   ],
                   "additionalProperties": false
                 }
@@ -10115,9 +10156,9 @@
         }
       }
     },
-    "/billing/portal": {
+    "/billing/cancel": {
       "post": {
-        "operationId": "createBillingPortal",
+        "operationId": "cancelBilling",
         "tags": [
           "billing"
         ],
@@ -10129,12 +10170,15 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "url": {
-                      "type": "string"
+                    "canceled": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
                     }
                   },
                   "required": [
-                    "url"
+                    "canceled"
                   ],
                   "additionalProperties": false
                 }
