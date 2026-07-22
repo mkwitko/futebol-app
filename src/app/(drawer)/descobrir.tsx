@@ -13,7 +13,7 @@ import { useDeviceLocation } from "@/hooks/location/use-device-location";
 import { useJoinOpenMatch } from "@/hooks/discover/use-join-open-match";
 import { useRequestJoin } from "@/hooks/join-requests/use-request-join";
 import { useToast } from "@/hooks/common/use-toast";
-import { formatCentsToBRL } from "@/lib/money";
+import { formatCentsToBRL, maskBRLInput, reaisInputToCents } from "@/lib/money";
 import { formatMatchDateTime } from "@/lib/datetime/format";
 import { colors } from "@/lib/theme";
 import { useDiscover } from "@/api/generated/hooks/discoverHooks";
@@ -59,11 +59,8 @@ export default function DescobrirScreen() {
   const joinOpen = useJoinOpenMatch();
   const requestJoin = useRequestJoin();
 
-  const maxPriceReais = Number(maxPriceInput.replace(",", "."));
-  const maxPriceCents =
-    maxPriceInput.trim() && Number.isFinite(maxPriceReais) && maxPriceReais > 0
-      ? Math.round(maxPriceReais * 100)
-      : undefined;
+  // Mesma máscara BRL da criação/edição de pelada (ex. "R$ 15,00").
+  const maxPriceCents = reaisInputToCents(maxPriceInput);
 
   const query = useDiscover(
     {
@@ -231,9 +228,10 @@ export default function DescobrirScreen() {
           <Input
             label={t("discover:filters.maxPriceLabel")}
             placeholder={t("discover:filters.maxPricePlaceholder")}
-            keyboardType="decimal-pad"
+            prefix="R$"
+            keyboardType="number-pad"
             value={maxPriceInput}
-            onChangeText={setMaxPriceInput}
+            onChangeText={(text) => setMaxPriceInput(maskBRLInput(text))}
             testID="discover-max-price"
           />
 
