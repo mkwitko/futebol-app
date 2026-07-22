@@ -2,7 +2,15 @@ import { screen, userEvent, waitFor } from "@testing-library/react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Share } from "react-native";
 import MatchDetailScreen from "@/app/match/[id]";
-import { FAKE_MATCH, resetGroupsMocks, setAttendanceMock, setTeamsMock } from "../mocks/handlers";
+import { saveTokens } from "@/lib/auth/tokens";
+import {
+  FAKE_MATCH,
+  resetGroupsMocks,
+  resetPaymentsConfigMock,
+  setAttendanceMock,
+  setPaymentsConfigMock,
+  setTeamsMock,
+} from "../mocks/handlers";
 import { renderWithProviders } from "../utils/render";
 
 jest.mock("expo-router", () => {
@@ -171,5 +179,51 @@ describe("Detalhe da pelada", () => {
     expect(await screen.findByTestId("invite-copy-cta")).toBeOnTheScreen();
 
     shareSpy.mockRestore();
+  });
+});
+
+describe("Pagar (Woovi) — presença na pelada paga", () => {
+  beforeEach(async () => {
+    resetGroupsMocks();
+    resetPaymentsConfigMock();
+    (useLocalSearchParams as jest.Mock).mockReturnValue({ id: "match-1" });
+    setAttendanceMock(FAKE_MATCH.id, [
+      {
+        id: "att-1",
+        matchId: FAKE_MATCH.id,
+        status: "confirmed",
+        waitlistPos: null,
+        paymentStatus: "pending",
+        paidConfirmedById: null,
+        player: { id: "player-1", userId: "user-1", name: "Alice", phone: null },
+      },
+    ]);
+    // Loga `user-1` — dono do fixture da presença confirmada — pra exercitar o "Pagar".
+    await saveTokens({ accessToken: "test-access-token", refreshToken: "test-refresh-token" });
+  });
+
+  it("shows pay-attendance-cta for the confirmed self player and opens the PaymentSheet with the mocked brCode on press", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MatchDetailScreen />);
+
+    expect(await screen.findByText("Confirmados (1)")).toBeOnTheScreen();
+    await user.press(screen.getByText("Pagamento"));
+
+    const payCta = await screen.findByTestId("pay-attendance-cta");
+    await user.press(payCta);
+
+    expect(await screen.findByText("BR-X")).toBeOnTheScreen();
+  });
+
+  it("hides pay-attendance-cta when payments are disabled (manual mark-paid stays)", async () => {
+    setPaymentsConfigMock({ enabled: false });
+    const user = userEvent.setup();
+    renderWithProviders(<MatchDetailScreen />);
+
+    expect(await screen.findByText("Confirmados (1)")).toBeOnTheScreen();
+    await user.press(screen.getByText("Pagamento"));
+
+    expect(await screen.findByLabelText("Marcar como pago")).toBeOnTheScreen();
+    expect(screen.queryByTestId("pay-attendance-cta")).not.toBeOnTheScreen();
   });
 });

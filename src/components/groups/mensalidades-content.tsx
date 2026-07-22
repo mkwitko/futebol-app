@@ -1,14 +1,19 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
 import { QueryState } from "@/components/shared/query-state";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ListRow } from "@/components/ui/list-row";
 import { Text } from "@/components/ui/text";
 import { Toast } from "@/components/ui/toast";
+import { PaymentSheet, type PaymentSheetCharge } from "@/components/payments/payment-sheet";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { useToast } from "@/hooks/common/use-toast";
 import { useConfirmDue } from "@/hooks/dues/use-confirm-due";
 import { useMarkDuePaid } from "@/hooks/dues/use-mark-due-paid";
+import { usePayDue } from "@/hooks/payments/use-pay-due";
+import { usePaymentsEnabled } from "@/hooks/payments/use-payments-config";
 import { formatCentsToBRL } from "@/lib/money";
 import { useListGroupDues } from "@/api/generated/hooks/duesHooks";
 import { useListMembers } from "@/api/generated/hooks/membersHooks";
@@ -37,9 +42,12 @@ function currentCompetencyMonth(): string {
  * da mensalidade.
  */
 export function MensalidadesContent({ groupId }: MensalidadesContentProps) {
-  const { t } = useTranslation(["groups", "common"]);
+  const { t } = useTranslation(["groups", "common", "payments"]);
   const { user } = useAuth();
   const toast = useToast();
+  const paymentsEnabled = usePaymentsEnabled();
+  const [paymentCharge, setPaymentCharge] = useState<PaymentSheetCharge | null>(null);
+  const [paymentSheetVisible, setPaymentSheetVisible] = useState(false);
 
   const month = currentCompetencyMonth();
   const membersQuery = useListMembers(groupId);
@@ -47,6 +55,7 @@ export function MensalidadesContent({ groupId }: MensalidadesContentProps) {
 
   const confirmDue = useConfirmDue(groupId);
   const markDuePaid = useMarkDuePaid(groupId);
+  const payDue = usePayDue(groupId);
 
   const handleConfirm = async (dueId: string, paid: boolean) => {
     try {
@@ -63,6 +72,16 @@ export function MensalidadesContent({ groupId }: MensalidadesContentProps) {
       toast.show(t("groups:mensalidades.markPaidSuccess"));
     } catch {
       toast.show(t("groups:mensalidades.markPaidError"), "danger");
+    }
+  };
+
+  const handlePay = async (dueId: string) => {
+    try {
+      const charge = await payDue.mutateAsync(dueId);
+      setPaymentCharge(charge);
+      setPaymentSheetVisible(true);
+    } catch {
+      toast.show(t("groups:mensalidades.payError"), "danger");
     }
   };
 
@@ -146,6 +165,16 @@ export function MensalidadesContent({ groupId }: MensalidadesContentProps) {
                             </Text>
                           </Pressable>
                         ) : null}
+                        {isSelf && paymentsEnabled ? (
+                          <Button
+                            testID="pay-due-cta"
+                            variant="primary"
+                            size="sm"
+                            onPress={() => void handlePay(due.id)}
+                          >
+                            {t("payments:payment.payCta")}
+                          </Button>
+                        ) : null}
                       </>
                     )}
                   </View>
@@ -155,6 +184,12 @@ export function MensalidadesContent({ groupId }: MensalidadesContentProps) {
           })}
         </View>
       </QueryState>
+
+      <PaymentSheet
+        visible={paymentSheetVisible}
+        onClose={() => setPaymentSheetVisible(false)}
+        charge={paymentCharge}
+      />
     </View>
   );
 }

@@ -1,5 +1,6 @@
 {
   "payment": {
+    "payCta": "Pagar",
     "title": "Pagar com PIX",
     "qrLabel": "QR Code do PIX",
     "copyPasteLabel": "PIX copia e cola",

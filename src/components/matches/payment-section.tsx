@@ -14,6 +14,9 @@ export type PaymentSectionProps = {
   onCopiedPixKey: () => void;
   onConfirmPayment: (attId: string, paid: boolean) => void;
   onMarkPaid: (attId: string) => void;
+  /** `usePaymentsEnabled()` — mostra o "Pagar" (Woovi) quando `true`; o "marcar como pago" manual continua disponível como fallback. */
+  paymentsEnabled?: boolean;
+  onPay: (attId: string) => void;
 };
 
 /**
@@ -30,8 +33,10 @@ export function PaymentSection({
   onCopiedPixKey,
   onConfirmPayment,
   onMarkPaid,
+  paymentsEnabled = false,
+  onPay,
 }: PaymentSectionProps) {
-  const { t } = useTranslation("matches");
+  const { t } = useTranslation(["matches", "payments"]);
   const confirmed = attendance.filter((item) => item.status === "confirmed");
 
   const copyPixKey = async () => {
@@ -116,6 +121,16 @@ export function PaymentSection({
                             {t("detail.payment.markPaidCta")}
                           </Text>
                         </Pressable>
+                      ) : null}
+                      {isSelf && paymentsEnabled ? (
+                        <Button
+                          testID="pay-attendance-cta"
+                          variant="primary"
+                          size="sm"
+                          onPress={() => onPay(item.id)}
+                        >
+                          {t("payments:payment.payCta")}
+                        </Button>
                       ) : null}
                     </>
                   )}

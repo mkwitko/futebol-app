@@ -110,6 +110,7 @@
       "confirmError": "Não foi possível confirmar o pagamento.",
       "markPaidSuccess": "Pagamento marcado!",
       "markPaidError": "Não foi possível marcar o pagamento.",
+      "payError": "Não foi possível iniciar o pagamento.",
       "emptyTitle": "Ninguém confirmado ainda",
       "emptyDescription": "A cobrança do PIX aparece aqui assim que alguém confirmar presença."
     },

@@ -1147,6 +1147,16 @@ export const handlers = [
     return HttpResponse.json(updated.find((a) => a.id === attId));
   }),
 
+  http.post(api("/matches/:id/attendance/:attId/pay"), () => {
+    return HttpResponse.json({
+      paymentId: "payment-1",
+      status: "pending",
+      brCode: "BR-X",
+      qrCodeImage: "http://qr",
+      paymentLinkUrl: null,
+    });
+  }),
+
   http.post(api("/matches/:id/attendance/:attId/confirm-payment"), async ({ request, params }) => {
     const matchId = params.id as string;
     const attId = params.attId as string;
@@ -1184,6 +1194,16 @@ export const handlers = [
     };
     duesByGroup[due.groupId] = (duesByGroup[due.groupId] ?? []).map((d) => (d.id === dueId ? updated : d));
     return HttpResponse.json(updated);
+  }),
+
+  http.post(api("/dues/:id/pay"), () => {
+    return HttpResponse.json({
+      paymentId: "payment-2",
+      status: "pending",
+      brCode: "BR-X",
+      qrCodeImage: "http://qr",
+      paymentLinkUrl: null,
+    });
   }),
 
   http.post(api("/dues/:id/mark-paid"), ({ params }) => {

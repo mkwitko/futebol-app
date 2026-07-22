@@ -2,7 +2,15 @@ import { screen, userEvent, waitFor } from "@testing-library/react-native";
 import { useLocalSearchParams } from "expo-router";
 import MensalidadesScreen from "@/app/group/[id]/mensalidades";
 import { saveTokens } from "@/lib/auth/tokens";
-import { FAKE_GROUP, FAKE_MEMBER, resetGroupsMocks, setDuesMock, setMembersMock } from "../mocks/handlers";
+import {
+  FAKE_GROUP,
+  FAKE_MEMBER,
+  resetGroupsMocks,
+  resetPaymentsConfigMock,
+  setDuesMock,
+  setMembersMock,
+  setPaymentsConfigMock,
+} from "../mocks/handlers";
 import { renderWithProviders } from "../utils/render";
 
 jest.mock("expo-router", () => {
@@ -37,6 +45,7 @@ const OTHER_MEMBER = {
 describe("Mensalidades do grupo", () => {
   beforeEach(async () => {
     resetGroupsMocks();
+    resetPaymentsConfigMock();
     (useLocalSearchParams as jest.Mock).mockReturnValue({ id: "group-1" });
     setMembersMock(FAKE_GROUP.id, [SELF_MEMBER, OTHER_MEMBER]);
     setDuesMock(FAKE_GROUP.id, [
@@ -109,5 +118,27 @@ describe("Mensalidades do grupo", () => {
       expect(screen.getAllByText("Pago").length).toBe(1);
     });
     expect(await screen.findByText("Mensalidade confirmada!")).toBeOnTheScreen();
+  });
+
+  it("shows pay-due-cta on the logged-in player's own pending due and opens the PaymentSheet with the mocked brCode on press", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MensalidadesScreen />);
+
+    expect(await screen.findByText("Alice")).toBeOnTheScreen();
+    const payCta = await screen.findByTestId("pay-due-cta");
+
+    await user.press(payCta);
+
+    expect(await screen.findByText("BR-X")).toBeOnTheScreen();
+  });
+
+  it("hides pay-due-cta when payments are disabled (manual 'Paguei' stays)", async () => {
+    setPaymentsConfigMock({ enabled: false });
+    renderWithProviders(<MensalidadesScreen />);
+
+    expect(await screen.findByText("Alice")).toBeOnTheScreen();
+    await waitFor(() => expect(screen.getAllByLabelText("Paguei")).toHaveLength(1));
+
+    expect(screen.queryByTestId("pay-due-cta")).not.toBeOnTheScreen();
   });
 });

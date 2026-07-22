@@ -155,6 +155,7 @@
     "confirmSuccess": "Mensalidade confirmada!",
     "confirmError": "Não foi possível confirmar a mensalidade. Tente novamente.",
     "markPaidSuccess": "Mensalidade marcada como paga!",
-    "markPaidError": "Não foi possível marcar a mensalidade como paga. Tente novamente."
+    "markPaidError": "Não foi possível marcar a mensalidade como paga. Tente novamente.",
+    "payError": "Não foi possível iniciar o pagamento. Tente novamente."
   }
 }

@@ -9,6 +9,7 @@ import { JoinRequestsSection } from "@/components/matches/join-requests-section"
 import { MatchHeader } from "@/components/matches/match-header";
 import { OrganizerActions } from "@/components/matches/organizer-actions";
 import { PaymentSection } from "@/components/matches/payment-section";
+import { PaymentSheet, type PaymentSheetCharge } from "@/components/payments/payment-sheet";
 import { ReputationSection } from "@/components/matches/reputation-section";
 import { ResultSection } from "@/components/matches/result-section";
 import { StatsSection } from "@/components/matches/stats-section";
@@ -30,6 +31,8 @@ import { useToast } from "@/hooks/common/use-toast";
 import { useCancelMatch } from "@/hooks/matches/use-cancel-match";
 import { useFinalizeMatch } from "@/hooks/matches/use-finalize-match";
 import { useFinishMatch } from "@/hooks/matches/use-finish-match";
+import { usePayAttendance } from "@/hooks/payments/use-pay-attendance";
+import { usePaymentsEnabled } from "@/hooks/payments/use-payments-config";
 import { useRecordResult } from "@/hooks/result/use-record-result";
 import { useResult } from "@/hooks/result/use-result";
 import { useLogStats } from "@/hooks/stats/use-log-stats";
@@ -64,6 +67,8 @@ export default function MatchDetailScreen() {
   const [statsError, setStatsError] = useState<string | null>(null);
   const [finalizeError, setFinalizeError] = useState<string | null>(null);
   const [votingWindowClosed, setVotingWindowClosed] = useState(false);
+  const [paymentCharge, setPaymentCharge] = useState<PaymentSheetCharge | null>(null);
+  const [paymentSheetVisible, setPaymentSheetVisible] = useState(false);
 
   const matchQuery = useGetMatch(id);
   const attendanceQuery = useListAttendance(id);
@@ -87,6 +92,8 @@ export default function MatchDetailScreen() {
   const cancelPresence = useCancelPresence(id);
   const markPaid = useMarkPaid(id);
   const confirmPayment = useConfirmPayment(id);
+  const payAttendance = usePayAttendance(id);
+  const paymentsEnabled = usePaymentsEnabled();
   const generateTeams = useGenerateTeams(id);
   const finishMatch = useFinishMatch(id);
   const cancelMatch = useCancelMatch(id);
@@ -152,6 +159,17 @@ export default function MatchDetailScreen() {
       toast.show(t("matches:detail.payment.markPaidSuccess"));
     } catch {
       toast.show(t("matches:detail.payment.markPaidError"), "danger");
+    }
+  };
+
+  const handlePay = async (attId: string) => {
+    try {
+      const charge = await payAttendance.mutateAsync(attId);
+      setPaymentCharge(charge);
+      setPaymentSheetVisible(true);
+    } catch (error) {
+      if (isForbiddenError(error)) onForbidden();
+      else toast.show(t("matches:detail.payment.payError"), "danger");
     }
   };
 
@@ -347,6 +365,8 @@ export default function MatchDetailScreen() {
                   onCopiedPixKey={() => toast.show(t("matches:detail.payment.copiedToast"))}
                   onConfirmPayment={handleConfirmPayment}
                   onMarkPaid={handleMarkPaid}
+                  paymentsEnabled={paymentsEnabled}
+                  onPay={(attId) => void handlePay(attId)}
                 />
               ) : null}
 
@@ -415,6 +435,12 @@ export default function MatchDetailScreen() {
               match={match}
               onCopied={() => toast.show(t("matches:detail.invite.copiedToast"))}
               onError={() => toast.show(t("matches:detail.invite.error"), "danger")}
+            />
+
+            <PaymentSheet
+              visible={paymentSheetVisible}
+              onClose={() => setPaymentSheetVisible(false)}
+              charge={paymentCharge}
             />
           </View>
         ) : null}
