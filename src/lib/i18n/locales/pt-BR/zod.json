@@ -3,5 +3,6 @@
   "email": "Informe um e-mail válido.",
   "minLength": "Mínimo de {{count}} caracteres.",
   "maxLength": "Máximo de {{count}} caracteres.",
-  "passwordMismatch": "As senhas não coincidem."
+  "passwordMismatch": "As senhas não coincidem.",
+  "invalidTaxId": "Informe um CPF válido (11 dígitos)."
 }

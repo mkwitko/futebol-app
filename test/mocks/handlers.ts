@@ -520,24 +520,39 @@ const FAKE_PIX_VOUCHER: PixVoucherFixture = {
   expiresAt: "2026-07-18T13:00:00.000Z",
 };
 
-// Entitlements (`GET /billing/me`). Default: pagamentos habilitados, sem
-// features. Testes de bypass revisor usam `setBillingMock({ paymentsEnabled: false })`.
-let billingMe: { features: string[]; paymentsEnabled: boolean } = {
-  features: [],
-  paymentsEnabled: true,
+// Entitlements (`GET /billing/me`, Woovi PIX Automático). Default: pagamentos
+// habilitados, sem features, sem assinatura (`plan`/`status: null`). Testes
+// de bypass revisor usam `setBillingMock({ paymentsEnabled: false })`; testes
+// de assinatura ativa usam `setBillingMock({ plan: "organizer", status: "active" })`.
+type BillingPlan = "organizer" | "player";
+type BillingStatus = "pending" | "active" | "expired" | "canceled";
+type BillingMeMock = {
+  features: string[];
+  paymentsEnabled: boolean;
+  plan: BillingPlan | null;
+  status: BillingStatus | null;
 };
 
-/** Sobrescreve o retorno de `GET /billing/me` (features/paymentsEnabled). */
-export function setBillingMock(next: { features?: string[]; paymentsEnabled?: boolean }) {
+let billingMe: BillingMeMock = {
+  features: [],
+  paymentsEnabled: true,
+  plan: null,
+  status: null,
+};
+
+/** Sobrescreve o retorno de `GET /billing/me` (features/paymentsEnabled/plan/status). */
+export function setBillingMock(next: Partial<BillingMeMock>) {
   billingMe = {
     features: next.features ?? billingMe.features,
     paymentsEnabled: next.paymentsEnabled ?? billingMe.paymentsEnabled,
+    plan: "plan" in next ? (next.plan ?? null) : billingMe.plan,
+    status: "status" in next ? (next.status ?? null) : billingMe.status,
   };
 }
 
 /** Reseta o estado de billing — chamar em `beforeEach` de testes de billing. */
 export function resetBillingMocks() {
-  billingMe = { features: [], paymentsEnabled: true };
+  billingMe = { features: [], paymentsEnabled: true, plan: null, status: null };
 }
 
 // `GET /payments/config` (Task 11) — gate separado do `billing/me`: controla
@@ -1479,10 +1494,23 @@ export const handlers = [
       ],
     }),
   ),
-  http.post(api("/billing/checkout"), () =>
-    HttpResponse.json({ url: "https://checkout.stripe.test/session" }),
-  ),
-  http.post(api("/billing/portal"), () =>
-    HttpResponse.json({ url: "https://portal.stripe.test/session" }),
-  ),
+  // `POST /billing/subscribe` (Woovi PIX Automático) — resposta fixa de teste
+  // (`emv` copia-e-cola); também atualiza o mock de `GET /billing/me` pro
+  // plano assinado ficar `pending` (ainda sem aprovação no banco).
+  http.post(api("/billing/subscribe"), async ({ request }) => {
+    const body = (await request.json()) as { plan: BillingPlan; taxId: string; phone: string };
+    billingMe = { ...billingMe, plan: body.plan, status: "pending" };
+    return HttpResponse.json({
+      subscriptionId: "s1",
+      status: "pending",
+      emv: "EMV-COPIA-COLA",
+    });
+  }),
+  // `POST /billing/cancel` — marca a assinatura mockada como `canceled`, pra
+  // a tela (que invalida `GET /billing/me`) refletir o estado sem assinatura
+  // ativa depois de confirmar.
+  http.post(api("/billing/cancel"), () => {
+    billingMe = { ...billingMe, status: "canceled" };
+    return HttpResponse.json({ canceled: true });
+  }),
 ];

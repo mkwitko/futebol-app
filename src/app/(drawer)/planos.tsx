@@ -1,28 +1,35 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
-import * as WebBrowser from "expo-web-browser";
+import { useListBillingPlans } from "@/api/generated/hooks/billingHooks";
+import { type FeatureKey, type PlanKey } from "@/api/modules/billing";
+import { SubscribeForm } from "@/components/billing/subscribe-form";
 import { ScreenContainer } from "@/components/layout/screen-container";
+import { PaymentSheet, type PaymentSheetCharge } from "@/components/payments/payment-sheet";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ScreenHeader } from "@/components/ui/screen-header";
+import { Sheet } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
 import { Toast } from "@/components/ui/toast";
-import {
-  useCreateBillingCheckout,
-  useCreateBillingPortal,
-  useListBillingPlans,
-} from "@/api/generated/hooks/billingHooks";
-import { type FeatureKey, type PlanKey } from "@/api/modules/billing";
-import { formatPlanPrice } from "@/lib/billing/format-plan-price";
+import { useCancelSubscription } from "@/hooks/billing/use-cancel-subscription";
 import { useEntitlements } from "@/hooks/billing/use-entitlements";
+import { useSubscribe } from "@/hooks/billing/use-subscribe";
 import { useToast } from "@/hooks/common/use-toast";
+import { formatPlanPrice } from "@/lib/billing/format-plan-price";
+import type { SubscribeFormValues } from "@/schemas/billing/subscribe.schema";
 
 /**
- * Tela de planos (assinatura via Stripe). Abre o Checkout/Portal em browser
- * externo (`expo-web-browser`) — o retorno volta pelo deep link
- * `futebolapp://billing/return`, que invalida `/billing/me`.
+ * Tela de planos — assinatura via Woovi PIX Automático (`POST
+ * /billing/subscribe`). Sem assinatura ativa: lista os planos (preço de
+ * `/billing/plans`) e abre um formulário (CPF + telefone) por plano; em
+ * sucesso mostra o `emv` (copia-e-cola) no `PaymentSheet` reaproveitado da
+ * Fase 1 — aqui sem `qrCodeImage` (o PIX Automático não gera QR), então o
+ * sheet renderiza só o copia-e-cola + o aviso "aprove no app do banco".
+ * Assinatura `active`: mostra o plano atual e "Cancelar assinatura"
+ * (`ConfirmDialog` → `POST /billing/cancel`).
  *
  * Bypass revisor: quando `paymentsEnabled === false` (conta revisora,
  * pagamentos desligados ou ainda carregando) a tela não mostra NADA de compra —
@@ -31,13 +38,18 @@ import { useToast } from "@/hooks/common/use-toast";
 export default function PlanosScreen() {
   const { t } = useTranslation(["billing", "common"]);
   const router = useRouter();
-  const { paymentsEnabled, isPending } = useEntitlements();
+  const { paymentsEnabled, isPending, plan, status } = useEntitlements();
   const plansQuery = useListBillingPlans();
-  const checkout = useCreateBillingCheckout();
-  const portal = useCreateBillingPortal();
+  const subscribe = useSubscribe();
+  const cancelSubscription = useCancelSubscription();
   const toast = useToast();
 
+  const [subscribingPlan, setSubscribingPlan] = useState<PlanKey | null>(null);
+  const [charge, setCharge] = useState<PaymentSheetCharge | null>(null);
+  const [cancelConfirmVisible, setCancelConfirmVisible] = useState(false);
+
   const blocked = !paymentsEnabled;
+  const isActive = status === "active" && plan !== null;
 
   // Segurança extra: se alguém navegar aqui direto sem pagamentos habilitados
   // (revisor), volta. Só age depois que `/billing/me` resolveu.
@@ -47,21 +59,28 @@ export default function PlanosScreen() {
 
   if (blocked) return null;
 
-  const handleSubscribe = async (plan: PlanKey) => {
+  const handleSubscribeSubmit = async (values: SubscribeFormValues) => {
+    if (!subscribingPlan) return;
     try {
-      const { url } = await checkout.mutateAsync({ data: { plan } });
-      await WebBrowser.openBrowserAsync(url);
+      const result = await subscribe.mutateAsync({
+        plan: subscribingPlan,
+        taxId: values.taxId,
+        phone: values.phone,
+      });
+      setSubscribingPlan(null);
+      setCharge({ brCode: result.emv, status: result.status });
     } catch {
-      toast.show(t("billing:errors.checkout"), "danger");
+      toast.show(t("billing:errors.subscribe"), "danger");
     }
   };
 
-  const handleManage = async () => {
+  const handleConfirmCancel = async () => {
+    setCancelConfirmVisible(false);
     try {
-      const { url } = await portal.mutateAsync();
-      await WebBrowser.openBrowserAsync(url);
+      await cancelSubscription.mutateAsync();
+      toast.show(t("billing:planos.currentPlan.canceledToast"));
     } catch {
-      toast.show(t("billing:errors.portal"), "danger");
+      toast.show(t("billing:errors.cancel"), "danger");
     }
   };
 
@@ -77,68 +96,92 @@ export default function PlanosScreen() {
         </Toast>
       ) : null}
 
-      {plans.map((plan) => {
-        const key = plan.key as PlanKey;
-        const recommended = key === "organizer";
-        const priceLabel = formatPlanPrice(plan.price, t as (key: string) => string);
-        return (
-          <Card key={key} className="gap-3" testID={`plan-card-${key}`}>
-            <View className="flex-row items-center justify-between">
-              <Text variant="display" className="text-xl">
-                {t(`billing:planos.${key}.title`)}
-              </Text>
-              {recommended ? (
-                <Text className="rounded-full bg-primary px-2 py-0.5 font-body-semibold text-xs text-white">
-                  {t("billing:planos.recommended")}
+      {isActive && plan ? (
+        <Card className="gap-3" testID="billing-current-plan">
+          <Text variant="display" className="text-xl">
+            {t("billing:planos.currentPlan.title")}
+          </Text>
+          <Text className="font-body-semibold text-base text-ink">
+            {t(`billing:planos.${plan}.title`)}
+          </Text>
+          <Text variant="muted" className="text-sm">
+            {t(`billing:planos.currentPlan.status.${status}`)}
+          </Text>
+          <Button variant="danger" onPress={() => setCancelConfirmVisible(true)} testID="billing-cancel">
+            {t("billing:planos.currentPlan.cancel")}
+          </Button>
+        </Card>
+      ) : (
+        plans.map((planItem) => {
+          const key = planItem.key as PlanKey;
+          const recommended = key === "organizer";
+          const priceLabel = formatPlanPrice(planItem.price, t as (key: string) => string);
+          return (
+            <Card key={key} className="gap-3" testID={`plan-card-${key}`}>
+              <View className="flex-row items-center justify-between">
+                <Text variant="display" className="text-xl">
+                  {t(`billing:planos.${key}.title`)}
+                </Text>
+                {recommended ? (
+                  <Text className="rounded-full bg-primary px-2 py-0.5 font-body-semibold text-xs text-white">
+                    {t("billing:planos.recommended")}
+                  </Text>
+                ) : null}
+              </View>
+
+              {priceLabel ? (
+                <Text variant="display" className="text-2xl text-primary">
+                  {priceLabel}
                 </Text>
               ) : null}
-            </View>
 
-            {priceLabel ? (
-              <Text variant="display" className="text-2xl text-primary">
-                {priceLabel}
+              <Text variant="muted" className="text-sm">
+                {t(`billing:planos.${key}.tagline`)}
               </Text>
-            ) : null}
 
-            <Text variant="muted" className="text-sm">
-              {t(`billing:planos.${key}.tagline`)}
-            </Text>
-
-            {plan.includes ? (
-              <Text className="font-body-semibold text-sm text-ink">
-                {t("billing:planos.includesPlayer")}
-              </Text>
-            ) : null}
-
-            <View className="gap-1">
-              {plan.features.map((feature) => (
-                <Text key={feature} className="font-body text-sm text-ink">
-                  {`• ${t(`billing:features.${feature as FeatureKey}`)}`}
+              {planItem.includes ? (
+                <Text className="font-body-semibold text-sm text-ink">
+                  {t("billing:planos.includesPlayer")}
                 </Text>
-              ))}
-            </View>
+              ) : null}
 
-            <Button
-              onPress={() => void handleSubscribe(key)}
-              loading={checkout.isPending}
-              disabled={portal.isPending || plan.price === null}
-              testID={`plan-subscribe-${key}`}
-            >
-              {t("billing:planos.subscribe")}
-            </Button>
-          </Card>
-        );
-      })}
+              <View className="gap-1">
+                {planItem.features.map((feature) => (
+                  <Text key={feature} className="font-body text-sm text-ink">
+                    {`• ${t(`billing:features.${feature as FeatureKey}`)}`}
+                  </Text>
+                ))}
+              </View>
 
-      <Button
-        variant="secondary"
-        onPress={() => void handleManage()}
-        loading={portal.isPending}
-        disabled={checkout.isPending}
-        testID="billing-manage"
+              <Button onPress={() => setSubscribingPlan(key)} testID={`plan-subscribe-${key}`}>
+                {t("billing:planos.subscribe")}
+              </Button>
+            </Card>
+          );
+        })
+      )}
+
+      <Sheet
+        visible={subscribingPlan !== null}
+        onClose={() => setSubscribingPlan(null)}
+        title={t("billing:subscribeForm.title")}
       >
-        {t("billing:planos.manage")}
-      </Button>
+        <SubscribeForm onSubmit={handleSubscribeSubmit} submitting={subscribe.isPending} />
+      </Sheet>
+
+      <PaymentSheet visible={charge !== null} onClose={() => setCharge(null)} charge={charge} />
+
+      <ConfirmDialog
+        visible={cancelConfirmVisible}
+        title={t("billing:planos.currentPlan.cancelConfirmTitle")}
+        message={t("billing:planos.currentPlan.cancelConfirmMessage")}
+        confirmLabel={t("common:actions.confirm")}
+        cancelLabel={t("common:actions.cancel")}
+        destructive
+        loading={cancelSubscription.isPending}
+        onConfirm={() => void handleConfirmCancel()}
+        onCancel={() => setCancelConfirmVisible(false)}
+      />
     </ScreenContainer>
   );
 }

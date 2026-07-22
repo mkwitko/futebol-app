@@ -8,7 +8,13 @@ import { Text } from "@/components/ui/text";
 
 export type PaymentSheetCharge = {
   brCode: string;
-  qrCodeImage: string;
+  /**
+   * URL do QR code. Ausente para assinaturas PIX Automático (Woovi) — o
+   * `subscribeBilling` só retorna o `emv` (copia-e-cola), sem imagem. Nesse
+   * caso o sheet renderiza só o copia-e-cola + o aviso de aprovação no app
+   * do banco (em vez do `<Image>`).
+   */
+  qrCodeImage?: string;
   status: string;
 };
 
@@ -52,12 +58,18 @@ export function PaymentSheet({ visible, onClose, charge }: PaymentSheetProps) {
     <Sheet visible={visible} onClose={onClose} title={t("payment.title")}>
       {charge ? (
         <View className="items-center gap-4">
-          <Image
-            source={{ uri: charge.qrCodeImage }}
-            accessibilityLabel={t("payment.qrLabel")}
-            className="h-56 w-56 rounded-2xl bg-surface-up"
-            testID="payment-qr-image"
-          />
+          {charge.qrCodeImage ? (
+            <Image
+              source={{ uri: charge.qrCodeImage }}
+              accessibilityLabel={t("payment.qrLabel")}
+              className="h-56 w-56 rounded-2xl bg-surface-up"
+              testID="payment-qr-image"
+            />
+          ) : (
+            <Text className="text-center font-body-medium text-sm text-ink" testID="payment-automatic-notice">
+              {t("payment.automaticNotice")}
+            </Text>
+          )}
 
           <Text variant="muted" className="text-sm">
             {statusLabel}

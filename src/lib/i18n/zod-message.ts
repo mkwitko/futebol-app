@@ -11,6 +11,7 @@ const ZOD_MESSAGE_KEYS = [
   "zod:minLength",
   "zod:maxLength",
   "zod:passwordMismatch",
+  "zod:invalidTaxId",
 ] as const;
 
 export type ZodMessageKey = (typeof ZOD_MESSAGE_KEYS)[number];

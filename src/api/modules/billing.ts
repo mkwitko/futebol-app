@@ -19,7 +19,7 @@ export const FEATURE_KEYS = [
 
 export type FeatureKey = (typeof FEATURE_KEYS)[number];
 
-/** Planos vendáveis (correspondem ao enum do `POST /billing/checkout`). */
+/** Planos vendáveis (correspondem ao enum do `POST /billing/subscribe`). */
 export const PLAN_KEYS = ["organizer", "player"] as const;
 
 export type PlanKey = (typeof PLAN_KEYS)[number];

@@ -3,7 +3,6 @@
     "title": "Planos",
     "subtitle": "Desbloqueie recursos premium da sua conta.",
     "subscribe": "Assinar",
-    "manage": "Gerenciar assinatura",
     "recommended": "Recomendado",
     "includesPlayer": "Inclui tudo do Plano Jogador",
     "interval": {
@@ -17,7 +16,28 @@
     "player": {
       "title": "Plano Jogador",
       "tagline": "Para quem quer ir além em campo."
+    },
+    "currentPlan": {
+      "title": "Seu plano atual",
+      "status": {
+        "pending": "Aguardando aprovação",
+        "active": "Ativo",
+        "expired": "Expirado",
+        "canceled": "Cancelado"
+      },
+      "cancel": "Cancelar assinatura",
+      "cancelConfirmTitle": "Cancelar assinatura?",
+      "cancelConfirmMessage": "Você perde acesso aos recursos premium no fim do período já pago.",
+      "canceledToast": "Assinatura cancelada."
     }
+  },
+  "subscribeForm": {
+    "title": "Assinar plano",
+    "taxIdLabel": "CPF",
+    "taxIdPlaceholder": "000.000.000-00",
+    "phoneLabel": "Telefone",
+    "phonePlaceholder": "(11) 91234-5678",
+    "submit": "Continuar"
   },
   "features": {
     "public_groups": "Grupos públicos e descoberta",
@@ -31,12 +51,8 @@
     "description": "Assine um plano para desbloquear este recurso.",
     "cta": "Ver planos"
   },
-  "return": {
-    "success": "Tudo certo! Atualizando sua assinatura…",
-    "cancel": "Compra cancelada. Voltando…"
-  },
   "errors": {
-    "checkout": "Não foi possível iniciar a assinatura. Tente novamente.",
-    "portal": "Não foi possível abrir o gerenciamento. Tente novamente."
+    "subscribe": "Não foi possível iniciar a assinatura. Tente novamente.",
+    "cancel": "Não foi possível cancelar a assinatura. Tente novamente."
   }
 }

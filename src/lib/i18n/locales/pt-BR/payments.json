@@ -8,6 +8,7 @@
     "copied": "Código copiado",
     "pending": "Aguardando pagamento…",
     "paid": "Pago!",
-    "expired": "PIX expirado"
+    "expired": "PIX expirado",
+    "automaticNotice": "Aprove no app do banco para confirmar (PIX Automático)."
   }
 }
