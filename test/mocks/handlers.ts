@@ -514,6 +514,21 @@ export function resetBillingMocks() {
   billingMe = { features: [], paymentsEnabled: true };
 }
 
+// `GET /payments/config` (Task 11) — gate separado do `billing/me`: controla
+// se a superfície de pagamento in-app via Woovi (Pix) aparece (onboarding da
+// chave PIX no grupo, pagar presença/mensalidade). Default: habilitado.
+let paymentsConfig: { enabled: boolean } = { enabled: true };
+
+/** Sobrescreve o retorno de `GET /payments/config`. */
+export function setPaymentsConfigMock(next: { enabled: boolean }) {
+  paymentsConfig = { enabled: next.enabled };
+}
+
+/** Reseta o estado de `/payments/config` — chamar em `beforeEach` de testes de pagamentos. */
+export function resetPaymentsConfigMock() {
+  paymentsConfig = { enabled: true };
+}
+
 function findMatch(matchId: string): Match | undefined {
   return Object.values(matchesByGroup)
     .flat()
@@ -967,6 +982,16 @@ export const handlers = [
       : [...groups, updated];
     return HttpResponse.json(updated);
   }),
+
+  // `POST /groups/:id/woovi/subaccount` (Task 11) — onboarding da chave PIX
+  // do organizador; devolve a mesma chave enviada (o backend real cria a
+  // sub-conta Woovi e a persiste em `Group.wooviPixKey`).
+  http.post(api("/groups/:id/woovi/subaccount"), async ({ request }) => {
+    const body = (await request.json()) as { pixKey: string };
+    return HttpResponse.json({ pixKey: body.pixKey });
+  }),
+
+  http.get(api("/payments/config"), () => HttpResponse.json(paymentsConfig)),
 
   http.get(api("/groups/:id/members"), ({ params }) => {
     return HttpResponse.json(membersByGroup[params.id as string] ?? []);

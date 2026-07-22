@@ -114,6 +114,13 @@
     "settingsJoinPolicyRequest": "Aprovar pedidos",
     "settingsPublicSaveSuccess": "Descoberta pública atualizada!",
     "settingsPublicSaveError": "Não foi possível salvar. Tente novamente.",
+    "settingsWooviTitle": "Receber pagamentos",
+    "settingsWooviLabel": "Chave PIX pra receber",
+    "settingsWooviPlaceholder": "CPF, e-mail, telefone ou chave aleatória",
+    "settingsWooviHint": "Usada pra receber mensalidades e presenças pagas por PIX direto no grupo.",
+    "settingsWooviSaveCta": "Salvar chave PIX",
+    "settingsWooviSaveSuccess": "Chave PIX salva!",
+    "settingsWooviSaveError": "Não foi possível salvar a chave PIX. Tente novamente.",
     "jogadoresAddCta": "+ Jogador",
     "jogadoresEmptyTitle": "Ninguém no elenco ainda",
     "jogadoresEmptyDescription": "Adicione jogadores para montar os times.",
@@ -131,7 +138,8 @@
     "rankingPresence": "Presença",
     "rankingCleanSheets": "Sem sofrer gol",
     "rankingEmptyTitle": "Sem ranking ainda",
-    "rankingEmptyDescription": "Finalize peladas com estatísticas pra ver o ranking da galera."
+    "rankingEmptyDescription": "Finalize peladas com estatísticas pra ver o ranking da galera.",
+    "rankingSeasonAll": "Geral"
   },
   "mensalidades": {
     "title": "Mensalidades",
