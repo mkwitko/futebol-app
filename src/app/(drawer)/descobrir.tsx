@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
 import * as Location from "expo-location";
-import MapView, { Marker, type Region } from "react-native-maps";
+import MapView, { Circle, Marker, type Region } from "react-native-maps";
 import { ScreenContainer } from "@/components/layout/screen-container";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
@@ -23,8 +23,18 @@ type ModalityKey = NonNullable<DiscoverQueryParams["modality"]>;
 type Coords = { lat: number; lng: number };
 type DiscoverMatch = Discover200[number];
 
-const RADIUS_OPTIONS = [2, 5, 10] as const;
+const RADIUS_OPTIONS = [2, 5, 10, 25, 50] as const;
 const MODALITY_OPTIONS: ModalityKey[] = ["futsal", "society", "campo"];
+
+/**
+ * Região que enquadra um círculo de `radiusKm` centrado em `coords` (com uma
+ * folga de ~30%). `latitudeDelta` em graus ≈ span_km / 111 — quanto maior o
+ * raio, mais o mapa afasta pra o círculo caber inteiro.
+ */
+function regionForRadius(coords: Coords, radiusKm: number): Region {
+  const delta = Math.max(0.02, (radiusKm * 2 * 1.3) / 111);
+  return { latitude: coords.lat, longitude: coords.lng, latitudeDelta: delta, longitudeDelta: delta };
+}
 
 /**
  * Descobrir (mapa estilo Airbnb) — peladas públicas por raio a partir da
@@ -45,6 +55,7 @@ export default function DescobrirScreen() {
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [selected, setSelected] = useState<DiscoverMatch | null>(null);
 
+  const mapRef = useRef<MapView>(null);
   const joinOpen = useJoinOpenMatch();
   const requestJoin = useRequestJoin();
 
@@ -110,14 +121,19 @@ export default function DescobrirScreen() {
     }
   }, [joinOpen, requestJoin, selected, t, toast]);
 
-  const region: Region | undefined = coords
-    ? { latitude: coords.lat, longitude: coords.lng, latitudeDelta: 0.08, longitudeDelta: 0.08 }
-    : undefined;
+  const region: Region | undefined = coords ? regionForRadius(coords, radiusKm) : undefined;
+
+  // Reenquadra o mapa quando o raio (ou a localização) muda, pra o círculo do
+  // raio caber na tela — `initialRegion` só vale na 1ª montagem.
+  useEffect(() => {
+    if (region) mapRef.current?.animateToRegion(region, 300);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reage a coords+raio (region é derivado).
+  }, [coords, radiusKm]);
 
   const joining = joinOpen.isPending || requestJoin.isPending;
 
   return (
-    <ScreenContainer className="gap-4">
+    <ScreenContainer className="gap-4" edges={["bottom"]}>
       <View className="gap-1">
         <Text variant="display" className="text-2xl">
           {t("discover:title")}
@@ -223,11 +239,22 @@ export default function DescobrirScreen() {
 
           <View className="overflow-hidden rounded-xl border border-line" style={{ height: 320 }}>
             <MapView
+              ref={mapRef}
               style={{ flex: 1 }}
               initialRegion={region}
               showsUserLocation
               testID="discover-map"
             >
+              {coords ? (
+                <Circle
+                  center={{ latitude: coords.lat, longitude: coords.lng }}
+                  radius={radiusKm * 1000}
+                  strokeColor={colors.primary}
+                  strokeWidth={2}
+                  fillColor="rgba(33,199,118,0.12)"
+                  testID="discover-radius-circle"
+                />
+              ) : null}
               {matches.map((match) => (
                 <Marker
                   key={match.matchId}

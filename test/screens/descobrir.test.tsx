@@ -15,7 +15,8 @@ jest.mock("react-native-maps", () => {
   const Marker = ({ onPress, testID }: { onPress?: () => void; testID?: string }) => (
     <Pressable testID={testID} onPress={onPress} />
   );
-  return { __esModule: true, default: MapView, Marker };
+  const Circle = ({ testID }: { testID?: string }) => <View testID={testID} />;
+  return { __esModule: true, default: MapView, Marker, Circle };
 });
 
 jest.mock("expo-router", () => {
@@ -62,6 +63,20 @@ describe("DescobrirScreen", () => {
     // Depois de resolver as coords (mock concede permissão), os chips de raio aparecem.
     expect(await screen.findByTestId("discover-radius-10")).toBeOnTheScreen();
     expect(screen.getByTestId("discover-map")).toBeOnTheScreen();
+  });
+
+  it("oferece raios maiores (25/50 km) e desenha o círculo do raio no mapa", async () => {
+    setDiscoverMock([OPEN_MATCH]);
+    renderWithProviders(<DescobrirScreen />);
+
+    expect(await screen.findByTestId("discover-radius-25")).toBeOnTheScreen();
+    expect(screen.getByTestId("discover-radius-50")).toBeOnTheScreen();
+    // Círculo do raio renderizado assim que há coords.
+    expect(screen.getByTestId("discover-radius-circle")).toBeOnTheScreen();
+
+    // Trocar pra 50 km continua com o mapa + círculo montados.
+    fireEvent.press(screen.getByTestId("discover-radius-50"));
+    expect(screen.getByTestId("discover-radius-circle")).toBeOnTheScreen();
   });
 
   it("abre o card ao tocar no marcador e mostra o botão Entrar (open)", async () => {

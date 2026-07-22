@@ -33,7 +33,8 @@ jest.mock("react-native-maps", () => {
   });
   MapView.displayName = "MapView";
   const Marker = () => null;
-  return { __esModule: true, default: MapView, Marker };
+  const Circle = () => null;
+  return { __esModule: true, default: MapView, Marker, Circle };
 });
 
 // `expo-location` é nativo — stub com coords/cidade fake e permissão concedida.
