@@ -17,6 +17,8 @@ export type PaymentSectionProps = {
   /** `usePaymentsEnabled()` — mostra o "Pagar" (Woovi) quando `true`; o "marcar como pago" manual continua disponível como fallback. */
   paymentsEnabled?: boolean;
   onPay: (attId: string) => void;
+  /** Pending state of the pay-attendance mutation — disables button while request is in flight. */
+  isPaying?: boolean;
 };
 
 /**
@@ -35,6 +37,7 @@ export function PaymentSection({
   onMarkPaid,
   paymentsEnabled = false,
   onPay,
+  isPaying = false,
 }: PaymentSectionProps) {
   const { t } = useTranslation(["matches", "payments"]);
   const confirmed = attendance.filter((item) => item.status === "confirmed");
@@ -127,6 +130,8 @@ export function PaymentSection({
                           testID="pay-attendance-cta"
                           variant="primary"
                           size="sm"
+                          loading={isPaying}
+                          disabled={isPaying}
                           onPress={() => onPay(item.id)}
                         >
                           {t("payments:payment.payCta")}

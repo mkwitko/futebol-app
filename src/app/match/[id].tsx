@@ -367,6 +367,7 @@ export default function MatchDetailScreen() {
                   onMarkPaid={handleMarkPaid}
                   paymentsEnabled={paymentsEnabled}
                   onPay={(attId) => void handlePay(attId)}
+                  isPaying={payAttendance.isPending}
                 />
               ) : null}
 

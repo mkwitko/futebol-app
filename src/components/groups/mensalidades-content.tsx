@@ -170,6 +170,8 @@ export function MensalidadesContent({ groupId }: MensalidadesContentProps) {
                             testID="pay-due-cta"
                             variant="primary"
                             size="sm"
+                            loading={payDue.isPending}
+                            disabled={payDue.isPending}
                             onPress={() => void handlePay(due.id)}
                           >
                             {t("payments:payment.payCta")}
