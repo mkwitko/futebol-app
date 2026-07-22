@@ -73,7 +73,12 @@
   "search": {
     "label": "Buscar jogador",
     "placeholder": "Nome do jogador",
-    "empty": "Nenhum jogador encontrado."
+    "empty": "Nenhum jogador encontrado.",
+    "suggestionsTitle": "Sugestões pra você",
+    "suggestionsEmpty": "Nenhuma sugestão por perto ainda.",
+    "needLocation": "Defina sua localização pra ver jogadores perto de você",
+    "useLocationCta": "Usar minha localização",
+    "distanceKm": "{{km}} km"
   },
   "achievements": {
     "title": "Conquistas"

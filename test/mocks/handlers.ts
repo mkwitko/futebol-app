@@ -140,6 +140,30 @@ export const FAKE_MY_PLAYER = {
 
 type PlayerLevel = "bronze" | "prata" | "ouro";
 
+/** Item de `GET /players/suggestions` — usado no Buscar ("Sugestões pra você"). */
+export const FAKE_PLAYER_SUGGESTION = {
+  playerId: "p1",
+  name: "João",
+  avatarUrl: null as string | null,
+  city: "Porto Alegre" as string | null,
+  distanceKm: 2.3,
+  overall: 78,
+  level: "prata" as PlayerLevel,
+};
+
+export type SearchPlayer = {
+  playerId: string;
+  name: string;
+  avatarUrl: string | null;
+};
+
+/** Item de `GET /players/search` — busca por nome no Buscar. */
+export const FAKE_SEARCH_PLAYER: SearchPlayer = {
+  playerId: "p2",
+  name: "Zico",
+  avatarUrl: null,
+};
+
 export type Career = {
   id: string | null;
   playerId: string;
@@ -466,6 +490,8 @@ let publicProfileByKey: Record<string, PublicProfile> = {};
 let joinRequestsByMatch: Record<string, JoinRequest[]> = {};
 let discoverResults: DiscoverMatch[] = [];
 let me = { ...FAKE_USER };
+let playerSuggestions: (typeof FAKE_PLAYER_SUGGESTION)[] = [FAKE_PLAYER_SUGGESTION];
+let searchResults: SearchPlayer[] = [FAKE_SEARCH_PLAYER];
 let venuesById: Record<string, typeof FAKE_VENUE> = { [FAKE_VENUE.id]: { ...FAKE_VENUE } };
 let courtsByVenue: Record<string, Court[]> = { [FAKE_VENUE.id]: [{ ...FAKE_COURT }] };
 // Ignora o `date` da query — os testes de disponibilidade não precisam variar por dia,
@@ -584,6 +610,8 @@ export function resetGroupsMocks() {
   joinRequestsByMatch = {};
   discoverResults = [];
   me = { ...FAKE_USER };
+  playerSuggestions = [FAKE_PLAYER_SUGGESTION];
+  searchResults = [FAKE_SEARCH_PLAYER];
   venuesById = { [FAKE_VENUE.id]: { ...FAKE_VENUE } };
   courtsByVenue = { [FAKE_VENUE.id]: [{ ...FAKE_COURT }] };
   availabilityByCourt = { [FAKE_COURT.id]: [{ ...FAKE_AVAILABILITY_SLOT }] };
@@ -666,6 +694,16 @@ export function getJoinRequestsMock(matchId: string) {
 /** Pré-semeia os resultados de `GET /discover` (peladas públicas por raio). */
 export function setDiscoverMock(next: DiscoverMatch[]) {
   discoverResults = next;
+}
+
+/** Sobrescreve `GET /auth/me` — ex.: setar `lastLat/lastLng/lastCity` num teste específico. */
+export function setMeMock(next: Partial<typeof FAKE_USER>) {
+  me = { ...me, ...next };
+}
+
+/** Sobrescreve `GET /players/suggestions` ("Sugestões pra você" no Buscar). */
+export function setPlayerSuggestionsMock(next: (typeof FAKE_PLAYER_SUGGESTION)[]) {
+  playerSuggestions = next;
 }
 
 /** Troca o jogador retornado por `GET /players/me` — usado pra testar outro nome/id logado. */
@@ -1376,6 +1414,9 @@ export const handlers = [
     return HttpResponse.json(profile);
   }),
   http.get(api("/players/:playerId/timeline"), () => HttpResponse.json({ events: [] })),
+
+  http.get(api("/players/search"), () => HttpResponse.json({ players: searchResults })),
+  http.get(api("/players/suggestions"), () => HttpResponse.json({ suggestions: playerSuggestions })),
 
   http.get(api("/discover"), () => HttpResponse.json(discoverResults)),
 
