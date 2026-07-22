@@ -1,0 +1,12 @@
+{
+  "payment": {
+    "title": "Pagar com PIX",
+    "qrLabel": "QR Code do PIX",
+    "copyPasteLabel": "PIX copia e cola",
+    "copy": "Copiar código",
+    "copied": "Código copiado",
+    "pending": "Aguardando pagamento…",
+    "paid": "Pago!",
+    "expired": "PIX expirado"
+  }
+}

@@ -6,6 +6,7 @@ import courtPt from "./locales/pt-BR/court.json";
 import discoverPt from "./locales/pt-BR/discover.json";
 import groupsPt from "./locales/pt-BR/groups.json";
 import matchesPt from "./locales/pt-BR/matches.json";
+import paymentsPt from "./locales/pt-BR/payments.json";
 import playerPt from "./locales/pt-BR/player.json";
 import venuePt from "./locales/pt-BR/venue.json";
 import zodPt from "./locales/pt-BR/zod.json";
@@ -20,6 +21,7 @@ export const resources = {
     discover: discoverPt,
     groups: groupsPt,
     matches: matchesPt,
+    payments: paymentsPt,
     player: playerPt,
     venue: venuePt,
     zod: zodPt,

@@ -1,0 +1,87 @@
+import { useEffect, useState } from "react";
+import * as Clipboard from "expo-clipboard";
+import { useTranslation } from "react-i18next";
+import { Image, View } from "react-native";
+import { Button } from "@/components/ui/button";
+import { Sheet } from "@/components/ui/sheet";
+import { Text } from "@/components/ui/text";
+
+export type PaymentSheetCharge = {
+  brCode: string;
+  qrCodeImage: string;
+  status: string;
+};
+
+export type PaymentSheetProps = {
+  visible: boolean;
+  onClose: () => void;
+  charge: PaymentSheetCharge | null;
+};
+
+const PAID_STATUSES = new Set(["paid", "completed"]);
+
+/**
+ * Bottom sheet de cobrança PIX (Woovi) — QR code + código copia-e-cola +
+ * status. Puramente apresentacional: quem chama decide como obter/atualizar
+ * o `charge` (polling de status fica na tela, não aqui).
+ */
+export function PaymentSheet({ visible, onClose, charge }: PaymentSheetProps) {
+  const { t } = useTranslation("payments");
+  const [copied, setCopied] = useState(false);
+
+  // Reset o "copiado" quando um novo charge aparece (ex.: usuário reabre o
+  // sheet pra outra cobrança) — senão o botão continua mostrando a
+  // confirmação de uma cópia anterior.
+  useEffect(() => {
+    setCopied(false);
+  }, [charge?.brCode]);
+
+  async function copyCode() {
+    if (!charge) return;
+    await Clipboard.setStringAsync(charge.brCode);
+    setCopied(true);
+  }
+
+  const statusLabel = charge
+    ? PAID_STATUSES.has(charge.status)
+      ? t("payment.paid")
+      : t("payment.pending")
+    : null;
+
+  return (
+    <Sheet visible={visible} onClose={onClose} title={t("payment.title")}>
+      {charge ? (
+        <View className="items-center gap-4">
+          <Image
+            source={{ uri: charge.qrCodeImage }}
+            accessibilityLabel={t("payment.qrLabel")}
+            className="h-56 w-56 rounded-2xl bg-surface-up"
+            testID="payment-qr-image"
+          />
+
+          <Text variant="muted" className="text-sm">
+            {statusLabel}
+          </Text>
+
+          <View className="w-full gap-2 rounded-2xl border border-line bg-surface-up p-4">
+            <Text className="font-body-medium text-xs uppercase tracking-wide text-muted">
+              {t("payment.copyPasteLabel")}
+            </Text>
+            <Text className="font-body text-xs text-ink" numberOfLines={3} selectable>
+              {charge.brCode}
+            </Text>
+          </View>
+
+          <Button
+            testID="payment-copy"
+            variant="secondary"
+            onPress={() => void copyCode()}
+            className="self-stretch"
+          >
+            {copied ? t("payment.copied") : t("payment.copy")}
+          </Button>
+        </View>
+      ) : null}
+    </Sheet>
+  );
+}
