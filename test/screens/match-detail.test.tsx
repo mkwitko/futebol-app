@@ -151,10 +151,12 @@ describe("Detalhe da pelada", () => {
     renderWithProviders(<MatchDetailScreen />);
 
     await waitFor(() => {
-      expect(screen.getByTestId("match-invite-cta")).toBeOnTheScreen();
+      expect(screen.getByTestId("match-actions-cta")).toBeOnTheScreen();
     });
 
-    await user.press(screen.getByTestId("match-invite-cta"));
+    // Ações do organizador agora ficam num bottom sheet — abre o menu primeiro.
+    await user.press(screen.getByTestId("match-actions-cta"));
+    await user.press(await screen.findByTestId("match-invite-cta"));
     expect(await screen.findByText("Convidar para o futebol")).toBeOnTheScreen();
 
     await user.press(screen.getByTestId("invite-share-cta"));
