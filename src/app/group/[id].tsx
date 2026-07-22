@@ -305,6 +305,8 @@ export default function GroupDetailScreen() {
       <GroupSettingsSheet
         visible={settingsVisible}
         onClose={() => setSettingsVisible(false)}
+        groupId={id}
+        wooviPixKey={groupQuery.data?.wooviPixKey ?? null}
         groupName={groupQuery.data?.name}
         monthlyFeeCents={groupQuery.data?.monthlyFeeCents}
         onSaveFee={handleSaveFee}

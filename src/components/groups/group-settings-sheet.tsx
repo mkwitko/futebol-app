@@ -66,7 +66,17 @@ export function GroupSettingsSheet({
   const paymentsEnabled = usePaymentsEnabled();
   const toast = useToast();
   const createSubaccount = useCreateGroupSubaccount(groupId ?? "");
+  // Rascunho re-semeado do valor persistido via o padrão
+  // adjust-state-during-render (sem effect): quando a identidade de
+  // `wooviPixKey` muda (chegada assíncrona da query do grupo), reseta o
+  // rascunho — sem isso, um `wooviPixKey` que chega depois do mount nunca
+  // preenche o campo.
   const [pixKeyInput, setPixKeyInput] = useState(wooviPixKey ?? "");
+  const [pixKeySeededFrom, setPixKeySeededFrom] = useState<string | null | undefined>(wooviPixKey);
+  if (wooviPixKey !== pixKeySeededFrom) {
+    setPixKeySeededFrom(wooviPixKey);
+    setPixKeyInput(wooviPixKey ?? "");
+  }
 
   const handleSavePixKey = async () => {
     if (!groupId) return;
